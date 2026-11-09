@@ -982,8 +982,8 @@ require([
 
   /* ---------- Operational map tools: prefer native ArcGIS widgets ---------- */
   const expandGroup = "sar-map-tools";
-  function addNativeExpand(content, tooltip, position){
-    const expand = new Expand({view, content, group:expandGroup, expandTooltip:tooltip, collapseTooltip:"Close " + tooltip});
+  function addNativeExpand(content, tooltip, position, icon){
+    const expand = new Expand({view, content, group:expandGroup, expandTooltip:tooltip, collapseTooltip:"Close " + tooltip, ...(icon ? {expandIcon:icon} : {})});
     view.ui.add(expand, position || "top-left"); return expand;
   }
   view.ui.add($("mapTools"), "bottom-right");
@@ -994,7 +994,7 @@ require([
   layerBody.style.cssText = "width:340px;max-height:72vh;overflow:auto;background:var(--calcite-color-foreground-1)";
   layerBody.innerHTML = '<div style="padding:12px;background:var(--calcite-color-foreground-2);border-bottom:1px solid var(--calcite-color-border-2)"><strong>ArcGIS Living Atlas context</strong><p style="margin:4px 0 10px;color:var(--calcite-color-text-2);font-size:12px">Adds authoritative land cover, hydrography, weather, wildfire and hillshade layers. They load turned off; enable only what supports the current incident.</p><calcite-button id="loadLivingAtlas" appearance="outline-fill" width="full" icon-start="layers">Load 5 context layers</calcite-button><div id="livingAtlasStatus" aria-live="polite" style="margin-top:6px;font-size:11px;color:var(--calcite-color-text-3)">World Elevation is already used by the terrain model.</div></div><div id="opsLayerList"></div>';
   new LayerList({view, container:layerBody.querySelector("#opsLayerList")});
-  addNativeExpand(layerBody, "Layers and Living Atlas");
+  addNativeExpand(layerBody, "Layers and Living Atlas", "top-left", "layers");
   addNativeExpand(new Legend({view}), "Legend");
   const livingAtlasLoaded = new Set(), livingAtlasPortal = new Portal({url:"https://www.arcgis.com"});
   layerBody.querySelector("#loadLivingAtlas").onclick = async e => {
@@ -1050,7 +1050,7 @@ require([
   const printWidget = new Print({view, printServiceUrl:"https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export Web Map Task"});
   addNativeExpand(printWidget, "Print map");
   $("mapToolHelp").hidden = false;
-  addNativeExpand($("mapToolHelp"), "Operational map help");
+  addNativeExpand($("mapToolHelp"), "Operational map help", "top-left", "question");
 
   // Import GeoJSON directly, or parse common GPX waypoint/route/track geometry.
   $("toolImport").onclick = () => $("mapFile").click();
