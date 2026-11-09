@@ -1,0 +1,10 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+# Never commit keys or licensed statistics
+*.key
+secrets*.json
+data/*licensed*
+data/isrid*

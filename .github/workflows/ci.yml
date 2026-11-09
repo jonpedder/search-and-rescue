@@ -1,0 +1,24 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Model tests
+        run: npm test
+      - name: Python syntax check
+        run: python -m py_compile scripts/provision_sar_schema.py scripts/embed_seed.py
+      - name: Embedded seed data is in sync with data/*.csv
+        run: |
+          python scripts/embed_seed.py
+          git diff --exit-code app/index.html

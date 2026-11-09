@@ -1,0 +1,1266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAR Planning Workbench</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#17252d; --ink-soft:#4a5c66; --paper:#f2f4f5; --panel:#ffffff; --line:#cfd8dc;
+  --accent:#e8590c; --accent-dark:#b94709; --teal:#14657e; --warn:#b42318; --warn-bg:#fdecea;
+  --ok:#1b6b3a; --ok-bg:#e6f4ea; --note-bg:#eef4f7;
+  --poa1:#ffeea8; --poa2:#fdb863; --poa3:#f1743a; --poa4:#c2362f; --poa5:#6e1146;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper);font-size:15px;line-height:1.45}
+#app{display:grid;grid-template-columns:minmax(340px,430px) 1fr;height:100%}
+#panel{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#panel header{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+#panel h1{font-size:19px;margin:0;font-weight:700}
+#panel .sub{margin:2px 0 0;color:var(--ink-soft);font-size:13px}
+#tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+#tabs button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;font:inherit;font-weight:700;color:var(--ink-soft);cursor:pointer}
+#tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.pane{display:none;overflow:auto;padding:14px 16px 24px;flex:1;min-height:0}
+.pane.active{display:block}
+#panel footer{padding:8px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-soft)}
+h2{font-size:15px;margin:18px 0 6px}
+h2:first-child{margin-top:0}
+label{display:block;font-weight:700;font-size:13px;margin:10px 0 3px}
+input,select,button{font:inherit}
+input[type=text],input[type=number],input[type=datetime-local],select{width:100%;padding:7px 8px;border:1px solid #9fb0b8;border-radius:4px;background:#fff;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
+.btn{padding:8px 12px;border:1px solid #9fb0b8;background:#fff;border-radius:4px;cursor:pointer;font-weight:700;color:var(--ink)}
+.btn:hover{background:#eef2f4}
+.btn.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff}
+.btn.primary:hover{background:var(--accent-dark)}
+.btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.small{padding:4px 8px;font-size:13px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.hint{font-size:12.5px;color:var(--ink-soft);margin:3px 0 0}
+.box{border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:12px 0;background:var(--note-bg)}
+.box.warn{background:var(--warn-bg);border-color:#e6a8a1;color:#5c120c}
+.box.ok{background:var(--ok-bg);border-color:#a8d5b4}
+.box ul{margin:4px 0 0;padding-left:18px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12.5px;color:var(--ink-soft)}
+tbody tr.seg{cursor:pointer}
+tbody tr.seg:hover{background:#fff4ec}
+td input[type=number]{width:62px;padding:3px 4px;text-align:right}
+.scen td{padding:3px 3px}
+.scen input{padding:4px 5px}
+.slider-line{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:10px}
+.layers label{display:flex;gap:8px;align-items:center;font-weight:400;margin:5px 0}
+.swatches{display:flex;height:10px;border-radius:2px;overflow:hidden;margin-top:4px}
+.swatches i{flex:1}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 14px;border-radius:6px;font-size:14px;max-width:80vw;display:none;z-index:50}
+#toast.err{background:var(--warn)}
+svg text{font-family:inherit}
+@media (max-width:860px){
+  #app{grid-template-columns:1fr;grid-template-rows:55vh 45vh}
+  #panel{order:2;border-right:0;border-top:1px solid var(--line)}
+  main{order:1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+main{min-width:0;min-height:0}
+#viewDiv{width:100%;height:100%}
+</style>
+</head>
+<body>
+<div id="app">
+<aside id="panel">
+  <header>
+    <h1>SAR planning workbench</h1>
+    <p class="sub">Lost person behavior and probability of area</p>
+  </header>
+  <nav id="tabs" role="tablist" aria-label="Workbench sections">
+    <button role="tab" aria-selected="true" data-tab="incident">Incident</button>
+    <button role="tab" aria-selected="false" data-tab="subject">Subject</button>
+    <button role="tab" aria-selected="false" data-tab="model">Model</button>
+    <button role="tab" aria-selected="false" data-tab="segments">Segments</button>
+    <button role="tab" aria-selected="false" data-tab="survival">Survival</button>
+  </nav>
+
+  <!-- INCIDENT -->
+  <section id="tab-incident" class="pane active" role="tabpanel">
+    <h2>Incident</h2>
+    <label for="incName">Incident name</label>
+    <input type="text" id="incName" placeholder="e.g. Hastings Creek overdue hiker">
+
+    <h2>Initial planning point (IPP)</h2>
+    <div class="row">
+      <div><label for="lat">Latitude</label><input type="number" id="lat" step="0.00001" placeholder="34.14"></div>
+      <div><label for="lon">Longitude</label><input type="number" id="lon" step="0.00001" placeholder="-118.03"></div>
+    </div>
+    <div class="btns">
+      <button class="btn" id="pickIPP">Pick IPP on map</button>
+      <button class="btn" id="applyIPP">Place IPP from coordinates</button>
+    </div>
+    <p class="hint">The IPP is the axle of the bicycle wheel model. It is your last known point or place last seen, whichever your investigation supports.</p>
+
+    <label for="lastSeen">Last seen</label>
+    <div class="row">
+      <input type="datetime-local" id="lastSeen">
+      <button class="btn small" id="lastSeenNow" style="flex:0 0 auto">Set to now</button>
+    </div>
+
+    <h2>Scenarios</h2>
+    <p class="hint">Each scenario gets its own probability surface. They are blended by the probabilities you assign. Give a bearing only where you have a believed direction of travel (degrees true).</p>
+    <table class="scen" id="scenTable">
+      <thead><tr><th>Name</th><th>Prob %</th><th>Bearing</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="btns"><button class="btn small" id="addScen">Add scenario</button></div>
+  </section>
+
+  <!-- SUBJECT -->
+  <section id="tab-subject" class="pane" role="tabpanel">
+    <h2>Subject profile</h2>
+    <label for="category">Category</label>
+    <select id="category"></select>
+    <p class="hint">Choose the highest applicable level: external forces, then wheels, then cognitive condition, then child age band, then activity.</p>
+    <div class="row">
+      <div><label for="age">Age</label><input type="number" id="age" min="0" max="120"></div>
+      <div><label for="sex">Sex</label><select id="sex"><option value="">Unknown</option><option>F</option><option>M</option></select></div>
+    </div>
+    <div class="row">
+      <div><label for="domain">Environment</label>
+        <select id="domain"><option>Temperate</option><option>Dry</option><option>Urban</option></select></div>
+      <div><label for="terrain">Terrain</label>
+        <select id="terrain"><option>Mountainous</option><option>Flat</option></select></div>
+    </div>
+    <div class="row">
+      <div><label for="season">Season</label><select id="season"><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option></select></div>
+      <div><label for="light">Light</label><select id="light"><option>Day</option><option>Night</option><option>Twilight</option></select></div>
+    </div>
+    <p class="hint">Category, environment and terrain drive the statistics lookup. The other fields are recorded with the incident and not yet used by the lookup.</p>
+
+    <h2>Matched statistics</h2>
+    <div id="statBox"></div>
+
+    <h2>Statistics source</h2>
+    <p class="hint">The built-in rows are a short seed set. Load your licensed table (same columns as lpb_stats_seed.csv) to replace it.</p>
+    <div class="btns">
+      <label class="btn small" style="margin:0;font-weight:700">Load stats CSV<input type="file" id="statsFile" accept=".csv" hidden></label>
+      <label class="btn small" style="margin:0;font-weight:700">Load survival CSV<input type="file" id="survFile" accept=".csv" hidden></label>
+    </div>
+    <p class="hint" id="statsCount"></p>
+  </section>
+
+  <!-- MODEL -->
+  <section id="tab-model" class="pane" role="tabpanel">
+    <h2>Model layers</h2>
+    <p class="hint">The probability surface is a weighted sum of normalized layers. A layer with no data for this subject is skipped and the others are renormalized.</p>
+    <div class="slider-line"><span>Distance rings</span><span id="wRingV">30</span></div>
+    <input type="range" id="wRing" min="0" max="100" value="30" aria-label="Distance rings weight">
+    <div class="slider-line"><span>Direction sectors</span><span id="wSectorV">20</span></div>
+    <input type="range" id="wSector" min="0" max="100" value="20" aria-label="Direction sectors weight">
+    <div class="slider-line"><span>Linear features</span><span id="wLinearV">20</span></div>
+    <input type="range" id="wLinear" min="0" max="100" value="20" aria-label="Linear features weight">
+
+    <label for="extent">Search area extends to</label>
+    <select id="extent">
+      <option value="1">50% distance ring</option>
+      <option value="2" selected>75% distance ring</option>
+      <option value="3">95% distance ring</option>
+    </select>
+    <p class="hint">A smaller area gives finer segments where probability is highest. Probability outside it is left out.</p>
+    <div class="slider-line"><span>Terrain travel time (DEM)</span><span id="wTerrainV">40</span></div>
+    <input type="range" id="wTerrain" min="0" max="100" value="40" aria-label="Terrain travel time weight">
+    <div class="slider-line"><span>Elevation bias (DEM)</span><span id="wElevV">20</span></div>
+    <input type="range" id="wElev" min="0" max="100" value="20" aria-label="Elevation bias weight">
+    <div class="slider-line"><span>Grid cells across diameter</span><span id="resV">20</span></div>
+    <input type="range" id="res" min="10" max="32" value="20" aria-label="Grid resolution">
+    <p class="hint">Higher values give smaller segments and a slower run.</p>
+
+    <h2>Terrain (elevation model)</h2>
+    <p class="hint">Samples a DEM across the search area, computes hiking travel time from the IPP with the Tobler function (slope-dependent, uphill slower than gentle downhill), and scores each segment by terrain-adjusted distance.</p>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" id="useDem" checked> Use elevation data</label>
+    <label for="demUrl">Elevation service URL</label>
+    <input type="text" id="demUrl" placeholder="Default: Esri World Elevation (Terrain3D)">
+    <div class="row">
+      <div><label for="demN">DEM grid cells across</label><input type="number" id="demN" min="40" max="160" step="10" value="100"></div>
+      <div><label for="maxSlope">Impassable slope (deg)</label><input type="number" id="maxSlope" min="20" max="80" step="5" value="50"></div>
+    </div>
+    <p class="hint">At 100 cells and a 4 km radius the DEM spacing is about 80 m. More cells means finer terrain and more requests.</p>
+
+    <h2>Linear features</h2>
+    <p class="hint">Trails, roads and drainages that subjects follow. Draw them or pull them from a line layer.</p>
+    <div class="btns">
+      <button class="btn" id="drawTrails">Draw lines on map</button>
+      <button class="btn" id="clearTrails">Clear lines</button>
+    </div>
+    <label for="lineUrl">Line layer URL</label>
+    <div class="row">
+      <input type="text" id="lineUrl" placeholder="https://services.arcgis.com/.../FeatureServer/0">
+      <button class="btn small" id="loadLines" style="flex:0 0 auto">Load lines</button>
+    </div>
+    <p class="hint" id="lineCount">No linear features loaded.</p>
+
+    <div class="btns"><button class="btn primary" id="runModel">Run model</button></div>
+
+    <h2>Map layers</h2>
+    <div class="layers" id="layerToggles">
+      <label><input type="checkbox" data-layer="seg" checked> Search segments</label>
+      <label><input type="checkbox" data-layer="ring" checked> Distance rings</label>
+      <label><input type="checkbox" data-layer="sector" checked> Direction sectors</label>
+      <label><input type="checkbox" data-layer="trail" checked> Linear features</label>
+      <label><input type="checkbox" data-layer="relief" checked> Terrain relief</label>
+      <label><input type="checkbox" data-layer="travel"> Travel time from IPP</label>
+    </div>
+    <label for="basemap">Basemap</label>
+    <select id="basemap">
+      <option value="topo-vector">Topographic</option>
+      <option value="hybrid">Imagery with labels</option>
+      <option value="satellite">Imagery</option>
+      <option value="streets-vector">Streets</option>
+      <option value="osm">OpenStreetMap</option>
+    </select>
+    <div id="runNotes"></div>
+  </section>
+
+  <!-- SEGMENTS -->
+  <section id="tab-segments" class="pane" role="tabpanel">
+    <h2>Segments ranked by probability of area</h2>
+    <div id="segSummary" class="hint">Run the model to generate segments.</div>
+    <div class="swatches" aria-hidden="true"><i style="background:var(--poa1)"></i><i style="background:var(--poa2)"></i><i style="background:var(--poa3)"></i><i style="background:var(--poa4)"></i><i style="background:var(--poa5)"></i></div>
+    <p class="hint">Enter the probability of detection (POD) for segments searched, then apply. Remaining POA is redistributed.</p>
+    <table id="segTable">
+      <thead><tr><th>Seg</th><th>POA %</th><th>km²</th><th>POD %</th><th>POS %</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="btns">
+      <button class="btn primary" id="applyPOD">Apply search results</button>
+      <button class="btn" id="exportCSV">Export CSV</button>
+      <button class="btn" id="exportGeo">Export GeoJSON</button>
+      <button class="btn" id="saveAGOL">Save to ArcGIS Online</button>
+    </div>
+    <p class="hint" id="cumPOS"></p>
+  </section>
+
+  <!-- SURVIVAL -->
+  <section id="tab-survival" class="pane" role="tabpanel">
+    <h2>Survivability over time</h2>
+    <div id="survBox"></div>
+    <div id="survChart"></div>
+    <p class="hint">Survival is a time-decay fit by subject category and does not account for weather, injury or clothing. Treat it as one input to urgency, not a limit on effort.</p>
+  </section>
+
+  <footer>Decision support for trained SAR personnel. Review every output against field information.</footer>
+</aside>
+<main><div id="viewDiv"></div></main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ============ Statistics seed (injected at build) ============ -->
+<script id="seed-stats" type="text/plain">source,category,subcategory,domain,terrain,n,dist_km_25,dist_km_50,dist_km_75,dist_km_95,uphill_pct,downhill_pct,same_pct,disp_deg_25,disp_deg_50,disp_deg_75,disp_deg_95,track_m_25,track_m_50,track_m_75,track_m_max,mobility_hr_50,notes
+DECK_SLIDE_20,Dementia,,Temperate,Mountainous,95,0.3,0.8,1.9,8.3,19,42,39,11,23,66,70,4,15,71,307,0.25,"Transcribed from Koester LPB 2023 deck slide 20. Verify against licensed ISRID/LPB tables. Track-offset table is not split by domain in the source; applied to all Dementia strata."
+DECK_SLIDE_20,Dementia,,Temperate,Flat,175,0.3,1.0,2.4,12.8,19,42,39,11,23,66,70,4,15,71,307,0.25,"Transcribed from deck slide 20. Dispersion angle in source is Temperate only (n=11)."
+DECK_SLIDE_20,Dementia,,Dry,Mountainous,14,1.0,1.9,3.1,6.1,50,38,13,,,,,4,15,71,307,,"Transcribed from deck slide 20. Very small sample (n=14)."
+DECK_SLIDE_20,Dementia,,Dry,Flat,15,0.5,1.6,3.6,11.8,50,38,13,,,,,4,15,71,307,,"Transcribed from deck slide 20. Very small sample (n=15)."
+DECK_SLIDE_20,Dementia,,Urban,Any,336,0.3,1.1,3.2,12.6,,,,,,,,4,15,71,307,,"Transcribed from deck slide 20."
+PLACEHOLDER_TEST,Hiker,,Temperate,Mountainous,999,0.5,1.0,2.0,4.0,,,,15,30,60,90,5,20,80,400,,"SYNTHETIC test row. Not real data. Replace with licensed ISRID/LPB values."
+PLACEHOLDER_TEST,Child 7-9,,Temperate,Mountainous,999,0.3,0.6,1.2,2.5,,,,20,40,70,100,5,20,80,300,,"SYNTHETIC test row. Not real data. Replace with licensed ISRID/LPB values."</script>
+<script id="seed-surv" type="text/plain">category,a,b,source
+Dementia,1.0042,0.264,"DECK_SLIDE_28 exponential fit P=a*exp(-b*days), R2=0.9974. Verify against licensed source."</script>
+
+<!-- ============ Pure model code (tested in Node) ============ -->
+<script id="lpb-model">
+const LPB = (function(){
+  const R = 6371008.8;
+  const rad = d => d*Math.PI/180, deg = r => r*180/Math.PI;
+  const M_LAT = 111320;
+
+  function destPoint(lat, lon, brg, dist){
+    const d = dist/R, t = rad(brg), p1 = rad(lat), l1 = rad(lon);
+    const p2 = Math.asin(Math.sin(p1)*Math.cos(d) + Math.cos(p1)*Math.sin(d)*Math.cos(t));
+    const l2 = l1 + Math.atan2(Math.sin(t)*Math.sin(d)*Math.cos(p1), Math.cos(d) - Math.sin(p1)*Math.sin(p2));
+    return [((deg(l2)+540)%360)-180, deg(p2)];
+  }
+  function circleRing(lat, lon, r, n){
+    n = n || 96; const pts = [];
+    for(let i=0;i<=n;i++) pts.push(destPoint(lat, lon, 360*i/n, r));
+    return pts;
+  }
+  function sectorRing(lat, lon, r, brg, half, n){
+    if(half >= 180) return circleRing(lat, lon, r);
+    n = n || 40; const pts = [[lon, lat]];
+    for(let i=0;i<=n;i++) pts.push(destPoint(lat, lon, brg - half + 2*half*i/n, r));
+    pts.push([lon, lat]);
+    return pts;
+  }
+
+  /* ---- CSV ---- */
+  function parseCSV(text){
+    const rows = []; let row = [], cur = "", q = false;
+    for(let i=0;i<text.length;i++){
+      const c = text[i];
+      if(q){
+        if(c === '"'){ if(text[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+        else cur += c;
+      } else if(c === '"') q = true;
+      else if(c === ','){ row.push(cur); cur = ""; }
+      else if(c === '\n' || c === '\r'){
+        if(c === '\r' && text[i+1] === '\n') i++;
+        row.push(cur); cur = "";
+        if(row.some(x => x !== "")) rows.push(row);
+        row = [];
+      } else cur += c;
+    }
+    if(cur !== "" || row.length){ row.push(cur); if(row.some(x => x !== "")) rows.push(row); }
+    if(!rows.length) return [];
+    const head = rows.shift().map(h => h.trim());
+    return rows.map(r => { const o = {}; head.forEach((h,i) => o[h] = (r[i] === undefined ? "" : r[i]).trim()); return o; });
+  }
+  const num = v => (v === "" || v == null || isNaN(+v)) ? null : +v;
+  const quad = (o, p, suf) => suf.map(s => num(o[p+s]));
+  const allSet = a => a.every(v => v != null);
+
+  function normStats(rows){
+    return rows.map(o => {
+      const dist = quad(o, "dist_km_", ["25","50","75","95"]);
+      const disp = quad(o, "disp_deg_", ["25","50","75","95"]);
+      const track = quad(o, "track_m_", ["25","50","75","max"]);
+      return {
+        source: o.source || "", category: o.category, subcategory: o.subcategory || "",
+        domain: o.domain, terrain: o.terrain || "Any", n: num(o.n),
+        dist: allSet(dist) ? dist : null, disp: allSet(disp) ? disp : null, track: allSet(track) ? track : null,
+        uphill: num(o.uphill_pct), downhill: num(o.downhill_pct), same: num(o.same_pct),
+        mobility50: num(o.mobility_hr_50), notes: o.notes || ""
+      };
+    }).filter(r => r.category && r.domain);
+  }
+  function normSurv(rows){
+    return rows.map(o => ({category:o.category, a:num(o.a), b:num(o.b), source:o.source||""})).filter(r => r.category && r.a != null && r.b != null);
+  }
+
+  /* ---- stats lookup with fallback ---- */
+  function matchStats(stats, p){
+    const effTerrain = p.domain === "Urban" ? "Any" : p.terrain;
+    const tiers = [
+      [s => s.category===p.category && s.domain===p.domain && s.terrain===effTerrain, "exact stratum"],
+      [s => s.category===p.category && s.domain===p.domain && s.terrain==="Any", "same environment, any terrain"],
+      [s => s.category===p.category && s.domain===p.domain, "same environment, different terrain"],
+      [s => s.category===p.category, "same category, different environment"]
+    ];
+    for(let t=0;t<tiers.length;t++){
+      const c = stats.filter(tiers[t][0]).filter(s => s.dist);
+      if(c.length){
+        c.sort((a,b) => (b.n||0)-(a.n||0));
+        const row = c[0], warnings = [];
+        if(t > 0) warnings.push("No exact match for this environment and terrain. Using " + tiers[t][1] + ": " + row.domain + " / " + row.terrain + ".");
+        if(row.n != null && row.n < 30) warnings.push("Small sample (n=" + row.n + "). Treat the rings as rough.");
+        if(/PLACEHOLDER/i.test(row.source)) warnings.push("TEST DATA: this row is synthetic. Do not use it operationally.");
+        return {row, tier:t, tierLabel:tiers[t][1], warnings};
+      }
+    }
+    return null;
+  }
+
+  /* ---- banded densities ---- */
+  const mono = a => { const out = []; a.forEach((v,i) => out.push(Math.max(v, i ? out[i-1] : 0))); return out; };
+  function makeBands(edges, masses){
+    edges = mono(edges);
+    const bands = []; let carry = 0;
+    for(let i=0;i<masses.length;i++){
+      const lo = edges[i], hi = edges[i+1];
+      if(hi - lo <= 1e-9){ carry += masses[i]; continue; }
+      bands.push({lo, hi, mass: masses[i] + carry}); carry = 0;
+    }
+    if(carry && bands.length) bands[bands.length-1].mass += carry;
+    return bands;
+  }
+  function findBand(x, bands){
+    for(const b of bands) if(x >= b.lo && x < b.hi) return b;
+    const last = bands[bands.length-1];
+    return (last && x === last.hi) ? last : null;
+  }
+
+  /* ---- grid ---- */
+  function buildGrid(lat0, lon0, rMax, n){
+    const size = 2*rMax/n, mLon = M_LAT*Math.cos(rad(lat0));
+    const ll = (x,y) => [lon0 + x/mLon, lat0 + y/M_LAT];
+    const cells = []; let idx = 0;
+    for(let j=0;j<n;j++) for(let i=0;i<n;i++){
+      const cx = -rMax + (i+0.5)*size, cy = -rMax + (j+0.5)*size;
+      if(Math.hypot(cx, cy) > rMax) continue;
+      idx++;
+      const x0 = cx-size/2, x1 = cx+size/2, y0 = cy-size/2, y1 = cy+size/2;
+      cells.push({
+        id: "S" + String(idx).padStart(3, "0"), cx, cy, size, areaKm2: size*size/1e6,
+        distKm: Math.hypot(cx, cy)/1000,
+        ring: [ll(x0,y0), ll(x1,y0), ll(x1,y1), ll(x0,y1), ll(x0,y0)], center: ll(cx, cy)
+      });
+    }
+    return {cells, size};
+  }
+
+  function samples(cell, k){
+    const out = [];
+    for(let a=0;a<k;a++) for(let b=0;b<k;b++)
+      out.push([cell.cx + ((a+0.5)/k - 0.5)*cell.size, cell.cy + ((b+0.5)/k - 0.5)*cell.size]);
+    return out;
+  }
+  function ringScores(cells, bands, k){
+    return cells.map(c => {
+      let s = 0;
+      for(const [x,y] of samples(c,k)){
+        const b = findBand(Math.hypot(x,y), bands);
+        if(b) s += b.mass / (Math.PI*(b.hi*b.hi - b.lo*b.lo));
+      }
+      return s/(k*k);
+    });
+  }
+  function angDiff(a, b){ return Math.abs(((a - b + 540) % 360) - 180); }
+  function sectorScores(cells, bands, brg, k){
+    return cells.map(c => {
+      let s = 0;
+      for(const [x,y] of samples(c,k)){
+        const r = Math.hypot(x,y);
+        const dev = r < 1e-6 ? 0 : angDiff((deg(Math.atan2(x,y)) + 360) % 360, brg);
+        const b = findBand(dev, bands);
+        if(b) s += b.mass / (b.hi - b.lo);
+      }
+      return s/(k*k);
+    });
+  }
+  function localLinePoints(lines, lat0, lon0, step){
+    step = step || 50;
+    const mLon = M_LAT*Math.cos(rad(lat0)); const pts = [];
+    for(const line of lines){
+      let prev = null;
+      for(const [lo, la] of line){
+        const p = [(lo-lon0)*mLon, (la-lat0)*M_LAT];
+        if(prev){
+          const d = Math.hypot(p[0]-prev[0], p[1]-prev[1]), m = Math.floor(d/step);
+          for(let i=1;i<=m;i++) pts.push([prev[0] + (p[0]-prev[0])*i/(m+1), prev[1] + (p[1]-prev[1])*i/(m+1)]);
+        }
+        pts.push(p); prev = p;
+      }
+    }
+    return pts;
+  }
+  function linearScores(cells, pts, bands){
+    return cells.map(c => {
+      let dmin = Infinity;
+      for(const p of pts){ const d = Math.hypot(p[0]-c.cx, p[1]-c.cy); if(d < dmin) dmin = d; }
+      const eff = Math.max(0, dmin - c.size/2);
+      const b = findBand(eff, bands);
+      return b ? b.mass/(b.hi - b.lo) : 0;
+    });
+  }
+  function normalize(v){
+    const s = v.reduce((a,b) => a+b, 0);
+    return s > 0 ? v.map(x => x/s) : null;
+  }
+
+  /* ---- ensemble ---- */
+  function runModel(p){
+    const row = p.row, notes = [];
+    if(!row.dist) throw new Error("Selected statistics have no distance percentiles.");
+    const ei = (p.extentIdx == null) ? 3 : p.extentIdx;
+    const rMax = row.dist[ei]*1000;
+    const grid = buildGrid(p.lat, p.lon, rMax, p.n);
+    const cells = grid.cells, K = 3;
+
+    const ringMasses = [0.25, 0.25, 0.25, 0.20].slice(0, ei+1);
+    const ringBands = makeBands([0, ...row.dist.slice(0, ei+1).map(d => d*1000)], ringMasses);
+    const excluded = 1 - ringMasses.reduce((a,b) => a+b, 0);
+    const ringV = normalize(ringScores(cells, ringBands, K));
+
+    let linV = null;
+    if(p.lines && p.lines.length){
+      if(row.track){
+        const pts = localLinePoints(p.lines, p.lat, p.lon, 50);
+        const tb = makeBands([0, ...row.track], [0.25, 0.25, 0.25, 0.25]);
+        linV = normalize(linearScores(cells, pts, tb));
+      } else notes.push("Linear features were loaded but this stratum has no track-offset statistics, so that layer was skipped.");
+    }
+
+    const used = new Set(["ring"]);
+    // Terrain layers (need a DEM)
+    let terV = null, elvV = null, z0 = null;
+    const wT = (p.weights.terrain || 0), wE = (p.weights.elev || 0);
+    if(p.dem && p.dem.times){
+      const dm = p.dem, vflat = FLAT_KMH*1000;      // flat-ground metres per hour
+      z0 = sampleGrid(dm.z, dm.n, dm.rMax, 0, 0);
+      // Terrain-adjusted distance: score each point by the ring density at its flat-equivalent travel distance.
+      terV = normalize(cells.map(c => {
+        let s = 0;
+        for(const [x,y] of samples(c, K)){
+          const tt = sampleGrid(dm.times, dm.n, dm.rMax, x, y);
+          const b = isFinite(tt) ? findBand(tt*vflat, ringBands) : null;
+          if(b) s += b.mass / (Math.PI*(b.hi*b.hi - b.lo*b.lo));
+        }
+        return s/(K*K);
+      }));
+      if(!terV) notes.push("Terrain travel-time layer produced no reachable cells and was skipped. Check the maximum slope setting.");
+      else used.add("terrain");
+      if(row.uphill != null && row.downhill != null && row.same != null){
+        const tol = p.elevTol == null ? 10 : p.elevTol;
+        const cat = cells.map(c => { const dz = sampleGrid(dm.z, dm.n, dm.rMax, c.cx, c.cy) - z0; return dz > tol ? 0 : dz < -tol ? 1 : 2; });
+        const pct = [row.uphill, row.downhill, row.same], cnt = [0,0,0];
+        cat.forEach(k => cnt[k]++);
+        elvV = normalize(cat.map(k => cnt[k] ? pct[k]/cnt[k] : 0));
+        if(elvV) used.add("elev");
+      } else notes.push("This stratum has no uphill/downhill percentages, so the elevation-bias layer was skipped.");
+    }
+
+    const totalP = p.scenarios.reduce((a,s) => a + (s.prob||0), 0) || 1;
+    const combined = new Array(cells.length).fill(0), perScen = [];
+    if(linV) used.add("linear");
+    for(const sc of p.scenarios){
+      let secV = null;
+      if(sc.bearing != null && !isNaN(sc.bearing)){
+        if(row.disp){
+          const sb = makeBands([0, ...row.disp, 180], [0.25, 0.25, 0.25, 0.20, 0.05]);
+          secV = normalize(sectorScores(cells, sb, sc.bearing, K));
+          if(secV) used.add("sector");
+        } else notes.push("Scenario \"" + sc.name + "\" has a bearing but this stratum has no dispersion-angle statistics. Sector layer skipped.");
+      }
+      const layers = [[ringV, p.weights.ring], [secV, p.weights.sector], [linV, p.weights.linear], [terV, wT], [elvV, wE]].filter(l => l[0] && l[1] > 0);
+      let v;
+      if(!layers.length) v = ringV;
+      else {
+        const sw = layers.reduce((a,l) => a + l[1], 0);
+        v = cells.map((_, i) => layers.reduce((a,l) => a + l[0][i]*l[1]/sw, 0));
+        v = normalize(v);
+      }
+      perScen.push(v);
+      for(let i=0;i<cells.length;i++) combined[i] += v[i]*(sc.prob||0)/totalP;
+    }
+    const poa = normalize(combined);
+    notes.push("About " + Math.round(excluded*100) + "% of the distance distribution lies beyond the search area shown. Probabilities are renormalized to the area shown.");
+    return {cells, poa, perScen, rMaxM: rMax, cellSizeM: grid.size, notes, usedLayers: [...used], z0};
+  }
+
+  /* ---- DEM: nodes, sampling, cost-distance, relief ---- */
+  function demNodes(lat0, lon0, rMax, n){
+    const s = 2*rMax/n, mLon = M_LAT*Math.cos(rad(lat0)), points = [];
+    for(let j=0;j<n;j++) for(let i=0;i<n;i++){
+      const x = -rMax + (i+0.5)*s, y = -rMax + (j+0.5)*s;
+      points.push([lon0 + x/mLon, lat0 + y/M_LAT]);
+    }
+    return {n, spacing: s, rMax, points,
+      extent: {xmin: lon0 - rMax/mLon, xmax: lon0 + rMax/mLon, ymin: lat0 - rMax/M_LAT, ymax: lat0 + rMax/M_LAT}};
+  }
+  // Tobler hiking function, S = rise/run (signed, positive uphill). km/h.
+  const toblerKmh = S => 6*Math.exp(-3.5*Math.abs(S + 0.05));
+  const FLAT_KMH = toblerKmh(0);
+
+  function MinHeap(){ this.k = []; this.v = []; }
+  MinHeap.prototype.push = function(key, val){
+    const k = this.k, v = this.v; let i = k.length; k.push(key); v.push(val);
+    while(i > 0){ const p = (i-1)>>1; if(k[p] <= k[i]) break;
+      [k[p],k[i]] = [k[i],k[p]]; [v[p],v[i]] = [v[i],v[p]]; i = p; }
+  };
+  MinHeap.prototype.pop = function(){
+    const k = this.k, v = this.v, topK = k[0], topV = v[0], lastK = k.pop(), lastV = v.pop();
+    if(k.length){ k[0] = lastK; v[0] = lastV; let i = 0;
+      for(;;){ let l = 2*i+1, r = l+1, m = i;
+        if(l < k.length && k[l] < k[m]) m = l;
+        if(r < k.length && k[r] < k[m]) m = r;
+        if(m === i) break;
+        [k[m],k[i]] = [k[i],k[m]]; [v[m],v[i]] = [v[i],v[m]]; i = m; } }
+    return [topK, topV];
+  };
+  MinHeap.prototype.size = function(){ return this.k.length; };
+
+  // Anisotropic least-cost travel time (hours) from the IPP over an elevation grid.
+  // 16-neighbour Dijkstra, edge time from Tobler speed on the signed slope of each edge.
+  function costSurface(z, n, spacing, opts){
+    opts = opts || {};
+    const maxSlope = opts.maxSlopeDeg == null ? 50 : opts.maxSlopeDeg, fr = opts.friction || null;
+    const t = new Float64Array(n*n).fill(Infinity), done = new Uint8Array(n*n), heap = new MinHeap();
+    const c = Math.floor(n/2), rMax = spacing*n/2;
+    for(let j=c-1;j<=c+1;j++) for(let i=c-1;i<=c+1;i++){
+      if(i < 0 || j < 0 || i >= n || j >= n) continue;
+      const x = -rMax + (i+0.5)*spacing, y = -rMax + (j+0.5)*spacing, d = Math.hypot(x, y);
+      if(d <= spacing*0.75){ const tt = d/1000/FLAT_KMH, idx = j*n+i; t[idx] = tt; heap.push(tt, idx); }
+    }
+    const NB = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1],[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]];
+    while(heap.size()){
+      const [tc, a] = heap.pop(); if(done[a]) continue; done[a] = 1;
+      const ai = a % n, aj = (a - ai)/n;
+      for(const [di, dj] of NB){
+        const bi = ai+di, bj = aj+dj;
+        if(bi < 0 || bj < 0 || bi >= n || bj >= n) continue;
+        const b = bj*n+bi; if(done[b]) continue;
+        const d = spacing*Math.hypot(di, dj), dz = z[b]-z[a], S = dz/d;
+        if(Math.atan(Math.abs(S))*180/Math.PI > maxSlope) continue;
+        let tt = Math.hypot(d, dz)/1000/toblerKmh(S);
+        if(fr) tt *= (fr[a] + fr[b])/2;
+        const nt = tc + tt;
+        if(nt < t[b]){ t[b] = nt; heap.push(nt, b); }
+      }
+    }
+    return t;
+  }
+
+  // Bilinear lookup of a node grid at local metres (x east, y north of IPP). Infinity-safe.
+  function sampleGrid(arr, n, rMax, x, y){
+    const s = 2*rMax/n;
+    const fx = Math.max(0, Math.min(n-1, (x+rMax)/s - 0.5)), fy = Math.max(0, Math.min(n-1, (y+rMax)/s - 0.5));
+    const i0 = Math.floor(fx), j0 = Math.floor(fy), i1 = Math.min(n-1, i0+1), j1 = Math.min(n-1, j0+1);
+    const tx = fx-i0, ty = fy-j0;
+    const a = arr[j0*n+i0], b = arr[j0*n+i1], c = arr[j1*n+i0], d = arr[j1*n+i1];
+    if(!(isFinite(a) && isFinite(b) && isFinite(c) && isFinite(d))) return Infinity;
+    return a*(1-tx)*(1-ty) + b*tx*(1-ty) + c*(1-tx)*ty + d*tx*ty;
+  }
+
+  // Horn hillshade, 0..255. Row index increases northward.
+  function hillshade(z, n, s, az, alt){
+    az = rad(az == null ? 315 : az); alt = rad(alt == null ? 45 : alt);
+    const L = [Math.sin(az)*Math.cos(alt), Math.cos(az)*Math.cos(alt), Math.sin(alt)];
+    const g = (i, j) => z[Math.max(0, Math.min(n-1, j))*n + Math.max(0, Math.min(n-1, i))];
+    const out = new Uint8Array(n*n);
+    for(let j=0;j<n;j++) for(let i=0;i<n;i++){
+      const dx = ((g(i+1,j+1) + 2*g(i+1,j) + g(i+1,j-1)) - (g(i-1,j+1) + 2*g(i-1,j) + g(i-1,j-1)))/(8*s);
+      const dy = ((g(i-1,j+1) + 2*g(i,j+1) + g(i+1,j+1)) - (g(i-1,j-1) + 2*g(i,j-1) + g(i+1,j-1)))/(8*s);
+      const nn = Math.hypot(dx, dy, 1);
+      out[j*n+i] = Math.round(255*Math.max(0, (-dx*L[0] - dy*L[1] + L[2])/nn));
+    }
+    return out;
+  }
+
+  /* ---- POD / POS bookkeeping ---- */
+  function applyPOD(poa, pod){
+    const pos = poa.map((a,i) => a*(pod[i]||0));
+    const total = pos.reduce((a,b) => a+b, 0);
+    const rem = 1 - total;
+    const next = rem > 1e-12 ? poa.map((a,i) => a*(1-(pod[i]||0))/rem) : poa.slice();
+    return {pos, total, next};
+  }
+
+  /* ---- survival ---- */
+  const survival = (a, b, hours) => Math.max(0, Math.min(1, a*Math.exp(-b*hours/24)));
+
+  return {destPoint, circleRing, sectorRing, parseCSV, normStats, normSurv, matchStats, makeBands,
+          buildGrid, runModel, applyPOD, survival, angDiff, localLinePoints,
+          demNodes, costSurface, sampleGrid, hillshade, toblerKmh, FLAT_KMH};
+})();
+if(typeof module !== "undefined") module.exports = LPB;
+</script>
+
+<!-- ============ Application ============ -->
+<script>
+/* ---------- Configuration ----------
+   Leave blank to run stand-alone. To save to ArcGIS Online, register an
+   application (OAuth 2.0, redirect URI = where you host this page) and paste the
+   service URLs printed by provision_sar_schema.py. */
+const CONFIG = {
+  portalUrl: "https://www.arcgis.com",
+  appId: "",
+  apiKey: "",
+  incidentLayerUrl: "",
+  segmentLayerUrl: "",
+  modelRunTableUrl: "",
+  demUrl: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer",
+  defaultCenter: [-118.03, 34.14],
+  defaultZoom: 10
+};
+
+const CATEGORY_GROUPS = [
+  ["External forces", ["Abduction","Aircraft","Urban Entrapment","Water"]],
+  ["Wheels and horse", ["ATV","Horseback","Motorcycle","Mountain Biker","Vehicle"]],
+  ["Cognitive", ["Autistic","Dementia","Despondent","Intellectual Disability","Mental Illness","Substance Intoxication"]],
+  ["Child by age", ["Child 1-3","Child 4-6","Child 7-9","Child 10-12","Child 13-15"]],
+  ["Activity", ["Angler","Camper","Caver","Climber","Gatherer","Hiker","Hunter","Runner","Skier-Alpine","Skier-Nordic","Snowboarder","Snowmobiler","Snowshoer","Worker","Other"]]
+];
+const POA_COLORS = [[255,238,168],[253,184,99],[241,116,58],[194,54,47],[110,17,70]];
+
+const state = {
+  stats: LPB.normStats(LPB.parseCSV(document.getElementById("seed-stats").textContent)),
+  surv: LPB.normSurv(LPB.parseCSV(document.getElementById("seed-surv").textContent)),
+  match: null, ipp: null,
+  scenarios: [{name:"Primary", prob:100, bearing:null}],
+  lines: [], run: null, segs: [], cumPOS: 0, runId: null,
+  incidentId: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()))
+};
+
+const $ = id => document.getElementById(id);
+function toast(msg, err){
+  const t = $("toast"); t.textContent = msg; t.className = err ? "err" : ""; t.style.display = "block";
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = "none", err ? 6000 : 3500);
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (v, d) => v == null ? "-" : (+v).toFixed(d == null ? 1 : d);
+const KM2MI = 0.621371;
+
+/* ---------- Tabs ---------- */
+function showTab(name){
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("active", p.id === "tab-" + name));
+}
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+
+/* ---------- Scenarios ---------- */
+function renderScenarios(){
+  const tb = document.querySelector("#scenTable tbody"); tb.innerHTML = "";
+  state.scenarios.forEach((s, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td><input type="text" data-k="name" value="' + esc(s.name) + '" aria-label="Scenario name"></td>' +
+      '<td><input type="number" data-k="prob" min="0" max="100" value="' + s.prob + '" style="width:62px" aria-label="Probability percent"></td>' +
+      '<td><input type="number" data-k="bearing" min="0" max="360" value="' + (s.bearing == null ? "" : s.bearing) + '" style="width:62px" aria-label="Bearing degrees"></td>' +
+      '<td><button class="btn small" data-del="' + i + '" aria-label="Remove scenario">Remove</button></td>';
+    tr.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
+      const k = inp.dataset.k;
+      s[k] = k === "name" ? inp.value : (inp.value === "" ? (k === "bearing" ? null : 0) : +inp.value);
+    }));
+    tr.querySelector("[data-del]").addEventListener("click", () => {
+      if(state.scenarios.length > 1){ state.scenarios.splice(i, 1); renderScenarios(); }
+      else toast("Keep at least one scenario.", true);
+    });
+    tb.appendChild(tr);
+  });
+}
+$("addScen").addEventListener("click", () => {
+  state.scenarios.push({name:"Scenario " + (state.scenarios.length+1), prob:0, bearing:null});
+  renderScenarios();
+});
+
+/* ---------- Subject & stats ---------- */
+function fillCategories(){
+  const sel = $("category"), cur = sel.value; sel.innerHTML = "";
+  const have = new Set(state.stats.map(s => s.category));
+  CATEGORY_GROUPS.forEach(([g, items]) => {
+    const og = document.createElement("optgroup"); og.label = g;
+    items.forEach(c => {
+      const o = document.createElement("option"); o.value = c;
+      o.textContent = c + (have.has(c) ? "" : " (no statistics loaded)");
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  const extra = [...have].filter(c => !CATEGORY_GROUPS.some(g => g[1].includes(c)));
+  if(extra.length){
+    const og = document.createElement("optgroup"); og.label = "Other loaded";
+    extra.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c; og.appendChild(o); });
+    sel.appendChild(og);
+  }
+  sel.value = cur && [...sel.options].some(o => o.value === cur) ? cur : "Dementia";
+  $("statsCount").textContent = state.stats.length + " statistics rows, " + state.surv.length + " survival curves loaded.";
+}
+function profile(){
+  return {category:$("category").value, domain:$("domain").value, terrain:$("terrain").value};
+}
+function renderStats(){
+  $("terrain").disabled = $("domain").value === "Urban";
+  const m = LPB.matchStats(state.stats, profile());
+  state.match = m;
+  const box = $("statBox");
+  if(!m){
+    box.innerHTML = '<div class="box warn">No statistics loaded for <b>' + esc($("category").value) +
+      '</b>. Load your licensed table on this tab, or pick another category.</div>';
+    return;
+  }
+  const r = m.row;
+  let h = "";
+  if(m.warnings.length) h += '<div class="box warn"><ul>' + m.warnings.map(w => "<li>" + esc(w) + "</li>").join("") + "</ul></div>";
+  h += '<div class="box ok"><b>' + esc(r.category) + "</b>, " + esc(r.domain) + ", " + esc(r.terrain) +
+       "<br>Sample size n = " + (r.n == null ? "unknown" : r.n) + ". Source: " + esc(r.source || "unspecified") + "</div>";
+  h += "<table><thead><tr><th>Distance from IPP</th><th>25%</th><th>50%</th><th>75%</th><th>95%</th></tr></thead><tbody>" +
+       "<tr><td>km</td>" + r.dist.map(d => "<td>" + fmt(d) + "</td>").join("") + "</tr>" +
+       "<tr><td>miles</td>" + r.dist.map(d => "<td>" + fmt(d*KM2MI) + "</td>").join("") + "</tr>";
+  if(r.disp) h += "<tr><td>Dispersion angle</td>" + r.disp.map(d => "<td>" + fmt(d,0) + "&deg;</td>").join("") + "</tr>";
+  if(r.track) h += "<tr><td>Track offset (m)</td>" + r.track.map(d => "<td>" + fmt(d,0) + "</td>").join("") + "</tr>";
+  h += "</tbody></table>";
+  if(r.uphill != null) h += '<p class="hint">Elevation change from IPP: uphill ' + r.uphill + "%, downhill " + r.downhill + "%, same " + r.same + "%. Shown for planning, not yet modeled.</p>";
+  if(r.mobility50 != null) h += '<p class="hint">Median mobility time: ' + r.mobility50 + " h.</p>";
+  if(r.notes) h += '<p class="hint">' + esc(r.notes) + "</p>";
+  box.innerHTML = h;
+  updateSurvival();
+}
+["category","domain","terrain"].forEach(id => $(id).addEventListener("change", renderStats));
+
+function readFile(input, cb){
+  const f = input.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { try{ cb(String(rd.result)); } catch(e){ toast("Could not read file: " + e.message, true); } };
+  rd.readAsText(f); input.value = "";
+}
+$("statsFile").addEventListener("change", e => readFile(e.target, txt => {
+  const rows = LPB.normStats(LPB.parseCSV(txt));
+  if(!rows.length) throw new Error("no usable rows. Check column names against lpb_stats_seed.csv.");
+  state.stats = rows; fillCategories(); renderStats(); toast("Loaded " + rows.length + " statistics rows.");
+}));
+$("survFile").addEventListener("change", e => readFile(e.target, txt => {
+  const rows = LPB.normSurv(LPB.parseCSV(txt));
+  if(!rows.length) throw new Error("no usable rows. Expected columns: category,a,b,source.");
+  state.surv = rows; fillCategories(); updateSurvival(); toast("Loaded " + rows.length + " survival curves.");
+}));
+
+/* ---------- Survival ---------- */
+function elapsedHours(){
+  const v = $("lastSeen").value; if(!v) return null;
+  return (Date.now() - new Date(v).getTime())/3600000;
+}
+function updateSurvival(){
+  const cat = $("category").value, curve = state.surv.find(c => c.category === cat);
+  const hrs = elapsedHours(), box = $("survBox"), ch = $("survChart");
+  if(!curve){
+    box.innerHTML = '<div class="box">No survival curve is loaded for <b>' + esc(cat) + "</b>.</div>"; ch.innerHTML = ""; return;
+  }
+  let h = '<div class="box">';
+  if(hrs == null) h += "Enter a last-seen time on the Incident tab to see elapsed time.";
+  else if(hrs < 0) h += "Last-seen time is in the future.";
+  else {
+    const p = LPB.survival(curve.a, curve.b, hrs);
+    const marks = [24,48,72,96], past = marks.filter(m => hrs >= m), next = marks.find(m => hrs < m);
+    h += "Elapsed <b>" + fmt(hrs) + " h</b>. Modeled survival probability <b>" + fmt(p*100, 0) + "%</b>.<br>" +
+         (past.length ? "Crossed: " + past.join(", ") + " h. " : "") + (next ? "Next threshold: " + next + " h in " + fmt(next - hrs) + " h." : "");
+  }
+  h += '<br><span class="hint">Curve: P = ' + curve.a + " e<sup>-" + curve.b + " &times; days</sup>. " + esc(curve.source) + "</span></div>";
+  box.innerHTML = h;
+
+  const W = 380, H = 210, L = 38, B = 28, T = 10, Rr = 10, maxD = 10;
+  const x = d => L + (W-L-Rr)*d/maxD, y = p => T + (H-T-B)*(1-p);
+  let path = "";
+  for(let i=0;i<=100;i++){ const d = maxD*i/100; path += (i ? "L" : "M") + x(d).toFixed(1) + "," + y(LPB.survival(curve.a, curve.b, d*24)).toFixed(1); }
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Survival probability by days since last seen">';
+  [0,0.25,0.5,0.75,1].forEach(p => s += '<line x1="'+L+'" x2="'+(W-Rr)+'" y1="'+y(p)+'" y2="'+y(p)+'" stroke="#dde4e7"/><text x="'+(L-5)+'" y="'+(y(p)+4)+'" font-size="11" text-anchor="end" fill="#4a5c66">'+Math.round(p*100)+'%</text>');
+  for(let d=0; d<=maxD; d+=2) s += '<text x="'+x(d)+'" y="'+(H-10)+'" font-size="11" text-anchor="middle" fill="#4a5c66">'+d+' d</text>';
+  [1,2,3,4].forEach(d => s += '<line x1="'+x(d)+'" x2="'+x(d)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#9fb0b8" stroke-dasharray="3 3"/>');
+  s += '<path d="' + path + '" fill="none" stroke="#14657e" stroke-width="2.5"/>';
+  if(hrs != null && hrs >= 0 && hrs/24 <= maxD){
+    const d = hrs/24;
+    s += '<line x1="'+x(d)+'" x2="'+x(d)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#e8590c" stroke-width="2"/>' +
+         '<circle cx="'+x(d)+'" cy="'+y(LPB.survival(curve.a, curve.b, hrs))+'" r="5" fill="#e8590c"/>';
+  }
+  ch.innerHTML = s + "</svg>";
+}
+$("lastSeen").addEventListener("input", updateSurvival);
+$("lastSeenNow").addEventListener("click", () => {
+  const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  $("lastSeen").value = d.toISOString().slice(0,16); updateSurvival();
+});
+setInterval(updateSurvival, 60000);
+
+/* ---------- Weights ---------- */
+[["wRing","wRingV"],["wSector","wSectorV"],["wLinear","wLinearV"],["wTerrain","wTerrainV"],["wElev","wElevV"],["res","resV"]].forEach(([a,b]) =>
+  $(a).addEventListener("input", () => $(b).textContent = $(a).value));
+
+/* ---------- Init static UI ---------- */
+renderScenarios(); fillCategories(); renderStats();
+</script>
+
+<script src="https://js.arcgis.com/4.31/"></script>
+<script>
+require([
+  "esri/config","esri/Map","esri/views/MapView","esri/Graphic","esri/layers/GraphicsLayer","esri/layers/FeatureLayer",
+  "esri/widgets/Search","esri/widgets/Sketch","esri/widgets/ScaleBar","esri/geometry/Extent",
+  "esri/geometry/support/webMercatorUtils","esri/identity/OAuthInfo","esri/identity/IdentityManager",
+  "esri/layers/ElevationLayer","esri/geometry/Multipoint","esri/layers/MediaLayer",
+  "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference"
+], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
+            webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference){
+
+  if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
+  if(CONFIG.appId){
+    esriId.registerOAuthInfos([new OAuthInfo({appId: CONFIG.appId, portalUrl: CONFIG.portalUrl, popup: true})]);
+  }
+
+  const layers = {
+    seg: new GraphicsLayer({title:"Search segments"}),
+    ring: new GraphicsLayer({title:"Distance rings"}),
+    sector: new GraphicsLayer({title:"Direction sectors"}),
+    trail: new GraphicsLayer({title:"Linear features"}),
+    label: new GraphicsLayer({title:"Segment ranks", listMode:"hide"}),
+    ipp: new GraphicsLayer({title:"IPP", listMode:"hide"}),
+    relief: null, travel: null
+  };
+  const vis = {relief:true, travel:false};
+  const map = new Map({basemap: "topo-vector", layers: [layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp]});
+  const view = new MapView({container:"viewDiv", map, center: CONFIG.defaultCenter, zoom: CONFIG.defaultZoom, constraints:{snapToZoom:false}});
+  view.ui.add(new Search({view}), "top-right");
+  view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
+
+  const sketch = new Sketch({view, layer: layers.trail, creationMode:"continuous", availableCreateTools:["polyline"],
+    visibleElements:{selectionTools:{"lasso-selection":false, "rectangle-selection":false}, settingsMenu:false}});
+  let sketching = false;
+  $("drawTrails").addEventListener("click", () => {
+    sketching = !sketching;
+    $("drawTrails").classList.toggle("on", sketching);
+    $("drawTrails").textContent = sketching ? "Finish drawing" : "Draw lines on map";
+    if(sketching){ view.ui.add(sketch, "top-left"); sketch.create("polyline"); }
+    else { sketch.cancel(); view.ui.remove(sketch); refreshLineCount(); }
+  });
+  sketch.on("create", e => { if(e.state === "complete"){ refreshLineCount(); sketch.create("polyline"); } });
+  sketch.on("update", () => refreshLineCount());
+  sketch.on("delete", () => refreshLineCount());
+
+  function geoPaths(geom){
+    const g = (geom.spatialReference && geom.spatialReference.isWebMercator) ? webMercatorUtils.webMercatorToGeographic(geom) : geom;
+    return g.paths.map(p => p.map(pt => [pt[0], pt[1]]));
+  }
+  function collectLines(){
+    const out = [];
+    layers.trail.graphics.forEach(g => { if(g.geometry && g.geometry.type === "polyline") out.push(...geoPaths(g.geometry)); });
+    return out;
+  }
+  function refreshLineCount(){
+    state.lines = collectLines();
+    $("lineCount").textContent = state.lines.length ? state.lines.length + " line segments loaded." : "No linear features loaded.";
+  }
+  $("clearTrails").addEventListener("click", () => { layers.trail.removeAll(); refreshLineCount(); });
+
+  const trailSymbol = {type:"simple-line", color:[20,101,126,0.95], width:2.5};
+  $("loadLines").addEventListener("click", async () => {
+    const url = $("lineUrl").value.trim();
+    if(!url){ toast("Enter a line layer URL.", true); return; }
+    if(!state.ipp){ toast("Place the IPP first so the query covers the search area.", true); return; }
+    if(!state.match){ toast("No statistics matched, so the search radius is unknown.", true); return; }
+    try{
+      const r = searchRadiusM(), c = state.ipp;
+      const a = LPB.destPoint(c.lat, c.lon, 0, r), b = LPB.destPoint(c.lat, c.lon, 90, r),
+            d = LPB.destPoint(c.lat, c.lon, 180, r), w = LPB.destPoint(c.lat, c.lon, 270, r);
+      const ext = new Extent({xmin:w[0], xmax:b[0], ymin:d[1], ymax:a[1], spatialReference:{wkid:4326}});
+      const fl = new FeatureLayer({url});
+      await fl.load();
+      if(fl.geometryType !== "polyline"){ toast("That layer is not a line layer.", true); return; }
+      const res = await fl.queryFeatures({geometry:ext, where:"1=1", returnGeometry:true, outFields:[], outSpatialReference:{wkid:4326}});
+      res.features.forEach(f => layers.trail.add(new Graphic({geometry:f.geometry, symbol:trailSymbol})));
+      refreshLineCount();
+      toast("Loaded " + res.features.length + " features." + (res.exceededTransferLimit ? " Transfer limit hit, some features were not returned." : ""));
+    }catch(e){ toast("Could not load lines: " + e.message, true); }
+  });
+
+  const extentIdx = () => +$("extent").value;
+  const searchRadiusM = () => state.match.row.dist[extentIdx()]*1000;
+
+  /* ---------- IPP ---------- */
+  let pickMode = false;
+  $("pickIPP").addEventListener("click", () => {
+    pickMode = !pickMode;
+    $("pickIPP").classList.toggle("on", pickMode);
+    $("pickIPP").textContent = pickMode ? "Click the map..." : "Pick IPP on map";
+    view.container.style.cursor = pickMode ? "crosshair" : "";
+  });
+  view.on("click", e => {
+    if(!pickMode) return;
+    e.stopPropagation();
+    const g = webMercatorUtils.webMercatorToGeographic(e.mapPoint);
+    setIPP(g.y, g.x);
+    $("pickIPP").click();
+  });
+  $("applyIPP").addEventListener("click", () => {
+    const la = parseFloat($("lat").value), lo = parseFloat($("lon").value);
+    if(isNaN(la) || isNaN(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180){ toast("Enter a valid latitude and longitude.", true); return; }
+    setIPP(la, lo); view.goTo({center:[lo, la], zoom: Math.max(view.zoom, 12)});
+  });
+  function setIPP(lat, lon){
+    state.ipp = {lat, lon};
+    $("lat").value = lat.toFixed(5); $("lon").value = lon.toFixed(5);
+    layers.ipp.removeAll();
+    layers.ipp.add(new Graphic({
+      geometry:{type:"point", longitude:lon, latitude:lat},
+      symbol:{type:"simple-marker", style:"diamond", color:[232,89,12], size:14, outline:{color:[255,255,255], width:2}},
+      popupTemplate:{title:"Initial planning point", content: lat.toFixed(5) + ", " + lon.toFixed(5)}
+    }));
+    if(state.run) toast("IPP moved. Run the model again to update segments.");
+  }
+
+  /* ---------- Layer toggles & basemap ---------- */
+  document.querySelectorAll("#layerToggles input").forEach(cb =>
+    cb.addEventListener("change", () => {
+      const k = cb.dataset.layer;
+      if(k in vis) vis[k] = cb.checked;
+      if(layers[k]) layers[k].visible = cb.checked;
+      if(k === "seg") layers.label.visible = cb.checked;
+    }));
+  $("basemap").addEventListener("change", e => map.basemap = e.target.value);
+
+  /* ---------- Run model ---------- */
+  const poly = (ring, symbol, attrs, popup) => new Graphic({geometry:{type:"polygon", rings:[ring], spatialReference:{wkid:4326}}, symbol, attributes:attrs, popupTemplate:popup});
+  const line = (ring, symbol) => new Graphic({geometry:{type:"polyline", paths:[ring], spatialReference:{wkid:4326}}, symbol});
+
+  $("runModel").addEventListener("click", () => {
+    if(!state.ipp){ toast("Place the IPP first.", true); showTab("incident"); return; }
+    if(!state.match){ toast("No statistics for this subject. See the Subject tab.", true); showTab("subject"); return; }
+    const btn = $("runModel"); btn.disabled = true; btn.textContent = "Running...";
+    runAndRender(btn)
+      .catch(e => { console.error(e); toast("Model failed: " + e.message, true); })
+      .finally(() => { btn.disabled = false; btn.textContent = "Run model"; });
+  });
+
+  /* ---------- DEM: fetch, cache, draw ---------- */
+  async function getDEM(lat, lon, rMax, n, btn){
+    const url = $("demUrl").value.trim() || CONFIG.demUrl;
+    const key = [lat.toFixed(5), lon.toFixed(5), Math.round(rMax), n, url].join("|");
+    if(state.dem && state.dem.key === key) return state.dem;
+    const layer = new ElevationLayer({url});
+    await layer.load();
+    const grid = LPB.demNodes(lat, lon, rMax, n);
+    const z = new Float64Array(n*n).fill(NaN), CH = 500, starts = [];
+    for(let s=0; s<grid.points.length; s+=CH) starts.push(s);
+    let next = 0, done = 0;
+    async function worker(){
+      while(next < starts.length){
+        const s = starts[next++];
+        const mp = new Multipoint({points: grid.points.slice(s, s+CH), spatialReference:{wkid:4326}});
+        let res;
+        try{ res = await layer.queryElevation(mp, {demResolution:"finest-contiguous", noDataValue:-9999}); }
+        catch(e){ res = await layer.queryElevation(mp, {demResolution:"auto", noDataValue:-9999}); }
+        res.geometry.points.forEach((q, k) => { z[s+k] = q[2]; });
+        done++; btn.textContent = "Elevation " + Math.round(100*done/starts.length) + "%";
+      }
+    }
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    let sum = 0, cnt = 0;
+    for(const v of z) if(isFinite(v) && v > -9000){ sum += v; cnt++; }
+    if(!cnt) throw new Error("the elevation service returned no values");
+    const mean = sum/cnt; let bad = 0;
+    for(let i=0;i<z.length;i++) if(!isFinite(z[i]) || z[i] <= -9000){ z[i] = mean; bad++; }
+    state.dem = {key, n, spacing: grid.spacing, rMax, z, extent: grid.extent, url, filled: bad};
+    return state.dem;
+  }
+
+  const TRAVEL_COLORS = [[20,101,126],[70,150,150],[150,190,120],[230,215,100],[240,150,70],[190,60,60]];
+  function rasterCanvas(n, pix){
+    const c = document.createElement("canvas"); c.width = n; c.height = n;
+    const g = c.getContext("2d"), im = g.createImageData(n, n);
+    for(let j=0;j<n;j++) for(let i=0;i<n;i++){
+      const p = pix(i, j), o = ((n-1-j)*n + i)*4;
+      im.data[o] = p[0]; im.data[o+1] = p[1]; im.data[o+2] = p[2]; im.data[o+3] = p[3];
+    }
+    g.putImageData(im, 0, 0);
+    const big = document.createElement("canvas"); big.width = n*4; big.height = n*4;
+    const bg = big.getContext("2d"); bg.imageSmoothingEnabled = true; bg.imageSmoothingQuality = "high";
+    bg.drawImage(c, 0, 0, big.width, big.height);
+    return big;
+  }
+  function mediaLayer(canvas, ext, title){
+    const el = new ImageElement({image: canvas, georeference: new ExtentAndRotationGeoreference({
+      extent: new Extent({xmin:ext.xmin, xmax:ext.xmax, ymin:ext.ymin, ymax:ext.ymax, spatialReference:{wkid:4326}})})});
+    return new MediaLayer({source:[el], title, opacity:1});
+  }
+  function drawDEMLayers(dem, times){
+    ["relief","travel"].forEach(k => { if(layers[k]){ map.remove(layers[k]); layers[k] = null; } });
+    const n = dem.n, s = dem.spacing, R = dem.rMax;
+    const inside = (i, j) => Math.hypot(-R + (i+0.5)*s, -R + (j+0.5)*s) <= R;
+    const shade = LPB.hillshade(dem.z, n, s);
+    layers.relief = mediaLayer(rasterCanvas(n, (i, j) => {
+      if(!inside(i, j)) return [0,0,0,0];
+      const v = shade[j*n+i]/255;
+      return v < 0.7 ? [0,0,0, Math.round(255*(0.7-v)/0.7*0.55)] : [255,255,255, Math.round(255*(v-0.7)/0.3*0.25)];
+    }), dem.extent, "Terrain relief");
+    const fin = Array.from(times).filter(isFinite).sort((a, b) => a-b);
+    const p95 = fin.length ? fin[Math.floor(fin.length*0.95)] : 1;
+    const steps = [0.25,0.5,1,1.5,2,3,4,6,8,12], want = p95/6;
+    const bandH = steps.find(x => x >= want) || steps[steps.length-1];
+    layers.travel = mediaLayer(rasterCanvas(n, (i, j) => {
+      if(!inside(i, j)) return [0,0,0,0];
+      const tt = times[j*n+i];
+      if(!isFinite(tt)) return [60,60,60,150];
+      const c = TRAVEL_COLORS[Math.min(5, Math.floor(tt/bandH))];
+      return [c[0], c[1], c[2], 110];
+    }), dem.extent, "Travel time from IPP");
+    layers.relief.visible = vis.relief; layers.travel.visible = vis.travel;
+    map.add(layers.travel, 0); map.add(layers.relief, 1);
+    return bandH;
+  }
+
+  async function runAndRender(btn){
+    refreshLineCount();
+    const row = state.match.row;
+    let demModel = null, demNotes = [], bandH = null;
+    if($("useDem").checked){
+      try{
+        const dem = await getDEM(state.ipp.lat, state.ipp.lon, searchRadiusM(), +$("demN").value, btn);
+        btn.textContent = "Computing travel time...";
+        await new Promise(r => setTimeout(r, 20));
+        const times = LPB.costSurface(dem.z, dem.n, dem.spacing, {maxSlopeDeg: +$("maxSlope").value});
+        demModel = {n: dem.n, rMax: dem.rMax, z: dem.z, times, spacing: dem.spacing};
+        bandH = drawDEMLayers(dem, times);
+        if(dem.filled) demNotes.push(dem.filled + " DEM cells had no data and were filled with the area mean elevation.");
+      }catch(e){
+        console.error(e);
+        ["relief","travel"].forEach(k => { if(layers[k]){ map.remove(layers[k]); layers[k] = null; } });
+        demNotes.push("Terrain layers skipped: the elevation request failed (" + (e.message || e) + "). If the service needs sign-in, set CONFIG.apiKey or CONFIG.appId, or enter another elevation service URL.");
+        toast("Elevation request failed. Running without terrain.", true);
+      }
+    } else {
+      ["relief","travel"].forEach(k => { if(layers[k]){ map.remove(layers[k]); layers[k] = null; } });
+    }
+    btn.textContent = "Running...";
+    await new Promise(r => setTimeout(r, 20));
+    const out = LPB.runModel({
+      row, lat: state.ipp.lat, lon: state.ipp.lon, n: +$("res").value, extentIdx: extentIdx(), lines: state.lines,
+      scenarios: state.scenarios.map(s => ({name:s.name, prob:s.prob, bearing:s.bearing})),
+      dem: demModel,
+      weights: {ring:+$("wRing").value, sector:+$("wSector").value, linear:+$("wLinear").value,
+                terrain:+$("wTerrain").value, elev:+$("wElev").value}
+    });
+    out.notes.push(...demNotes);
+    if(demModel) out.notes.push("Terrain: IPP elevation " + Math.round(out.z0) + " m, DEM spacing about " + Math.round(demModel.spacing) +
+      " m. Travel-time bands are " + bandH + " h each (Tobler hiking function). Ring percentiles are applied as flat-ground equivalent distance, so terrain and plain-ring weights partly overlap.");
+    state.run = out;
+    state.runId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+    state.cumPOS = 0;
+    state.segs = out.cells.map((c, i) => ({cell:c, poa:out.poa[i], poa0:out.poa[i], pod:0, pos:0, cumPos:0}));
+    const order = state.segs.map((s, i) => i).sort((a, b) => state.segs[b].poa - state.segs[a].poa);
+    order.forEach((idx, r) => state.segs[idx].rank = r + 1);
+
+    // rings
+    layers.ring.removeAll(); layers.sector.removeAll();
+    const rs = ["25%","50%","75%","95%"];
+    row.dist.forEach((d, i) => {
+      layers.ring.add(line(LPB.circleRing(state.ipp.lat, state.ipp.lon, d*1000),
+        {type:"simple-line", color:[20,101,126,0.9], width: i === 3 ? 2 : 1.25, style: i === 3 ? "solid" : "dash"}));
+    });
+    // sectors
+    if(row.disp){
+      state.scenarios.forEach(s => {
+        if(s.bearing == null) return;
+        [row.disp[1], row.disp[3]].forEach((half, k) => {
+          layers.sector.add(line(LPB.sectorRing(state.ipp.lat, state.ipp.lon, searchRadiusM(), s.bearing, half),
+            {type:"simple-line", color:[110,17,70,0.85], width:k ? 1.5 : 1.25, style:k ? "solid" : "dash"}));
+        });
+      });
+    }
+    renderSegments();
+    const circ = new Graphic({geometry:{type:"polygon", rings:[LPB.circleRing(state.ipp.lat, state.ipp.lon, searchRadiusM())], spatialReference:{wkid:4326}}});
+    view.goTo(circ, {padding:30}).catch(() => {});
+    renderRunNotes(out);
+    showTab("segments");
+    toast("Model complete: " + out.cells.length + " segments.");
+  }
+
+  function renderRunNotes(out){
+    const m = state.match, labels = {ring:"distance rings", sector:"direction sectors", linear:"linear features", terrain:"terrain travel time", elev:"elevation bias"};
+    let h = '<div class="box"><b>Layers used:</b> ' + out.usedLayers.map(l => labels[l]).join(", ") +
+            "<br>Segment size about " + Math.round(out.cellSizeM) + " m. Statistics: " + esc(m.row.category) + ", " +
+            esc(m.row.domain) + ", " + esc(m.row.terrain) + ", n=" + (m.row.n == null ? "?" : m.row.n) + ".";
+    h += "<ul>" + out.notes.map(n => "<li>" + esc(n) + "</li>").join("") + "</ul></div>";
+    if(m.warnings.length) h += '<div class="box warn"><ul>' + m.warnings.map(w => "<li>" + esc(w) + "</li>").join("") + "</ul></div>";
+    $("runNotes").innerHTML = h;
+  }
+
+  function colorFor(ratio){
+    const i = ratio < 0.2 ? 0 : ratio < 0.4 ? 1 : ratio < 0.6 ? 2 : ratio < 0.8 ? 3 : 4;
+    return POA_COLORS[i].concat(ratio < 0.05 ? 0.12 : 0.55);
+  }
+  function renderSegments(){
+    layers.seg.removeAll(); layers.label.removeAll();
+    const max = Math.max(...state.segs.map(s => s.poa)) || 1;
+    state.segs.forEach(s => {
+      layers.seg.add(poly(s.cell.ring,
+        {type:"simple-fill", color: colorFor(s.poa/max), outline:{color:[60,60,60,0.35], width:0.4}},
+        {id:s.cell.id, poa:(s.poa*100).toFixed(2), area:s.cell.areaKm2.toFixed(2), dist:s.cell.distKm.toFixed(2), rank:s.rank},
+        {title:"Segment {id}", content:"Rank {rank}<br>POA <b>{poa}%</b><br>Area {area} km&sup2;<br>Center {dist} km from IPP"}));
+      if(s.rank <= 10){
+        layers.label.add(new Graphic({geometry:{type:"point", longitude:s.cell.center[0], latitude:s.cell.center[1]},
+          symbol:{type:"text", text:String(s.rank), color:[23,37,45], haloColor:[255,255,255], haloSize:2, font:{size:11, weight:"bold"}}}));
+      }
+    });
+    renderTable();
+  }
+
+  function renderTable(){
+    const tb = document.querySelector("#segTable tbody"); tb.innerHTML = "";
+    const order = state.segs.slice().sort((a, b) => a.rank - b.rank);
+    order.slice(0, 60).forEach(s => {
+      const tr = document.createElement("tr"); tr.className = "seg"; tr.dataset.id = s.cell.id;
+      tr.innerHTML = "<td>" + s.cell.id + " (#" + s.rank + ")</td><td>" + (s.poa*100).toFixed(2) + "</td><td>" + s.cell.areaKm2.toFixed(2) +
+        '</td><td><input type="number" min="0" max="100" step="1" value="' + (s.podInput == null ? "" : s.podInput) + '" data-id="' + s.cell.id + '" aria-label="POD percent for ' + s.cell.id + '"></td><td>' +
+        (s.cumPos*100).toFixed(2) + "</td>";
+      tr.addEventListener("click", ev => {
+        if(ev.target.tagName === "INPUT") return;
+        const g = layers.seg.graphics.find(g => g.attributes.id === s.cell.id);
+        if(g) view.goTo(g.geometry.extent.expand(2.5)).catch(() => {});
+      });
+      tr.querySelector("input").addEventListener("input", ev => { s.podInput = ev.target.value === "" ? null : Math.max(0, Math.min(100, +ev.target.value)); });
+      tb.appendChild(tr);
+    });
+    const shown = Math.min(60, state.segs.length);
+    $("segSummary").textContent = state.segs.length + " segments, top " + shown + " shown. Total POA " +
+      (state.segs.reduce((a, s) => a + s.poa, 0)*100).toFixed(1) + "%.";
+    $("cumPOS").textContent = state.cumPOS > 0 ? "Cumulative probability of success so far: " + (state.cumPOS*100).toFixed(1) + "%." : "";
+  }
+
+  $("applyPOD").addEventListener("click", () => {
+    if(!state.segs.length){ toast("Run the model first.", true); return; }
+    const pods = state.segs.map(s => (s.podInput || 0)/100);
+    if(!pods.some(p => p > 0)){ toast("Enter POD for at least one segment.", true); return; }
+    const r = LPB.applyPOD(state.segs.map(s => s.poa), pods);
+    state.segs.forEach((s, i) => { s.pod = pods[i]; s.cumPos += r.pos[i]; s.poa = r.next[i]; s.podInput = null; });
+    state.cumPOS = 1 - (1 - state.cumPOS)*(1 - r.total);
+    const order = state.segs.map((s, i) => i).sort((a, b) => state.segs[b].poa - state.segs[a].poa);
+    order.forEach((idx, k) => state.segs[idx].rank = k + 1);
+    renderSegments();
+    toast("Applied. Round POS " + (r.total*100).toFixed(1) + "%. POA redistributed.");
+  });
+
+  /* ---------- Exports ---------- */
+  function download(name, text, type){
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], {type}));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  const stamp = () => new Date().toISOString().slice(0,16).replace(/[:T]/g, "");
+  $("exportCSV").addEventListener("click", () => {
+    if(!state.segs.length){ toast("Run the model first.", true); return; }
+    const head = "segment_id,rank,poa_pct,initial_poa_pct,cum_pos_pct,area_km2,center_lon,center_lat\n";
+    const body = state.segs.slice().sort((a,b) => a.rank-b.rank).map(s =>
+      [s.cell.id, s.rank, (s.poa*100).toFixed(4), (s.poa0*100).toFixed(4), (s.cumPos*100).toFixed(4), s.cell.areaKm2.toFixed(4), s.cell.center[0].toFixed(6), s.cell.center[1].toFixed(6)].join(",")).join("\n");
+    download("sar_segments_" + stamp() + ".csv", head + body, "text/csv");
+  });
+  $("exportGeo").addEventListener("click", () => {
+    if(!state.segs.length){ toast("Run the model first.", true); return; }
+    const fc = {type:"FeatureCollection", features: state.segs.map(s => ({type:"Feature",
+      properties:{segment_id:s.cell.id, rank:s.rank, poa:+(s.poa*100).toFixed(4), pod:+(s.pod*100).toFixed(2), pos:+(s.cumPos*100).toFixed(4), area_km2:+s.cell.areaKm2.toFixed(4)},
+      geometry:{type:"Polygon", coordinates:[s.cell.ring]}}))};
+    download("sar_segments_" + stamp() + ".geojson", JSON.stringify(fc), "application/geo+json");
+  });
+
+  /* ---------- Save to ArcGIS Online ---------- */
+  $("saveAGOL").addEventListener("click", async () => {
+    if(!state.segs.length){ toast("Run the model first.", true); return; }
+    if(!CONFIG.incidentLayerUrl || !CONFIG.segmentLayerUrl || !CONFIG.modelRunTableUrl){
+      toast("Set the three service URLs in CONFIG first (see README).", true); return;
+    }
+    const btn = $("saveAGOL"); btn.disabled = true;
+    try{
+      const m = state.match.row, seen = $("lastSeen").value ? new Date($("lastSeen").value).getTime() : null;
+      const inputs = {profile: profile(), age:$("age").value, sex:$("sex").value, season:$("season").value, light:$("light").value,
+        weights:{ring:+$("wRing").value, sector:+$("wSector").value, linear:+$("wLinear").value, terrain:+$("wTerrain").value, elev:+$("wElev").value},
+        dem:{used:state.run.usedLayers.includes("terrain"), url:($("demUrl").value.trim() || CONFIG.demUrl), cells:+$("demN").value, maxSlope:+$("maxSlope").value}, grid:+$("res").value,
+        extentIdx:extentIdx(), scenarios:state.scenarios, lineFeatures:state.lines.length, layers:state.run.usedLayers};
+      const incLayer = new FeatureLayer({url: CONFIG.incidentLayerUrl});
+      const segLayer = new FeatureLayer({url: CONFIG.segmentLayerUrl});
+      const runTable = new FeatureLayer({url: CONFIG.modelRunTableUrl});
+      const stratum = [m.category, m.domain, m.terrain].join(" / ");
+
+      await incLayer.applyEdits({addFeatures:[new Graphic({
+        geometry:{type:"point", longitude:state.ipp.lon, latitude:state.ipp.lat, spatialReference:{wkid:4326}},
+        attributes:{incident_id:state.incidentId, incident_name:$("incName").value || "Unnamed", subject_category:$("category").value,
+          subject_age: $("age").value === "" ? null : +$("age").value, subject_sex:$("sex").value, ecoregion_domain:$("domain").value,
+          terrain:$("terrain").value, season:$("season").value, light:$("light").value, last_seen:seen, status:"Active",
+          stat_stratum:stratum, stat_n:m.n, stat_source:m.source, weights_json:JSON.stringify(inputs.weights)}})]});
+
+      await runTable.applyEdits({addFeatures:[new Graphic({attributes:{run_id:state.runId, incident_id:state.incidentId, run_time:Date.now(),
+        stat_stratum:stratum, stat_n:m.n, stat_source:m.source, inputs_json:JSON.stringify(inputs).slice(0,8000), segments_count:state.segs.length}})]});
+
+      const adds = state.segs.map(s => new Graphic({
+        geometry:{type:"polygon", rings:[s.cell.ring], spatialReference:{wkid:4326}},
+        attributes:{incident_id:state.incidentId, segment_id:s.cell.id, run_id:state.runId, poa:+(s.poa*100).toFixed(4),
+          pod:+(s.pod*100).toFixed(2), pos:+(s.cumPos*100).toFixed(4), rank:s.rank, status:"Unassigned", area_km2:+s.cell.areaKm2.toFixed(4)}}));
+      for(let i=0;i<adds.length;i+=200) await segLayer.applyEdits({addFeatures: adds.slice(i, i+200)});
+      toast("Saved incident, model run and " + adds.length + " segments.");
+    }catch(e){ console.error(e); toast("Save failed: " + (e.message || e), true); }
+    finally{ btn.disabled = false; }
+  });
+});
+</script>
+</body>
+</html>

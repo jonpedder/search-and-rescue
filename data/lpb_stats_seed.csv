@@ -1,0 +1,8 @@
+source,category,subcategory,domain,terrain,n,dist_km_25,dist_km_50,dist_km_75,dist_km_95,uphill_pct,downhill_pct,same_pct,disp_deg_25,disp_deg_50,disp_deg_75,disp_deg_95,track_m_25,track_m_50,track_m_75,track_m_max,mobility_hr_50,notes
+DECK_SLIDE_20,Dementia,,Temperate,Mountainous,95,0.3,0.8,1.9,8.3,19,42,39,11,23,66,70,4,15,71,307,0.25,"Transcribed from Koester LPB 2023 deck slide 20. Verify against licensed ISRID/LPB tables. Track-offset table is not split by domain in the source; applied to all Dementia strata."
+DECK_SLIDE_20,Dementia,,Temperate,Flat,175,0.3,1.0,2.4,12.8,19,42,39,11,23,66,70,4,15,71,307,0.25,"Transcribed from deck slide 20. Dispersion angle in source is Temperate only (n=11)."
+DECK_SLIDE_20,Dementia,,Dry,Mountainous,14,1.0,1.9,3.1,6.1,50,38,13,,,,,4,15,71,307,,"Transcribed from deck slide 20. Very small sample (n=14)."
+DECK_SLIDE_20,Dementia,,Dry,Flat,15,0.5,1.6,3.6,11.8,50,38,13,,,,,4,15,71,307,,"Transcribed from deck slide 20. Very small sample (n=15)."
+DECK_SLIDE_20,Dementia,,Urban,Any,336,0.3,1.1,3.2,12.6,,,,,,,,4,15,71,307,,"Transcribed from deck slide 20."
+PLACEHOLDER_TEST,Hiker,,Temperate,Mountainous,999,0.5,1.0,2.0,4.0,,,,15,30,60,90,5,20,80,400,,"SYNTHETIC test row. Not real data. Replace with licensed ISRID/LPB values."
+PLACEHOLDER_TEST,Child 7-9,,Temperate,Mountainous,999,0.3,0.6,1.2,2.5,,,,20,40,70,100,5,20,80,300,,"SYNTHETIC test row. Not real data. Replace with licensed ISRID/LPB values."
