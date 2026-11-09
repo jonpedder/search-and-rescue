@@ -26,16 +26,16 @@ The service is intentionally private because Incident records contain subject de
 
 Every layer/table has a GlobalID and Sync. The Clue layer supports attachments. Coded-value domains constrain operational status and types. `incident_id` is the common workflow key.
 
-## SARTopo-inspired ArcGIS capabilities
+## Native ArcGIS map capabilities
 
-The app adopts useful workflow patterns, not SARTopo code or branding:
+The app adopts useful SAR workflow patterns without copying another product's code or branding. Standard interactions are implemented with native ArcGIS Maps SDK widgets in the map UI; the external Calcite interface is limited to workflows without an equivalent widget.
 
-- Stackable map content: ArcGIS LayerList + legend and BasemapGallery.
+- Stackable map content: native LayerList, Legend and BasemapGallery widgets hosted by Expand controls.
 - Field markup: point, line and polygon annotations with Sketch.
 - Terrain planning: existing DEM travel-time, hillshade, elevation bias and slope barriers.
 - Measurement and coordinates: ArcGIS Measurement and CoordinateConversion.
-- Location: browser/device geolocation through ArcGIS Locate.
-- Exchange: GeoJSON and GPX import; GeoJSON export.
+- Navigation: native Search, Home, ScaleBar and device geolocation through Locate.
+- Exchange: supplemental Calcite actions for GeoJSON and GPX import and GeoJSON export.
 - Printing: ArcGIS PrintingTools through the Print widget.
 - Collaboration: hosted feature service + web map as the shared system of record.
 - Offline: the Sync-enabled service is ready for ArcGIS Field Maps offline areas after group sharing and Field Maps configuration.

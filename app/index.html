@@ -58,12 +58,12 @@ body{font-family:var(--calcite-sans-family,"Avenir Next","Helvetica Neue",sans-s
 main{min-width:0;min-height:0;background:#06121c;position:relative}
 #viewDiv{width:100%;height:100%}
 .esri-view{--esri-view-outline-color:var(--gold)}
-#mapTools{position:absolute;z-index:4;left:12px;top:12px;display:flex;flex-direction:column;gap:1px;width:148px;padding:var(--calcite-spacing-xxs);background:color-mix(in srgb,var(--calcite-color-foreground-1) 94%,transparent);box-shadow:var(--calcite-shadow-sm)}
+#mapTools{display:flex;flex-direction:column;gap:1px;width:116px;padding:var(--calcite-spacing-xxs);background:var(--calcite-color-foreground-1);box-shadow:var(--calcite-shadow-sm)}
 .map-tool{width:100%;--calcite-action-background-color:var(--calcite-color-foreground-1);--calcite-action-text-color:var(--calcite-color-text-1)}
 .map-tool[active]{--calcite-action-background-color:var(--calcite-color-foreground-3);--calcite-action-text-color:var(--calcite-color-brand)}
-#mapCoords{position:absolute;z-index:3;right:12px;bottom:28px;padding:5px 8px;background:#071824dd;border:1px solid var(--border);color:var(--muted);font:11px/1.2 monospace;pointer-events:none}
+#mapCoords{position:absolute;z-index:3;right:140px;bottom:28px;padding:5px 8px;background:#071824dd;border:1px solid var(--border);color:var(--muted);font:11px/1.2 monospace;pointer-events:none}
 #mapFile{display:none}
-.tool-help{position:absolute;z-index:4;left:172px;top:12px;width:min(330px,calc(100% - 184px));padding:10px 12px;background:var(--panel);border:1px solid var(--gold);color:var(--text);font-size:11px;line-height:1.45;box-shadow:0 8px 24px #0008}
+.tool-help{width:300px;max-width:70vw;padding:10px 12px;background:var(--panel);color:var(--text);font-size:11px;line-height:1.45}
 .tool-help[hidden]{display:none}.tool-help strong{color:var(--gold)}
 
 /* Tabs */
@@ -125,9 +125,6 @@ svg text{font-family:inherit}
   #body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,55%) minmax(0,45%)}
   #panel{order:2;border-right:0;border-top:1px solid var(--border)}
   main{order:1}
-  #mapTools{flex-direction:row;flex-wrap:wrap;width:calc(100% - 24px)}
-  .map-tool{width:auto;flex:1 0 92px}
-  .tool-help{left:12px;top:164px;width:calc(100% - 24px)}
   .app-footer{font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -326,19 +323,12 @@ svg text{font-family:inherit}
 </aside>
 <main>
   <div id="viewDiv"></div>
-  <div id="mapTools" role="toolbar" aria-label="Map tools">
-    <calcite-action class="map-tool" id="toolLayers" icon="layers" text="Layers" text-enabled title="Layers and legend"></calcite-action>
-    <calcite-action class="map-tool" id="toolBasemap" icon="basemap" text="Basemap" text-enabled title="Stackable base maps"></calcite-action>
-    <calcite-action class="map-tool" id="toolDraw" icon="pencil" text="Draw" text-enabled title="Draw field annotations"></calcite-action>
-    <calcite-action class="map-tool" id="toolMeasure" icon="measure" text="Measure" text-enabled title="Measure distance or area"></calcite-action>
-    <calcite-action class="map-tool" id="toolLocate" icon="gps-on" text="Locate" text-enabled title="Zoom to my location"></calcite-action>
+  <div id="mapTools" class="esri-widget" role="toolbar" aria-label="Supplemental file tools">
     <calcite-action class="map-tool" id="toolImport" icon="upload" text="Import" text-enabled title="Import GeoJSON or GPX"></calcite-action>
     <calcite-action class="map-tool" id="toolExport" icon="download" text="Export" text-enabled title="Export map annotations as GeoJSON"></calcite-action>
-    <calcite-action class="map-tool" id="toolPrint" icon="print" text="Print" text-enabled title="Print the map"></calcite-action>
-    <calcite-action class="map-tool" id="toolHelp" icon="question" text="Help" text-enabled title="About the tools"></calcite-action>
     <input id="mapFile" type="file" accept=".geojson,.json,.gpx,application/geo+json,application/gpx+xml">
   </div>
-  <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Layer and basemap controls, field annotation, distance/area measurement, GPS location, GeoJSON/GPX exchange and print. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
+  <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Use the native map controls for layers, legend, basemaps, drawing, measurement, location, coordinate conversion, home, search and print. Import and export are supplemental file workflows. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
   <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
 </main>
 </div>
@@ -988,36 +978,24 @@ require([
   const view = new MapView({container:"viewDiv", map, center: CONFIG.defaultCenter, zoom: CONFIG.defaultZoom, constraints:{snapToZoom:false}});
   view.ui.add(new Search({view}), "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
-  view.ui.add(new Home({view}), "bottom-right");
+  view.ui.add(new Home({view}), "top-left");
 
-  /* ---------- Operational map tools (SARTopo-inspired, ArcGIS-native) ---------- */
-  const toolPanels = [];
-  function addToolPanel(content, width){
-    const host = document.createElement("div");
-    host.className = "esri-widget";
-    host.style.cssText = "display:none;width:" + (width || 320) + "px;max-height:72vh;overflow:auto;background:var(--calcite-color-foreground-1)";
-    const close = document.createElement("calcite-button");
-    close.setAttribute("appearance","outline"); close.setAttribute("scale","s"); close.setAttribute("icon-start","x"); close.textContent = "Close"; close.style.cssText = "float:right;margin:var(--calcite-spacing-sm);position:relative;z-index:2";
-    close.onclick = () => { host.style.display = "none"; document.querySelectorAll(".map-tool[active]").forEach(x => x.active = false); };
-    host.appendChild(close);
-    const body = document.createElement("div"); body.style.clear = "both"; host.appendChild(body);
-    if(content) content.container = body;
-    view.ui.add(host, "top-right"); toolPanels.push(host); return host;
+  /* ---------- Operational map tools: prefer native ArcGIS widgets ---------- */
+  const expandGroup = "sar-map-tools";
+  function addNativeExpand(content, tooltip, position){
+    const expand = new Expand({view, content, group:expandGroup, expandTooltip:tooltip, collapseTooltip:"Close " + tooltip});
+    view.ui.add(expand, position || "top-left"); return expand;
   }
-  function bindPanel(buttonId, panel){
-    $(buttonId).onclick = () => {
-      const opening = panel.style.display === "none";
-      toolPanels.forEach(p => p.style.display = "none");
-      document.querySelectorAll(".map-tool[active]").forEach(x => x.active = false);
-      if(opening){ panel.style.display = "block"; $(buttonId).active = true; }
-    };
-  }
-  const layerPanel = addToolPanel(null, 330);
-  // Layer list, Living Atlas catalogue and legend share one operational panel.
-  const layerBody = layerPanel.lastElementChild;
-  layerBody.innerHTML = '<div style="padding:12px;background:var(--calcite-color-foreground-2);border-bottom:1px solid var(--calcite-color-border-2)"><strong>ArcGIS Living Atlas context</strong><p style="margin:4px 0 10px;color:var(--calcite-color-text-2);font-size:12px">Adds authoritative land cover, hydrography, weather, wildfire and hillshade layers. They load turned off; enable only what supports the current incident.</p><calcite-button id="loadLivingAtlas" appearance="outline-fill" width="full" icon-start="layers">Load 5 context layers</calcite-button><div id="livingAtlasStatus" aria-live="polite" style="margin-top:6px;font-size:11px;color:var(--calcite-color-text-3)">World Elevation is already used by the terrain model.</div></div><div id="opsLayerList"></div><div style="border-top:1px solid var(--calcite-color-border-2)" id="opsLegend"></div>';
+  view.ui.add($("mapTools"), "bottom-right");
+
+  // Living Atlas loading supplements the native LayerList; layer visibility remains native.
+  const layerBody = document.createElement("div");
+  layerBody.className = "esri-widget";
+  layerBody.style.cssText = "width:340px;max-height:72vh;overflow:auto;background:var(--calcite-color-foreground-1)";
+  layerBody.innerHTML = '<div style="padding:12px;background:var(--calcite-color-foreground-2);border-bottom:1px solid var(--calcite-color-border-2)"><strong>ArcGIS Living Atlas context</strong><p style="margin:4px 0 10px;color:var(--calcite-color-text-2);font-size:12px">Adds authoritative land cover, hydrography, weather, wildfire and hillshade layers. They load turned off; enable only what supports the current incident.</p><calcite-button id="loadLivingAtlas" appearance="outline-fill" width="full" icon-start="layers">Load 5 context layers</calcite-button><div id="livingAtlasStatus" aria-live="polite" style="margin-top:6px;font-size:11px;color:var(--calcite-color-text-3)">World Elevation is already used by the terrain model.</div></div><div id="opsLayerList"></div>';
   new LayerList({view, container:layerBody.querySelector("#opsLayerList")});
-  new Legend({view, container:layerBody.querySelector("#opsLegend")});
+  addNativeExpand(layerBody, "Layers and Living Atlas");
+  addNativeExpand(new Legend({view}), "Legend");
   const livingAtlasLoaded = new Set(), livingAtlasPortal = new Portal({url:"https://www.arcgis.com"});
   layerBody.querySelector("#loadLivingAtlas").onclick = async e => {
     const button = e.currentTarget, status = layerBody.querySelector("#livingAtlasStatus");
@@ -1043,30 +1021,24 @@ require([
       toast("Living Atlas context layers loaded.");
     }
   };
-  bindPanel("toolLayers", layerPanel);
 
-  const basemapPanel = addToolPanel(new BasemapGallery({view}), 360);
-  bindPanel("toolBasemap", basemapPanel);
+  addNativeExpand(new BasemapGallery({view}), "Basemaps");
 
   const annotationSketch = new Sketch({view, layer:layers.notes, creationMode:"single",
     availableCreateTools:["point","polyline","polygon"],
     visibleElements:{settingsMenu:false, selectionTools:{"lasso-selection":false}}});
   annotationSketch.viewModel.pointSymbol = {type:"picture-marker",url:NAPSG_SYMBOLS.sar,width:"28px",height:"28px"};
-  const drawPanel = addToolPanel(annotationSketch, 330);
-  bindPanel("toolDraw", drawPanel);
+  addNativeExpand(annotationSketch, "Draw field annotations");
 
-  const measurement = new Measurement({view, activeTool:"distance"});
-  const measurePanel = addToolPanel(measurement, 350);
-  bindPanel("toolMeasure", measurePanel);
-
-  const locate = new Locate({view});
-  $("toolLocate").onclick = () => locate.locate().catch(e => toast("Location unavailable: " + e.message, true));
+  const measurement = new Measurement({view});
+  addNativeExpand(measurement, "Measure distance or area");
+  view.ui.add(new Locate({view}), "top-left");
 
   const coords = new CoordinateConversion({view});
-  const coordPanel = addToolPanel(coords, 350);
-  // Clicking the live coordinate readout opens the full conversion tool.
+  const coordExpand = addNativeExpand(coords, "Coordinate conversion");
+  // Clicking the live coordinate readout opens the native conversion widget.
   $("mapCoords").style.pointerEvents = "auto"; $("mapCoords").style.cursor = "pointer";
-  $("mapCoords").onclick = () => { toolPanels.forEach(p => p.style.display="none"); coordPanel.style.display="block"; };
+  $("mapCoords").onclick = () => coordExpand.expanded = true;
   let coordTick = 0;
   view.on("pointer-move", e => {
     if(Date.now() - coordTick < 80) return; coordTick = Date.now();
@@ -1076,10 +1048,9 @@ require([
   });
 
   const printWidget = new Print({view, printServiceUrl:"https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export Web Map Task"});
-  const printPanel = addToolPanel(printWidget, 360);
-  bindPanel("toolPrint", printPanel);
-
-  $("toolHelp").onclick = () => { const h=$("mapToolHelp"); h.hidden=!h.hidden; $("toolHelp").active=!h.hidden; };
+  addNativeExpand(printWidget, "Print map");
+  $("mapToolHelp").hidden = false;
+  addNativeExpand($("mapToolHelp"), "Operational map help");
 
   // Import GeoJSON directly, or parse common GPX waypoint/route/track geometry.
   $("toolImport").onclick = () => $("mapFile").click();
