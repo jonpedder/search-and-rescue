@@ -24,6 +24,13 @@
   --warn:var(--calcite-color-status-danger); --ok:var(--calcite-color-status-success);
   --poa1:#ffeea8; --poa2:#fdb863; --poa3:#f1743a; --poa4:#c2362f; --poa5:#6e1146;
 }
+body.calcite-mode-dark{
+  --calcite-color-brand:#F2A900; --calcite-color-brand-hover:#FFC53D; --calcite-color-brand-press:#C98B00;
+  --calcite-color-background:#071824; --calcite-color-foreground-1:#0C2231; --calcite-color-foreground-2:#123247; --calcite-color-foreground-3:#173D55;
+  --calcite-color-text-1:#F4F7F9; --calcite-color-text-2:#D2DEE5; --calcite-color-text-3:#AFC3CF;
+  --calcite-color-border-1:#527286; --calcite-color-border-2:#28495B; --calcite-color-border-3:#1D3949;
+  --calcite-color-status-danger:#D9364F; --calcite-color-status-warning:#F28C28; --calcite-color-status-success:#36B37E; --calcite-color-focus:#8BD3FF;
+}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;overflow:hidden}
 body{font-family:var(--calcite-sans-family,"Avenir Next","Helvetica Neue",sans-serif);color:var(--text);background:var(--bg);font-size:14px;line-height:1.45}
@@ -51,12 +58,12 @@ body{font-family:var(--calcite-sans-family,"Avenir Next","Helvetica Neue",sans-s
 main{min-width:0;min-height:0;background:#06121c;position:relative}
 #viewDiv{width:100%;height:100%}
 .esri-view{--esri-view-outline-color:var(--gold)}
-#mapTools{position:absolute;z-index:4;left:12px;top:12px;max-width:calc(100% - 350px);box-shadow:var(--calcite-shadow-sm);--calcite-action-bar-background-color:color-mix(in srgb,var(--calcite-color-foreground-1) 94%,transparent)}
-.map-tool{--calcite-action-background-color:var(--calcite-color-foreground-1);--calcite-action-text-color:var(--calcite-color-text-1)}
+#mapTools{position:absolute;z-index:4;left:12px;top:12px;display:flex;flex-direction:column;gap:1px;width:124px;padding:var(--calcite-spacing-xxs);background:color-mix(in srgb,var(--calcite-color-foreground-1) 94%,transparent);box-shadow:var(--calcite-shadow-sm)}
+.map-tool{width:100%;--calcite-action-background-color:var(--calcite-color-foreground-1);--calcite-action-text-color:var(--calcite-color-text-1)}
 .map-tool[active]{--calcite-action-background-color:var(--calcite-color-foreground-3);--calcite-action-text-color:var(--calcite-color-brand)}
 #mapCoords{position:absolute;z-index:3;right:12px;bottom:28px;padding:5px 8px;background:#071824dd;border:1px solid var(--border);color:var(--muted);font:11px/1.2 monospace;pointer-events:none}
 #mapFile{display:none}
-.tool-help{position:absolute;z-index:4;left:12px;top:58px;width:min(330px,calc(100% - 24px));padding:10px 12px;background:var(--panel);border:1px solid var(--gold);color:var(--text);font-size:11px;line-height:1.45;box-shadow:0 8px 24px #0008}
+.tool-help{position:absolute;z-index:4;left:148px;top:12px;width:min(330px,calc(100% - 160px));padding:10px 12px;background:var(--panel);border:1px solid var(--gold);color:var(--text);font-size:11px;line-height:1.45;box-shadow:0 8px 24px #0008}
 .tool-help[hidden]{display:none}.tool-help strong{color:var(--gold)}
 
 /* Tabs */
@@ -118,6 +125,9 @@ svg text{font-family:inherit}
   #body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,55%) minmax(0,45%)}
   #panel{order:2;border-right:0;border-top:1px solid var(--border)}
   main{order:1}
+  #mapTools{flex-direction:row;flex-wrap:wrap;width:calc(100% - 24px)}
+  .map-tool{width:auto;flex:1 0 92px}
+  .tool-help{left:12px;top:164px;width:calc(100% - 24px)}
   .app-footer{font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -316,7 +326,7 @@ svg text{font-family:inherit}
 </aside>
 <main>
   <div id="viewDiv"></div>
-  <calcite-action-bar id="mapTools" layout="horizontal" expand-disabled aria-label="Map tools">
+  <div id="mapTools" role="toolbar" aria-label="Map tools">
     <calcite-action class="map-tool" id="toolLayers" icon="layers" text="Layers" text-enabled title="Layers and legend"></calcite-action>
     <calcite-action class="map-tool" id="toolBasemap" icon="basemap" text="Basemap" text-enabled title="Stackable base maps"></calcite-action>
     <calcite-action class="map-tool" id="toolDraw" icon="pencil" text="Draw" text-enabled title="Draw field annotations"></calcite-action>
@@ -327,7 +337,7 @@ svg text{font-family:inherit}
     <calcite-action class="map-tool" id="toolPrint" icon="print" text="Print" text-enabled title="Print the map"></calcite-action>
     <calcite-action class="map-tool" id="toolHelp" icon="question" text="Help" title="About the tools"></calcite-action>
     <input id="mapFile" type="file" accept=".geojson,.json,.gpx,application/geo+json,application/gpx+xml">
-  </calcite-action-bar>
+  </div>
   <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Layer and basemap controls, field annotation, distance/area measurement, GPS location, GeoJSON/GPX exchange and print. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
   <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
 </main>

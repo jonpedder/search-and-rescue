@@ -22,7 +22,7 @@ const appHtml = fs.readFileSync(path.join(__dirname, "../app/index.html"), "utf8
 assert.match(appHtml, /calcite-components\/3\.2\.1\/calcite\.css/);
 assert.match(appHtml, /class="calcite-mode-dark"/);
 assert.match(appHtml, /<calcite-segmented-control/);
-assert.match(appHtml, /<calcite-action-bar/);
+assert.match(appHtml, /<calcite-action class="map-tool"/);
 assert.match(appHtml, /<calcite-alert/);
 assert.doesNotMatch(appHtml, /--calcite-ui-/);
 console.log("ok  hosted schema, geometries, Sync, NAPSG and Calcite contracts");
