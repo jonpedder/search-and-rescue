@@ -1,4 +1,6 @@
 const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
 const { build, buildServiceDefinition, lookupSeed } = require("../scripts/build_feature_collection.js");
 const fc = build({ demo: true });
 const def = buildServiceDefinition();
@@ -16,4 +18,11 @@ assert.match(def.layers[0].drawingInfo.renderer.symbol.url, /search-and-rescue\/
 assert.match(def.layers[1].drawingInfo.renderer.uniqueValueInfos.find(x=>x.value==="IPP").symbol.url, /missing-person-ipp\.svg/);
 assert.match(def.layers[3].drawingInfo.renderer.symbol.url, /known-clue\.svg/);
 assert.strictEqual(lookupSeed()[7].length, 7);
-console.log("ok  hosted schema, geometries, seeds and Sync contract");
+const appHtml = fs.readFileSync(path.join(__dirname, "../app/index.html"), "utf8");
+assert.match(appHtml, /calcite-components\/3\.2\.1\/calcite\.css/);
+assert.match(appHtml, /class="calcite-mode-dark"/);
+assert.match(appHtml, /<calcite-segmented-control/);
+assert.match(appHtml, /<calcite-action-bar/);
+assert.match(appHtml, /<calcite-alert/);
+assert.doesNotMatch(appHtml, /--calcite-ui-/);
+console.log("ok  hosted schema, geometries, Sync, NAPSG and Calcite contracts");

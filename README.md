@@ -15,6 +15,7 @@ Built from the science in Robert Koester's *Lost Person Behavior* / ISRID work. 
 - Adds SARTopo-inspired ArcGIS map tools: layer/legend and basemap panels, field annotation, measurement, coordinates, geolocation, GeoJSON/GPX exchange and print
 - Uses a private, Sync-enabled hosted feature service and ArcGIS Online web map as the operational system of record (see [GIS workflow](docs/GIS_WORKFLOW.md))
 - Applies selected [NAPSG Foundation Symbol Library 2.0](https://symbology.napsgfoundation.org/) incident symbols where their meaning matches the SAR schema (see [symbology mapping](docs/NAPSG_SYMBOLOGY.md))
+- Uses the [Calcite Design System](https://developers.arcgis.com/calcite-design-system/) for interface components, semantic color tokens, dark mode, focus behavior and operational alerts
 
 ## Quick start
 
@@ -64,7 +65,7 @@ Pages sites are public on the internet even when the repo is private on some pla
 
 ## Status
 
-Early version. Model logic is unit tested. The browser app and the ArcGIS provisioning script have not yet been exercised against a live ArcGIS Online organization, so expect small fixes on first run. Decision support for trained SAR personnel only: review every output against field information.
+Early operational prototype. Model and schema contracts are unit tested, and the application, hosted feature service and Web Map have been exercised in the PedderPSO ArcGIS Online organization. Decision support for trained SAR personnel only: review every output against field information.
 
 ## Roadmap
 

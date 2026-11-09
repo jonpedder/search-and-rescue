@@ -6,25 +6,27 @@
 <title>Search &amp; Rescue</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 56'%3E%3Crect width='48' height='56' rx='6' fill='%23003B5C'/%3E%3Cpath d='M24 4 41 10.500v14.500c0 12-7.500 20.500-17 26C14.500 45.500 7 37 7 25V10.500Z' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Ccircle cx='24' cy='26' r='8' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Cpath d='M24 14v6M24 32v6M12 26h6M30 26h6' stroke='%23F2A900' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
+<link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
+<script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <style>
 /* Brand palette follows the ca_security_ops (Mission Insights) exemplar:
    navy header, gold accent, dark panels, Arial, uppercase gold eyebrow labels. */
 :root{
-  --navy:#003B5C; --bg:#071824; --panel:#0C2231; --panel2:#123247; --gold:#F2A900;
-  --text:#F4F7F9; --muted:#AFC3CF; --border:#28495B; --focus:#8BD3FF;
-  --critical:#D9364F; --high:#F28C28; --medium:#F2C94C; --low:#36B37E;
-  --warn:#D9364F; --ok:#36B37E;
-  --poa1:#ffeea8; --poa2:#fdb863; --poa3:#f1743a; --poa4:#c2362f; --poa5:#6e1146;
   color-scheme:dark;
-  --calcite-color-brand:var(--gold);
-  --calcite-color-foreground-1:var(--panel);
-  --calcite-color-foreground-2:var(--panel2);
-  --calcite-color-text-1:var(--text);
-  --calcite-color-text-2:var(--muted);
+  --calcite-color-brand:#F2A900; --calcite-color-brand-hover:#FFC53D; --calcite-color-brand-press:#C98B00;
+  --calcite-color-background:#071824; --calcite-color-foreground-1:#0C2231; --calcite-color-foreground-2:#123247; --calcite-color-foreground-3:#173D55;
+  --calcite-color-text-1:#F4F7F9; --calcite-color-text-2:#D2DEE5; --calcite-color-text-3:#AFC3CF;
+  --calcite-color-border-1:#527286; --calcite-color-border-2:#28495B; --calcite-color-border-3:#1D3949;
+  --calcite-color-status-danger:#D9364F; --calcite-color-status-warning:#F28C28; --calcite-color-status-success:#36B37E; --calcite-color-focus:#8BD3FF;
+  --navy:#003B5C; --bg:var(--calcite-color-background); --panel:var(--calcite-color-foreground-1); --panel2:var(--calcite-color-foreground-2); --gold:var(--calcite-color-brand);
+  --text:var(--calcite-color-text-1); --muted:var(--calcite-color-text-3); --border:var(--calcite-color-border-2); --focus:var(--calcite-color-focus);
+  --critical:var(--calcite-color-status-danger); --high:var(--calcite-color-status-warning); --medium:#F2C94C; --low:var(--calcite-color-status-success);
+  --warn:var(--calcite-color-status-danger); --ok:var(--calcite-color-status-success);
+  --poa1:#ffeea8; --poa2:#fdb863; --poa3:#f1743a; --poa4:#c2362f; --poa5:#6e1146;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;overflow:hidden}
-body{font-family:Arial,"Helvetica Neue",sans-serif;color:var(--text);background:var(--bg);font-size:14px;line-height:1.45}
+body{font-family:var(--calcite-sans-family,"Avenir Next","Helvetica Neue",sans-serif);color:var(--text);background:var(--bg);font-size:14px;line-height:1.45}
 
 /* App shell: header / (panel + map) / footer */
 #app{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100vh;height:100dvh}
@@ -49,19 +51,17 @@ body{font-family:Arial,"Helvetica Neue",sans-serif;color:var(--text);background:
 main{min-width:0;min-height:0;background:#06121c;position:relative}
 #viewDiv{width:100%;height:100%}
 .esri-view{--esri-view-outline-color:var(--gold)}
-#mapTools{position:absolute;z-index:4;left:12px;top:12px;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 350px);padding:5px;background:#071824e8;border:1px solid var(--border);border-radius:3px;box-shadow:0 3px 12px #0006}
-.map-tool{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:7px 9px;border-radius:2px;font-size:11px;font-weight:700;cursor:pointer}
-.map-tool:hover,.map-tool.on{border-color:var(--gold);color:var(--gold);background:var(--panel2)}
+#mapTools{position:absolute;z-index:4;left:12px;top:12px;max-width:calc(100% - 350px);box-shadow:var(--calcite-shadow-sm);--calcite-action-bar-background-color:color-mix(in srgb,var(--calcite-color-foreground-1) 94%,transparent)}
+.map-tool{--calcite-action-background-color:var(--calcite-color-foreground-1);--calcite-action-text-color:var(--calcite-color-text-1)}
+.map-tool[active]{--calcite-action-background-color:var(--calcite-color-foreground-3);--calcite-action-text-color:var(--calcite-color-brand)}
 #mapCoords{position:absolute;z-index:3;right:12px;bottom:28px;padding:5px 8px;background:#071824dd;border:1px solid var(--border);color:var(--muted);font:11px/1.2 monospace;pointer-events:none}
 #mapFile{display:none}
 .tool-help{position:absolute;z-index:4;left:12px;top:58px;width:min(330px,calc(100% - 24px));padding:10px 12px;background:var(--panel);border:1px solid var(--gold);color:var(--text);font-size:11px;line-height:1.45;box-shadow:0 8px 24px #0008}
 .tool-help[hidden]{display:none}.tool-help strong{color:var(--gold)}
 
 /* Tabs */
-#tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--panel)}
-#tabs button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:11px 12px;font:inherit;font-size:12px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);cursor:pointer}
-#tabs button:hover{color:var(--gold)}
-#tabs button[aria-selected="true"]{color:var(--gold);border-bottom-color:var(--gold);background:var(--panel2)}
+#tabs{border-bottom:1px solid var(--calcite-color-border-2);padding:var(--calcite-spacing-sm);background:var(--calcite-color-foreground-1)}
+#tabs calcite-segmented-control-item{text-transform:uppercase;font-weight:600;letter-spacing:.04em}
 .pane{display:none;overflow:auto;padding:14px 16px 24px;flex:1;min-height:0}
 .pane.active{display:block}
 
@@ -79,12 +79,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 input[type=checkbox]{accent-color:var(--gold)}
 .row{display:flex;gap:8px}
 .row>*{flex:1;min-width:0}
-.btn{padding:8px 12px;border:1px solid var(--gold);background:transparent;border-radius:3px;cursor:pointer;font-weight:700;color:var(--gold)}
-.btn:hover{background:var(--panel2)}
-.btn.primary{background:var(--gold);border-color:var(--gold);color:#111}
-.btn.primary:hover{filter:brightness(1.1);background:var(--gold)}
-.btn.on{background:var(--gold);color:#111;border-color:var(--gold)}
-.btn.small{padding:4px 8px;font-size:12px}
+.btn{font-weight:600}
+.btns>.btn{flex:0 1 auto}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 
@@ -110,8 +106,7 @@ td input[type=number]{width:62px;padding:3px 4px;text-align:right}
 .swatches{display:flex;height:10px;border-radius:2px;overflow:hidden;margin-top:4px}
 .swatches i{flex:1}
 
-#toast{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--gold);color:var(--text);padding:9px 14px;border-radius:3px;font-size:13px;max-width:80vw;display:none;z-index:50;box-shadow:0 8px 20px #0008}
-#toast.err{background:color-mix(in srgb,var(--critical) 30%,var(--panel2));border-color:var(--critical)}
+#toast{z-index:50}
 svg text{font-family:inherit}
 
 @media (max-width:1100px){.mission,.brand .powered-by{display:none}}
@@ -128,7 +123,7 @@ svg text{font-family:inherit}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
-<body>
+<body class="calcite-mode-dark">
 <div id="app">
 <header class="app-header">
   <div class="shield" aria-hidden="true"><svg viewBox="0 0 48 56"><path d="M24 3 42 10v15c0 13-8 22-18 28C14 47 6 38 6 25V10Z"></path><circle cx="24" cy="26" r="8"></circle><path d="M24 14v6M24 32v6M12 26h6M30 26h6"></path></svg></div>
@@ -145,13 +140,13 @@ svg text{font-family:inherit}
 </header>
 <div id="body">
 <aside id="panel">
-  <nav id="tabs" role="tablist" aria-label="Workbench sections">
-    <button role="tab" aria-selected="true" data-tab="incident">Incident</button>
-    <button role="tab" aria-selected="false" data-tab="subject">Subject</button>
-    <button role="tab" aria-selected="false" data-tab="model">Model</button>
-    <button role="tab" aria-selected="false" data-tab="segments">Segments</button>
-    <button role="tab" aria-selected="false" data-tab="survival">Survival</button>
-  </nav>
+  <calcite-segmented-control id="tabs" width="full" scale="s" aria-label="Workbench sections">
+    <calcite-segmented-control-item value="incident" checked data-tab="incident">Incident</calcite-segmented-control-item>
+    <calcite-segmented-control-item value="subject" data-tab="subject">Subject</calcite-segmented-control-item>
+    <calcite-segmented-control-item value="model" data-tab="model">Model</calcite-segmented-control-item>
+    <calcite-segmented-control-item value="segments" data-tab="segments">Segments</calcite-segmented-control-item>
+    <calcite-segmented-control-item value="survival" data-tab="survival">Survival</calcite-segmented-control-item>
+  </calcite-segmented-control>
 
   <!-- INCIDENT -->
   <section id="tab-incident" class="pane active" role="tabpanel">
@@ -165,15 +160,15 @@ svg text{font-family:inherit}
       <div><label for="lon">Longitude</label><input type="number" id="lon" step="0.00001" placeholder="-118.03"></div>
     </div>
     <div class="btns">
-      <button class="btn" id="pickIPP">Pick IPP on map</button>
-      <button class="btn" id="applyIPP">Place IPP from coordinates</button>
+      <calcite-button appearance="outline-fill" class="btn" id="pickIPP">Pick IPP on map</calcite-button>
+      <calcite-button appearance="outline-fill" class="btn" id="applyIPP">Place IPP from coordinates</calcite-button>
     </div>
     <p class="hint">The IPP is the axle of the bicycle wheel model. It is your last known point or place last seen, whichever your investigation supports.</p>
 
     <label for="lastSeen">Last seen</label>
     <div class="row">
       <input type="datetime-local" id="lastSeen">
-      <button class="btn small" id="lastSeenNow" style="flex:0 0 auto">Set to now</button>
+      <calcite-button appearance="outline-fill" scale="s" class="btn small" id="lastSeenNow" style="flex:0 0 auto">Set to now</calcite-button>
     </div>
 
     <h2>Scenarios</h2>
@@ -182,7 +177,7 @@ svg text{font-family:inherit}
       <thead><tr><th>Name</th><th>Prob %</th><th>Bearing</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
-    <div class="btns"><button class="btn small" id="addScen">Add scenario</button></div>
+    <div class="btns"><calcite-button appearance="outline-fill" scale="s" class="btn small" id="addScen">Add scenario</calcite-button></div>
   </section>
 
   <!-- SUBJECT -->
@@ -259,17 +254,17 @@ svg text{font-family:inherit}
     <h2>Linear features</h2>
     <p class="hint">Trails, roads and drainages that subjects follow. Draw them or pull them from a line layer.</p>
     <div class="btns">
-      <button class="btn" id="drawTrails">Draw lines on map</button>
-      <button class="btn" id="clearTrails">Clear lines</button>
+      <calcite-button appearance="outline-fill" class="btn" id="drawTrails">Draw lines on map</calcite-button>
+      <calcite-button appearance="outline-fill" class="btn" id="clearTrails">Clear lines</calcite-button>
     </div>
     <label for="lineUrl">Line layer URL</label>
     <div class="row">
       <input type="text" id="lineUrl" placeholder="https://services.arcgis.com/.../FeatureServer/0">
-      <button class="btn small" id="loadLines" style="flex:0 0 auto">Load lines</button>
+      <calcite-button appearance="outline-fill" scale="s" class="btn small" id="loadLines" style="flex:0 0 auto">Load lines</calcite-button>
     </div>
     <p class="hint" id="lineCount">No linear features loaded.</p>
 
-    <div class="btns"><button class="btn primary" id="runModel">Run model</button></div>
+    <div class="btns"><calcite-button appearance="solid" kind="brand" class="btn primary" id="runModel">Run model</calcite-button></div>
 
     <h2>Map layers</h2>
     <div class="layers" id="layerToggles">
@@ -302,10 +297,10 @@ svg text{font-family:inherit}
       <tbody></tbody>
     </table>
     <div class="btns">
-      <button class="btn primary" id="applyPOD">Apply search results</button>
-      <button class="btn" id="exportCSV">Export CSV</button>
-      <button class="btn" id="exportGeo">Export GeoJSON</button>
-      <button class="btn" id="saveAGOL">Save to ArcGIS Online</button>
+      <calcite-button appearance="solid" kind="brand" class="btn primary" id="applyPOD">Apply search results</calcite-button>
+      <calcite-button appearance="outline-fill" class="btn" id="exportCSV">Export CSV</calcite-button>
+      <calcite-button appearance="outline-fill" class="btn" id="exportGeo">Export GeoJSON</calcite-button>
+      <calcite-button appearance="outline-fill" class="btn" id="saveAGOL">Save to ArcGIS Online</calcite-button>
     </div>
     <p class="hint" id="cumPOS"></p>
   </section>
@@ -321,25 +316,25 @@ svg text{font-family:inherit}
 </aside>
 <main>
   <div id="viewDiv"></div>
-  <div id="mapTools" role="toolbar" aria-label="Map tools">
-    <button class="map-tool" id="toolLayers" title="Layers and legend">Layers</button>
-    <button class="map-tool" id="toolBasemap" title="Stackable base maps">Basemap</button>
-    <button class="map-tool" id="toolDraw" title="Draw field annotations">Draw</button>
-    <button class="map-tool" id="toolMeasure" title="Measure distance or area">Measure</button>
-    <button class="map-tool" id="toolLocate" title="Zoom to my location">Locate</button>
-    <button class="map-tool" id="toolImport" title="Import GeoJSON or GPX">Import</button>
-    <button class="map-tool" id="toolExport" title="Export map annotations as GeoJSON">Export</button>
-    <button class="map-tool" id="toolPrint" title="Print the map">Print</button>
-    <button class="map-tool" id="toolHelp" title="About the tools">?</button>
+  <calcite-action-bar id="mapTools" layout="horizontal" expand-disabled aria-label="Map tools">
+    <calcite-action class="map-tool" id="toolLayers" icon="layers" text="Layers" text-enabled title="Layers and legend"></calcite-action>
+    <calcite-action class="map-tool" id="toolBasemap" icon="basemap" text="Basemap" text-enabled title="Stackable base maps"></calcite-action>
+    <calcite-action class="map-tool" id="toolDraw" icon="pencil" text="Draw" text-enabled title="Draw field annotations"></calcite-action>
+    <calcite-action class="map-tool" id="toolMeasure" icon="measure" text="Measure" text-enabled title="Measure distance or area"></calcite-action>
+    <calcite-action class="map-tool" id="toolLocate" icon="locate" text="Locate" text-enabled title="Zoom to my location"></calcite-action>
+    <calcite-action class="map-tool" id="toolImport" icon="upload" text="Import" text-enabled title="Import GeoJSON or GPX"></calcite-action>
+    <calcite-action class="map-tool" id="toolExport" icon="download" text="Export" text-enabled title="Export map annotations as GeoJSON"></calcite-action>
+    <calcite-action class="map-tool" id="toolPrint" icon="print" text="Print" text-enabled title="Print the map"></calcite-action>
+    <calcite-action class="map-tool" id="toolHelp" icon="question" text="Help" title="About the tools"></calcite-action>
     <input id="mapFile" type="file" accept=".geojson,.json,.gpx,application/geo+json,application/gpx+xml">
-  </div>
+  </calcite-action-bar>
   <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Layer and basemap controls, field annotation, distance/area measurement, GPS location, GeoJSON/GPX exchange and print. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
   <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
 </main>
 </div>
 <footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties. Selected incident symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a>.</footer>
 </div>
-<div id="toast" role="status" aria-live="polite"></div>
+<calcite-alert id="toast" placement="bottom" icon><div slot="message" id="toastMessage"></div></calcite-alert>
 
 <!-- ============ Statistics seed (injected at build) ============ -->
 <script id="seed-stats" type="text/plain">source,category,subcategory,domain,terrain,n,dist_km_25,dist_km_50,dist_km_75,dist_km_95,uphill_pct,downhill_pct,same_pct,disp_deg_25,disp_deg_50,disp_deg_75,disp_deg_95,track_m_25,track_m_50,track_m_75,track_m_max,mobility_hr_50,notes
@@ -776,8 +771,8 @@ const state = {
 
 const $ = id => document.getElementById(id);
 function toast(msg, err){
-  const t = $("toast"); t.textContent = msg; t.className = err ? "err" : ""; t.style.display = "block";
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = "none", err ? 6000 : 3500);
+  const t = $("toast"); $("toastMessage").textContent = msg; t.kind = err ? "danger" : "brand"; t.open = true;
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.open = false, err ? 6000 : 3500);
 }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (v, d) => v == null ? "-" : (+v).toFixed(d == null ? 1 : d);
@@ -785,10 +780,10 @@ const KM2MI = 0.621371;
 
 /* ---------- Tabs ---------- */
 function showTab(name){
-  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  document.querySelectorAll("#tabs calcite-segmented-control-item").forEach(b => b.checked = b.dataset.tab === name);
   document.querySelectorAll(".pane").forEach(p => p.classList.toggle("active", p.id === "tab-" + name));
 }
-document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+document.querySelectorAll("#tabs calcite-segmented-control-item").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
 /* ---------- Scenarios ---------- */
 function renderScenarios(){
@@ -799,7 +794,7 @@ function renderScenarios(){
       '<td><input type="text" data-k="name" value="' + esc(s.name) + '" aria-label="Scenario name"></td>' +
       '<td><input type="number" data-k="prob" min="0" max="100" value="' + s.prob + '" style="width:62px" aria-label="Probability percent"></td>' +
       '<td><input type="number" data-k="bearing" min="0" max="360" value="' + (s.bearing == null ? "" : s.bearing) + '" style="width:62px" aria-label="Bearing degrees"></td>' +
-      '<td><button class="btn small" data-del="' + i + '" aria-label="Remove scenario">Remove</button></td>';
+      '<td><calcite-button appearance="outline-fill" scale="s" class="btn small" data-del="' + i + '" aria-label="Remove scenario">Remove</calcite-button></td>';
     tr.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
       const k = inp.dataset.k;
       s[k] = k === "name" ? inp.value : (inp.value === "" ? (k === "bearing" ? null : 0) : +inp.value);
@@ -983,10 +978,10 @@ require([
   function addToolPanel(content, width){
     const host = document.createElement("div");
     host.className = "esri-widget";
-    host.style.cssText = "display:none;width:" + (width || 320) + "px;max-height:72vh;overflow:auto;background:#0C2231";
-    const close = document.createElement("button");
-    close.className = "map-tool"; close.textContent = "Close"; close.style.cssText = "float:right;margin:6px;position:relative;z-index:2";
-    close.onclick = () => { host.style.display = "none"; document.querySelectorAll(".map-tool.on").forEach(x => x.classList.remove("on")); };
+    host.style.cssText = "display:none;width:" + (width || 320) + "px;max-height:72vh;overflow:auto;background:var(--calcite-color-foreground-1)";
+    const close = document.createElement("calcite-button");
+    close.setAttribute("appearance","outline"); close.setAttribute("scale","s"); close.setAttribute("icon-start","x"); close.textContent = "Close"; close.style.cssText = "float:right;margin:var(--calcite-spacing-sm);position:relative;z-index:2";
+    close.onclick = () => { host.style.display = "none"; document.querySelectorAll(".map-tool[active]").forEach(x => x.active = false); };
     host.appendChild(close);
     const body = document.createElement("div"); body.style.clear = "both"; host.appendChild(body);
     if(content) content.container = body;
@@ -996,8 +991,8 @@ require([
     $(buttonId).onclick = () => {
       const opening = panel.style.display === "none";
       toolPanels.forEach(p => p.style.display = "none");
-      document.querySelectorAll(".map-tool.on").forEach(x => x.classList.remove("on"));
-      if(opening){ panel.style.display = "block"; $(buttonId).classList.add("on"); }
+      document.querySelectorAll(".map-tool[active]").forEach(x => x.active = false);
+      if(opening){ panel.style.display = "block"; $(buttonId).active = true; }
     };
   }
   const layerPanel = addToolPanel(null, 330);
@@ -1041,7 +1036,7 @@ require([
   const printPanel = addToolPanel(printWidget, 360);
   bindPanel("toolPrint", printPanel);
 
-  $("toolHelp").onclick = () => { const h=$("mapToolHelp"); h.hidden=!h.hidden; $("toolHelp").classList.toggle("on",!h.hidden); };
+  $("toolHelp").onclick = () => { const h=$("mapToolHelp"); h.hidden=!h.hidden; $("toolHelp").active=!h.hidden; };
 
   // Import GeoJSON directly, or parse common GPX waypoint/route/track geometry.
   $("toolImport").onclick = () => $("mapFile").click();
@@ -1080,7 +1075,7 @@ require([
   let sketching = false;
   $("drawTrails").addEventListener("click", () => {
     sketching = !sketching;
-    $("drawTrails").classList.toggle("on", sketching);
+    $("drawTrails").appearance = sketching ? "solid" : "outline-fill";
     $("drawTrails").textContent = sketching ? "Finish drawing" : "Draw lines on map";
     if(sketching){ view.ui.add(sketch, "top-left"); sketch.create("polyline"); }
     else { sketch.cancel(); view.ui.remove(sketch); refreshLineCount(); }
