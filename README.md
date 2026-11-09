@@ -12,6 +12,8 @@ Built from the science in Robert Koester's *Lost Person Behavior* / ISRID work. 
 - Tracks POA, POD and POS as search results come in
 - Shows survivability over time since last seen
 - Exports CSV or GeoJSON, and saves incidents, model runs and segments to ArcGIS Online
+- Adds SARTopo-inspired ArcGIS map tools: layer/legend and basemap panels, field annotation, measurement, coordinates, geolocation, GeoJSON/GPX exchange and print
+- Uses a private, Sync-enabled hosted feature service and ArcGIS Online web map as the operational system of record (see [GIS workflow](docs/GIS_WORKFLOW.md))
 
 ## Quick start
 

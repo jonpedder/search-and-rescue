@@ -1,0 +1,16 @@
+const assert = require("assert");
+const { build, buildServiceDefinition, lookupSeed } = require("../scripts/build_feature_collection.js");
+const fc = build({ demo: true });
+const def = buildServiceDefinition();
+assert.deepStrictEqual(fc.layers.map(x => x.layerDefinition.name), ["Incident","KeyPoints","SearchSegment","Clue","TrackLog"]);
+assert.deepStrictEqual(fc.tables.map(x => x.layerDefinition.name), ["Task","ModelRun","LPB_Stats","SurvivabilityCurve"]);
+assert.strictEqual(fc.layers[0].featureSet.features[0].geometry.x, -118.03);
+assert.ok(fc.layers[2].featureSet.features.length > 100);
+assert.ok(fc.layers[2].featureSet.features.every(x => x.geometry && x.geometry.rings));
+assert.ok(Math.abs(fc.layers[2].featureSet.features.reduce((n,x)=>n+x.attributes.poa,0)-100) < 0.1);
+assert.deepStrictEqual(def.layers.map(x => x.id), [0,1,2,3,4]);
+assert.deepStrictEqual(def.tables.map(x => x.id), [5,6,7,8]);
+assert.ok([...def.layers,...def.tables].every(x => x.globalIdField === "GlobalID" && x.capabilities.includes("Sync")));
+assert.strictEqual(def.layers[3].hasAttachments, true);
+assert.strictEqual(lookupSeed()[7].length, 7);
+console.log("ok  hosted schema, geometries, seeds and Sync contract");

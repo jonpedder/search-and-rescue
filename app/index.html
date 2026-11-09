@@ -46,9 +46,16 @@ body{font-family:Arial,"Helvetica Neue",sans-serif;color:var(--text);background:
 
 #body{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);min-height:0}
 #panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
-main{min-width:0;min-height:0;background:#06121c}
+main{min-width:0;min-height:0;background:#06121c;position:relative}
 #viewDiv{width:100%;height:100%}
 .esri-view{--esri-view-outline-color:var(--gold)}
+#mapTools{position:absolute;z-index:4;left:12px;top:12px;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 350px);padding:5px;background:#071824e8;border:1px solid var(--border);border-radius:3px;box-shadow:0 3px 12px #0006}
+.map-tool{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:7px 9px;border-radius:2px;font-size:11px;font-weight:700;cursor:pointer}
+.map-tool:hover,.map-tool.on{border-color:var(--gold);color:var(--gold);background:var(--panel2)}
+#mapCoords{position:absolute;z-index:3;right:12px;bottom:28px;padding:5px 8px;background:#071824dd;border:1px solid var(--border);color:var(--muted);font:11px/1.2 monospace;pointer-events:none}
+#mapFile{display:none}
+.tool-help{position:absolute;z-index:4;left:12px;top:58px;width:min(330px,calc(100% - 24px));padding:10px 12px;background:var(--panel);border:1px solid var(--gold);color:var(--text);font-size:11px;line-height:1.45;box-shadow:0 8px 24px #0008}
+.tool-help[hidden]{display:none}.tool-help strong{color:var(--gold)}
 
 /* Tabs */
 #tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--panel)}
@@ -312,7 +319,23 @@ svg text{font-family:inherit}
   </section>
 
 </aside>
-<main><div id="viewDiv"></div></main>
+<main>
+  <div id="viewDiv"></div>
+  <div id="mapTools" role="toolbar" aria-label="Map tools">
+    <button class="map-tool" id="toolLayers" title="Layers and legend">Layers</button>
+    <button class="map-tool" id="toolBasemap" title="Stackable base maps">Basemap</button>
+    <button class="map-tool" id="toolDraw" title="Draw field annotations">Draw</button>
+    <button class="map-tool" id="toolMeasure" title="Measure distance or area">Measure</button>
+    <button class="map-tool" id="toolLocate" title="Zoom to my location">Locate</button>
+    <button class="map-tool" id="toolImport" title="Import GeoJSON or GPX">Import</button>
+    <button class="map-tool" id="toolExport" title="Export map annotations as GeoJSON">Export</button>
+    <button class="map-tool" id="toolPrint" title="Print the map">Print</button>
+    <button class="map-tool" id="toolHelp" title="About the tools">?</button>
+    <input id="mapFile" type="file" accept=".geojson,.json,.gpx,application/geo+json,application/gpx+xml">
+  </div>
+  <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Layer and basemap controls, field annotation, distance/area measurement, GPS location, GeoJSON/GPX exchange and print. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
+  <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
+</main>
 </div>
 <footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties.</footer>
 </div>
@@ -715,12 +738,14 @@ if(typeof module !== "undefined") module.exports = LPB;
    application (OAuth 2.0, redirect URI = where you host this page) and paste the
    service URLs printed by provision_sar_schema.py. */
 const CONFIG = {
-  portalUrl: "https://www.arcgis.com",
-  appId: "",
+  portalUrl: "https://publicsafety.maps.arcgis.com",
+  appId: "", // register an ArcGIS OAuth app before enabling private-data sign-in
   apiKey: "",
-  incidentLayerUrl: "",
-  segmentLayerUrl: "",
-  modelRunTableUrl: "",
+  webMapItemId: "5bd5bbf575794e9c9565abcb20feb991",
+  featureServiceItemId: "d63935292bb648129cb66ad8f2b45d81",
+  incidentLayerUrl: "https://services6.arcgis.com/SdBwj74JF24xKhpX/arcgis/rest/services/SAR_LPB_Incident_Data/FeatureServer/0",
+  segmentLayerUrl: "https://services6.arcgis.com/SdBwj74JF24xKhpX/arcgis/rest/services/SAR_LPB_Incident_Data/FeatureServer/2",
+  modelRunTableUrl: "https://services6.arcgis.com/SdBwj74JF24xKhpX/arcgis/rest/services/SAR_LPB_Incident_Data/FeatureServer/6",
   demUrl: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer",
   defaultCenter: [-118.03, 34.14],
   defaultZoom: 10
@@ -918,9 +943,13 @@ require([
   "esri/widgets/Search","esri/widgets/Sketch","esri/widgets/ScaleBar","esri/geometry/Extent",
   "esri/geometry/support/webMercatorUtils","esri/identity/OAuthInfo","esri/identity/IdentityManager",
   "esri/layers/ElevationLayer","esri/geometry/Multipoint","esri/layers/MediaLayer",
-  "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference"
+  "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference",
+  "esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Measurement",
+  "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/CoordinateConversion","esri/widgets/Print",
+  "esri/layers/GeoJSONLayer","esri/portal/Portal"
 ], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
-            webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference){
+            webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference,
+            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, CoordinateConversion, Print, GeoJSONLayer, Portal){
 
   if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
   if(CONFIG.appId){
@@ -934,13 +963,111 @@ require([
     trail: new GraphicsLayer({title:"Linear features"}),
     label: new GraphicsLayer({title:"Segment ranks", listMode:"hide"}),
     ipp: new GraphicsLayer({title:"IPP", listMode:"hide"}),
+    notes: new GraphicsLayer({title:"Field annotations"}),
     relief: null, travel: null
   };
   const vis = {relief:true, travel:false};
-  const map = new Map({basemap: "topo-vector", layers: [layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp]});
+  const map = new Map({basemap: "topo-vector", layers: [layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center: CONFIG.defaultCenter, zoom: CONFIG.defaultZoom, constraints:{snapToZoom:false}});
   view.ui.add(new Search({view}), "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
+  view.ui.add(new Home({view}), "bottom-right");
+
+  /* ---------- Operational map tools (SARTopo-inspired, ArcGIS-native) ---------- */
+  const toolPanels = [];
+  function addToolPanel(content, width){
+    const host = document.createElement("div");
+    host.className = "esri-widget";
+    host.style.cssText = "display:none;width:" + (width || 320) + "px;max-height:72vh;overflow:auto;background:#0C2231";
+    const close = document.createElement("button");
+    close.className = "map-tool"; close.textContent = "Close"; close.style.cssText = "float:right;margin:6px;position:relative;z-index:2";
+    close.onclick = () => { host.style.display = "none"; document.querySelectorAll(".map-tool.on").forEach(x => x.classList.remove("on")); };
+    host.appendChild(close);
+    const body = document.createElement("div"); body.style.clear = "both"; host.appendChild(body);
+    if(content) content.container = body;
+    view.ui.add(host, "top-right"); toolPanels.push(host); return host;
+  }
+  function bindPanel(buttonId, panel){
+    $(buttonId).onclick = () => {
+      const opening = panel.style.display === "none";
+      toolPanels.forEach(p => p.style.display = "none");
+      document.querySelectorAll(".map-tool.on").forEach(x => x.classList.remove("on"));
+      if(opening){ panel.style.display = "block"; $(buttonId).classList.add("on"); }
+    };
+  }
+  const layerPanel = addToolPanel(null, 330);
+  // Layer list and legend share one operational panel.
+  const layerBody = layerPanel.lastElementChild; layerBody.innerHTML = '<div id="opsLayerList"></div><div style="border-top:1px solid #28495B" id="opsLegend"></div>';
+  new LayerList({view, container:layerBody.querySelector("#opsLayerList")});
+  new Legend({view, container:layerBody.querySelector("#opsLegend")});
+  bindPanel("toolLayers", layerPanel);
+
+  const basemapPanel = addToolPanel(new BasemapGallery({view}), 360);
+  bindPanel("toolBasemap", basemapPanel);
+
+  const annotationSketch = new Sketch({view, layer:layers.notes, creationMode:"single",
+    availableCreateTools:["point","polyline","polygon"],
+    visibleElements:{settingsMenu:false, selectionTools:{"lasso-selection":false}}});
+  const drawPanel = addToolPanel(annotationSketch, 330);
+  bindPanel("toolDraw", drawPanel);
+
+  const measurement = new Measurement({view, activeTool:"distance"});
+  const measurePanel = addToolPanel(measurement, 350);
+  bindPanel("toolMeasure", measurePanel);
+
+  const locate = new Locate({view});
+  $("toolLocate").onclick = () => locate.locate().catch(e => toast("Location unavailable: " + e.message, true));
+
+  const coords = new CoordinateConversion({view});
+  const coordPanel = addToolPanel(coords, 350);
+  // Clicking the live coordinate readout opens the full conversion tool.
+  $("mapCoords").style.pointerEvents = "auto"; $("mapCoords").style.cursor = "pointer";
+  $("mapCoords").onclick = () => { toolPanels.forEach(p => p.style.display="none"); coordPanel.style.display="block"; };
+  let coordTick = 0;
+  view.on("pointer-move", e => {
+    if(Date.now() - coordTick < 80) return; coordTick = Date.now();
+    const p = view.toMap({x:e.x,y:e.y}); if(!p) return;
+    const g = p.spatialReference.isWebMercator ? webMercatorUtils.webMercatorToGeographic(p) : p;
+    $("mapCoords").textContent = g.y.toFixed(5) + ", " + g.x.toFixed(5) + "  |  " + Math.round(view.scale).toLocaleString();
+  });
+
+  const printWidget = new Print({view, printServiceUrl:"https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export Web Map Task"});
+  const printPanel = addToolPanel(printWidget, 360);
+  bindPanel("toolPrint", printPanel);
+
+  $("toolHelp").onclick = () => { const h=$("mapToolHelp"); h.hidden=!h.hidden; $("toolHelp").classList.toggle("on",!h.hidden); };
+
+  // Import GeoJSON directly, or parse common GPX waypoint/route/track geometry.
+  $("toolImport").onclick = () => $("mapFile").click();
+  $("mapFile").onchange = async e => {
+    const file=e.target.files[0]; if(!file) return;
+    try{
+      if(/\.gpx$/i.test(file.name)){
+        const xml=new DOMParser().parseFromString(await file.text(),"application/xml");
+        const point=n=>({type:"point",longitude:+n.getAttribute("lon"),latitude:+n.getAttribute("lat")});
+        xml.querySelectorAll("wpt").forEach(n=>layers.notes.add(new Graphic({geometry:point(n),attributes:{name:n.querySelector("name")?.textContent||"GPX waypoint"},popupTemplate:{title:"{name}"}})));
+        [...xml.querySelectorAll("trkseg"),...xml.querySelectorAll("rte")].forEach(n=>{const pts=[...n.querySelectorAll("trkpt,rtept")].map(p=>[+p.getAttribute("lon"),+p.getAttribute("lat")]);if(pts.length>1)layers.notes.add(new Graphic({geometry:{type:"polyline",paths:[pts],spatialReference:{wkid:4326}},symbol:{type:"simple-line",color:[242,169,0],width:3}}));});
+        toast("Imported GPX into Field annotations.");
+      }else{
+        const url=URL.createObjectURL(file), layer=new GeoJSONLayer({url,title:file.name});
+        map.add(layer); await layer.load(); await view.goTo(layer.fullExtent); toast("Imported " + file.name + ".");
+      }
+    }catch(err){toast("Import failed: "+err.message,true);} finally{e.target.value="";}
+  };
+
+  function geometryGeoJSON(geom){
+    let g=geom.spatialReference?.isWebMercator?webMercatorUtils.webMercatorToGeographic(geom):geom;
+    if(g.type==="point") return {type:"Point",coordinates:[g.longitude??g.x,g.latitude??g.y]};
+    if(g.type==="polyline") return {type:g.paths.length===1?"LineString":"MultiLineString",coordinates:g.paths.length===1?g.paths[0]:g.paths};
+    if(g.type==="polygon") return {type:"Polygon",coordinates:g.rings};
+    return null;
+  }
+  $("toolExport").onclick = () => {
+    const gs=[...layers.notes.graphics.toArray(),...layers.trail.graphics.toArray(),...layers.ipp.graphics.toArray()];
+    if(!gs.length){toast("Draw or import map annotations first.",true);return;}
+    const fc={type:"FeatureCollection",features:gs.filter(g=>g.geometry).map((g,i)=>({type:"Feature",properties:{source:g.layer?.title||"SAR annotation",id:i+1,...(g.attributes||{})},geometry:geometryGeoJSON(g.geometry)}))};
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(fc,null,2)],{type:"application/geo+json"}));a.download="sar_map_annotations.geojson";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  };
 
   const sketch = new Sketch({view, layer: layers.trail, creationMode:"continuous", availableCreateTools:["polyline"],
     visibleElements:{selectionTools:{"lasso-selection":false, "rectangle-selection":false}, settingsMenu:false}});
