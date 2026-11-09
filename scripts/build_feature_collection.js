@@ -63,7 +63,14 @@ const incId = () => f("incident_id", STR, "Incident ID", 50, { nullable: false }
 
 /* --------------------------------------------------------------- symbology */
 const NAVY = [0, 59, 92], GOLD = [242, 169, 0];
+const NAPSG = {
+  sar: "https://symbology.napsgfoundation.org/symbols/Community_Lifelines/Safety_and_Security/Lifelines_SS_SR_BI_NL.svg",
+  ipp: "https://symbology.napsgfoundation.org/symbols/USAR/Search_or_Human_Interactions/USR_SearchHumanInteractions_MissingPersonIPP.svg",
+  clue: "https://symbology.napsgfoundation.org/symbols/Incident/Incident_Intelligence/incdnt-comand-white-solid-detail-clue-relevant-known.svg",
+  reportingParty: "https://symbology.napsgfoundation.org/symbols/Incident/Incident_Intelligence/incdnt-comand-white-solid-detail-reporting-party.svg"
+};
 const POA_RAMP = [[255, 238, 168], [253, 184, 99], [241, 116, 58], [194, 54, 47], [110, 17, 70]];
+const picture = (url, size) => ({ type:"esriPMS", url, imageData:"", contentType:"image/svg+xml", width:size, height:size, angle:0, xoffset:0, yoffset:0 });
 const marker = (style, color, size, outline) => ({
   type: "esriSMS", style, color: color.concat(255), size, angle: 0, xoffset: 0, yoffset: 0,
   outline: { type: "esriSLS", style: "esriSLSSolid", color: (outline || [255, 255, 255]).concat(255), width: 1.5 }
@@ -105,7 +112,7 @@ function buildSchema() {
       f("stat_source", STR, "Statistics source", 100),
       f("weights_json", STR, "Model weights JSON", 2000),
       f("notes", STR, "Notes", 2000)
-    ], simple(marker("esriSMSDiamond", GOLD, 15, NAVY))),
+    ], simple(picture(NAPSG.sar, 30))),
     layer(1, "KeyPoints", "esriGeometryPoint", [
       incId(),
       f("point_type", STR, "Point type", 10, { domain: D.pointType }),
@@ -113,10 +120,10 @@ function buildSchema() {
       f("point_time", DATE, "Time"),
       f("notes", STR, "Notes", 1000)
     ], unique("point_type", [
-      ["IPP", marker("esriSMSCross", NAVY, 14, GOLD)],
+      ["IPP", picture(NAPSG.ipp, 30)],
       ["PLS", marker("esriSMSCircle", GOLD, 11, NAVY)],
       ["LKP", marker("esriSMSSquare", GOLD, 10, NAVY)],
-      ["Find", marker("esriSMSDiamond", [54, 179, 126], 14, [255, 255, 255])]
+      ["Find", picture(NAPSG.clue, 28)]
     ], marker("esriSMSCircle", [175, 195, 207], 8, NAVY))),
     layer(2, "SearchSegment", "esriGeometryPolygon", [
       incId(),
@@ -136,7 +143,7 @@ function buildSchema() {
       f("found_time", DATE, "Found time"),
       f("found_by", STR, "Found by", 100),
       f("description", STR, "Description", 1000)
-    ], simple(marker("esriSMSTriangle", [217, 54, 79], 13, [255, 255, 255])), true),
+    ], simple(picture(NAPSG.clue, 28)), true),
     layer(4, "TrackLog", "esriGeometryPolyline", [
       incId(),
       f("team_name", STR, "Team", 100),

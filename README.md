@@ -14,6 +14,7 @@ Built from the science in Robert Koester's *Lost Person Behavior* / ISRID work. 
 - Exports CSV or GeoJSON, and saves incidents, model runs and segments to ArcGIS Online
 - Adds SARTopo-inspired ArcGIS map tools: layer/legend and basemap panels, field annotation, measurement, coordinates, geolocation, GeoJSON/GPX exchange and print
 - Uses a private, Sync-enabled hosted feature service and ArcGIS Online web map as the operational system of record (see [GIS workflow](docs/GIS_WORKFLOW.md))
+- Applies selected [NAPSG Foundation Symbol Library 2.0](https://symbology.napsgfoundation.org/) incident symbols where their meaning matches the SAR schema (see [symbology mapping](docs/NAPSG_SYMBOLOGY.md))
 
 ## Quick start
 

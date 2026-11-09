@@ -42,7 +42,7 @@ body{font-family:Arial,"Helvetica Neue",sans-serif;color:var(--text);background:
 .clocks{font-size:11px;color:var(--muted);line-height:1.45}
 .clocks strong{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
 .badge{border:1px solid var(--gold);color:var(--gold);padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.6px;white-space:nowrap}
-.app-footer{min-height:32px;background:#04111a;border-top:1px solid var(--border);color:var(--muted);display:grid;place-items:center;text-align:center;padding:6px 12px;font-size:10px;z-index:6}
+.app-footer{min-height:32px;background:#04111a;border-top:1px solid var(--border);color:var(--muted);display:grid;place-items:center;text-align:center;padding:6px 12px;font-size:10px;z-index:6}.app-footer a{color:var(--gold)}
 
 #body{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);min-height:0}
 #panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
@@ -337,7 +337,7 @@ svg text{font-family:inherit}
   <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
 </main>
 </div>
-<footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties.</footer>
+<footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties. Selected incident symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a>.</footer>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -750,6 +750,11 @@ const CONFIG = {
   defaultCenter: [-118.03, 34.14],
   defaultZoom: 10
 };
+const NAPSG_SYMBOLS = {
+  sar: "https://symbology.napsgfoundation.org/symbols/Community_Lifelines/Safety_and_Security/Lifelines_SS_SR_BI_NL.svg",
+  ipp: "https://symbology.napsgfoundation.org/symbols/USAR/Search_or_Human_Interactions/USR_SearchHumanInteractions_MissingPersonIPP.svg",
+  clue: "https://symbology.napsgfoundation.org/symbols/Incident/Incident_Intelligence/incdnt-comand-white-solid-detail-clue-relevant-known.svg"
+};
 
 const CATEGORY_GROUPS = [
   ["External forces", ["Abduction","Aircraft","Urban Entrapment","Water"]],
@@ -1008,6 +1013,7 @@ require([
   const annotationSketch = new Sketch({view, layer:layers.notes, creationMode:"single",
     availableCreateTools:["point","polyline","polygon"],
     visibleElements:{settingsMenu:false, selectionTools:{"lasso-selection":false}}});
+  annotationSketch.viewModel.pointSymbol = {type:"picture-marker",url:NAPSG_SYMBOLS.sar,width:"28px",height:"28px"};
   const drawPanel = addToolPanel(annotationSketch, 330);
   bindPanel("toolDraw", drawPanel);
 
@@ -1148,7 +1154,7 @@ require([
     layers.ipp.removeAll();
     layers.ipp.add(new Graphic({
       geometry:{type:"point", longitude:lon, latitude:lat},
-      symbol:{type:"simple-marker", style:"diamond", color:[242,169,0], size:14, outline:{color:[0,59,92], width:2}},
+      symbol:{type:"picture-marker", url:NAPSG_SYMBOLS.ipp, width:"30px", height:"30px"},
       popupTemplate:{title:"Initial planning point", content: lat.toFixed(5) + ", " + lon.toFixed(5)}
     }));
     if(state.run) toast("IPP moved. Run the model again to update segments.");
@@ -1450,6 +1456,17 @@ require([
 (function(){
   const utc = document.getElementById("utc"), loc = document.getElementById("localTime");
   const o = {hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false};
+  function tick(){
+    const n = new Date();
+    utc.textContent = n.toLocaleTimeString("en-GB", Object.assign({timeZone:"UTC"}, o));
+    loc.textContent = n.toLocaleTimeString("en-GB", o);
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
+digit", hour12:false};
   function tick(){
     const n = new Date();
     utc.textContent = n.toLocaleTimeString("en-GB", Object.assign({timeZone:"UTC"}, o));
