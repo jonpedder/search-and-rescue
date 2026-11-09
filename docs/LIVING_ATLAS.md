@@ -15,6 +15,8 @@ The workbench uses authoritative ArcGIS Living Atlas content where it supports a
 
 Open **Layers** and select **Load 5 context layers**. The application retrieves each source from its Living Atlas portal item so saved symbology, pop-ups and group structure are retained. Context layers are added below the SAR analytical graphics and remain off until an operator enables them.
 
+The companion private ArcGIS Online Web Map also includes hydrography, weather warnings, current wildfires and World Hillshade, all turned off by default. Annual NLCD is loaded through its Living Atlas item by the application rather than duplicated in the Web Map.
+
 ## Operational design
 
 - POA segments, IPP, clues, tracks and field annotations remain incident-owned layers.
