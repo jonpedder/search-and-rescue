@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
+<script src="./settings.js"></script>
 <style>
 /* Brand palette follows the ca_security_ops (Mission Insights) exemplar:
    navy header, gold accent, dark panels, Arial, uppercase gold eyebrow labels. */
@@ -135,14 +136,15 @@ svg text{font-family:inherit}
 <header class="app-header">
   <div class="shield" aria-hidden="true"><svg viewBox="0 0 48 56"><path d="M24 3 42 10v15c0 13-8 22-18 28C14 47 6 38 6 25V10Z"></path><circle cx="24" cy="26" r="8"></circle><path d="M24 14v6M24 32v6M12 26h6M30 26h6"></path></svg></div>
   <div class="brand">
-    <h1>Search &amp; Rescue</h1>
-    <p>Lost Person Behavior Workbench</p>
+    <h1 id="appName">Search &amp; Rescue</h1>
+    <p id="appSubtitle">Lost Person Behavior Workbench</p>
     <p class="powered-by">Powered by the ArcGIS Maps SDK for JavaScript</p>
   </div>
   <div class="mission"><strong>Probability of Area Planning</strong><span>Lost person behavior statistics to ranked search segments</span></div>
   <div class="status-row">
     <div class="clocks"><div>UTC <strong id="utc">--:--:--</strong></div><div>Local <strong id="localTime">--:--:--</strong></div></div>
     <span class="badge">SAR PLANNING</span>
+    <calcite-button href="./settings.html" appearance="outline" kind="brand" icon-start="gear" scale="s" title="Settings">Settings</calcite-button>
   </div>
 </header>
 <div id="body">
@@ -745,6 +747,7 @@ const CONFIG = {
   defaultCenter: [-118.03, 34.14],
   defaultZoom: 10
 };
+const APP_SETTINGS = window.SARSettings ? window.SARSettings.load() : {branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},map:{basemap:"topo-vector",centerLat:CONFIG.defaultCenter[1],centerLon:CONFIG.defaultCenter[0],zoom:CONFIG.defaultZoom,showCoordinates:true,autoLoadLivingAtlas:false},workspace:{startupTab:"incident"},model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}};
 const NAPSG_SYMBOLS = {
   sar: "./assets/napsg/sar.svg",
   ipp: "./assets/napsg/missing-person-ipp.svg",
@@ -939,8 +942,15 @@ setInterval(updateSurvival, 60000);
 [["wRing","wRingV"],["wSector","wSectorV"],["wLinear","wLinearV"],["wTerrain","wTerrainV"],["wElev","wElevV"],["res","resV"]].forEach(([a,b]) =>
   $(a).addEventListener("input", () => $(b).textContent = $(a).value));
 
-/* ---------- Init static UI ---------- */
+/* ---------- Init static UI and saved settings ---------- */
 renderScenarios(); fillCategories(); renderStats();
+$("appName").textContent = APP_SETTINGS.branding.appName;
+$("appSubtitle").textContent = APP_SETTINGS.branding.subtitle;
+document.title = APP_SETTINGS.branding.appName;
+showTab(APP_SETTINGS.workspace.startupTab);
+[["wRing","wRingV",APP_SETTINGS.model.ringWeight],["wSector","wSectorV",APP_SETTINGS.model.sectorWeight],["wLinear","wLinearV",APP_SETTINGS.model.linearWeight],["wTerrain","wTerrainV",APP_SETTINGS.model.terrainWeight],["wElev","wElevV",APP_SETTINGS.model.elevationWeight],["res","resV",APP_SETTINGS.model.resolution]].forEach(([input,output,value])=>{$(input).value=value;$(output).textContent=value});
+$("mapCoords").hidden = !APP_SETTINGS.map.showCoordinates;
+window.addEventListener("storage", e => { if(e.key === window.SARSettings?.STORAGE_KEY) location.reload(); });
 </script>
 
 <script src="https://js.arcgis.com/4.31/"></script>
@@ -974,8 +984,8 @@ require([
     relief: null, travel: null
   };
   const vis = {relief:true, travel:false};
-  const map = new Map({basemap: "topo-vector", layers: [layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
-  const view = new MapView({container:"viewDiv", map, center: CONFIG.defaultCenter, zoom: CONFIG.defaultZoom, constraints:{snapToZoom:false}});
+  const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
+  const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   view.ui.add(new Search({view}), "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
   view.ui.add(new Home({view}), "top-left");
@@ -1021,6 +1031,7 @@ require([
       toast("Living Atlas context layers loaded.");
     }
   };
+  if(APP_SETTINGS.map.autoLoadLivingAtlas) view.when(() => layerBody.querySelector("#loadLivingAtlas").click());
 
   addNativeExpand(new BasemapGallery({view}), "Basemaps");
 

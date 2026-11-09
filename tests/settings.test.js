@@ -1,0 +1,12 @@
+const assert=require("assert"),fs=require("fs"),path=require("path"),vm=require("vm");
+const store=new Map(),localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
+const window={localStorage};vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../app/settings.js"),"utf8"),{window,localStorage,JSON,Number,String,Object,Array,Math});
+const api=window.SARSettings;
+assert.strictEqual(api.load().branding.appName,"Search & Rescue");
+const saved=api.save({...api.BASE_DEFAULTS,branding:{appName:"County SAR",subtitle:"Planning"},map:{...api.BASE_DEFAULTS.map,zoom:12}});
+assert.strictEqual(saved.branding.appName,"County SAR");assert.strictEqual(api.load().map.zoom,12);
+assert.ok(api.validate({...api.BASE_DEFAULTS,map:{...api.BASE_DEFAULTS.map,centerLat:120}}).errors.length);
+assert.strictEqual(api.reset().workspace.startupTab,"incident");
+const settingsHtml=fs.readFileSync(path.join(__dirname,"../app/settings.html"),"utf8");
+assert.match(settingsHtml,/Configuration/);assert.match(settingsHtml,/Help &amp; How-to/);assert.match(settingsHtml,/Export template/);assert.match(settingsHtml,/Apply draft for review/);
+console.log("ok  settings validation, persistence, templates and guide contract");

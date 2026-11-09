@@ -16,6 +16,7 @@ Built from the science in Robert Koester's *Lost Person Behavior* / ISRID work. 
 - Uses a private, Sync-enabled hosted feature service and ArcGIS Online web map as the operational system of record (see [GIS workflow](docs/GIS_WORKFLOW.md))
 - Applies selected [NAPSG Foundation Symbol Library 2.0](https://symbology.napsgfoundation.org/) incident symbols where their meaning matches the SAR schema (see [symbology mapping](docs/NAPSG_SYMBOLOGY.md))
 - Uses the [Calcite Design System](https://developers.arcgis.com/calcite-design-system/) for interface components, semantic color tokens, dark mode, focus behavior and operational alerts
+- Provides an exemplar-aligned Settings page with Configuration and Help & How-to tabs, template import/export, draft review, browser-local defaults and an operator guide
 - Loads authoritative [ArcGIS Living Atlas](docs/LIVING_ATLAS.md) terrain, land cover, hydrography, weather, wildfire and hillshade context on demand
 
 ## Quick start

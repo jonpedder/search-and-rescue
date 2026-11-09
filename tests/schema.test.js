@@ -31,4 +31,6 @@ assert.match(appHtml, /layer\.visible = false/);
 assert.match(appHtml, /new Expand\(\{view, content/);
 assert.match(appHtml, /view\.ui\.add\(\$\("mapTools"\), "bottom-right"\)/);
 assert.doesNotMatch(appHtml, /id="tool(?:Layers|Basemap|Draw|Measure|Locate|Print|Help)"/);
-console.log("ok  hosted schema, native ArcGIS widgets, Sync, NAPSG, Calcite and Living Atlas contracts");
+assert.match(appHtml, /href="\.\/settings\.html"/);
+assert.match(appHtml, /SARSettings\.load\(\)/);
+console.log("ok  hosted schema, native ArcGIS widgets, Settings, Sync, NAPSG, Calcite and Living Atlas contracts");
