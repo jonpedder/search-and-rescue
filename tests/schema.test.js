@@ -33,4 +33,7 @@ assert.match(appHtml, /view\.ui\.add\(\$\("mapTools"\), "bottom-right"\)/);
 assert.doesNotMatch(appHtml, /id="tool(?:Layers|Basemap|Draw|Measure|Locate|Print|Help)"/);
 assert.match(appHtml, /href="\.\/settings\.html"/);
 assert.match(appHtml, /SARSettings\.load\(\)/);
-console.log("ok  hosted schema, native ArcGIS widgets, Settings, Sync, NAPSG, Calcite and Living Atlas contracts");
+for(const id of ["intName","intBearing","intMedical","intClothing","intRoute","intDestination","applyInterview","exportInterview","persistInterview","interviewModelBox"]) assert.ok(appHtml.includes('id="'+id+'"'));
+assert.match(appHtml, /function interviewPlanning/);
+assert.match(appHtml, /boundedProvenance/);
+console.log("ok  hosted schema, native ArcGIS widgets, Settings, interview, Sync, NAPSG, Calcite and Living Atlas contracts");

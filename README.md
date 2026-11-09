@@ -6,6 +6,7 @@ Built from the science in Robert Koester's *Lost Person Behavior* / ISRID work. 
 
 ## What it does
 
+- Captures a structured lost-person interview covering immediate planning, health, clothing/equipment, experience, trip plans, behavior and prior actions; converts supported answers into reviewable planning cues
 - Looks up LPB statistics by subject category, environment and terrain, with fallback and sample-size warnings
 - Builds distance rings, direction sectors, linear-feature proximity, DEM travel time (Tobler hiking function) and elevation bias
 - Blends layers by adjustable weights and scenarios into ranked search segments

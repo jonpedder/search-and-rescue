@@ -81,7 +81,7 @@ input,select,button{font:inherit}
 .hint{font-size:12px;color:var(--muted);margin:3px 0 0;line-height:1.45}
 
 /* Controls */
-input[type=text],input[type=number],input[type=datetime-local],select{width:100%;padding:8px;border:1px solid var(--border);border-radius:3px;background:var(--panel2);color:var(--text)}
+input[type=text],input[type=number],input[type=date],input[type=datetime-local],select,textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:3px;background:var(--panel2);color:var(--text);font:inherit}textarea{min-height:72px;resize:vertical}
 input::placeholder{color:var(--muted);opacity:.8}
 input[type=range]{width:100%;accent-color:var(--gold)}
 input[type=checkbox]{accent-color:var(--gold)}
@@ -97,6 +97,10 @@ input[type=checkbox]{accent-color:var(--gold)}
 .box.warn{background:color-mix(in srgb,var(--critical) 16%,var(--panel));border-color:var(--critical);color:var(--text)}
 .box.ok{background:color-mix(in srgb,var(--low) 14%,var(--panel));border-color:var(--low)}
 .box ul{margin:4px 0 0;padding-left:18px}
+.interview-card{margin:10px 0;border:1px solid var(--calcite-color-border-2);background:var(--calcite-color-foreground-1)}
+.interview-card summary{cursor:pointer;padding:10px 12px;color:var(--calcite-color-brand);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.interview-body{padding:0 12px 12px}.interview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.interview-grid .wide{grid-column:1/-1}
+.interview-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.planning-cues{margin:10px 0}.planning-cues li{margin-bottom:5px}.sensitive-note{border-left:4px solid var(--calcite-color-status-warning);padding:8px 10px;background:var(--calcite-color-foreground-2);font-size:12px}
 
 /* Tables */
 table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
@@ -126,6 +130,7 @@ svg text{font-family:inherit}
   #body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,55%) minmax(0,45%)}
   #panel{order:2;border-right:0;border-top:1px solid var(--border)}
   main{order:1}
+  .interview-grid{grid-template-columns:1fr}.interview-grid .wide{grid-column:auto}
   .app-footer{font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -209,7 +214,51 @@ svg text{font-family:inherit}
       <div><label for="season">Season</label><select id="season"><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option></select></div>
       <div><label for="light">Light</label><select id="light"><option>Day</option><option>Night</option><option>Twilight</option></select></div>
     </div>
-    <p class="hint">Category, environment and terrain drive the statistics lookup. The other fields are recorded with the incident and not yet used by the lookup.</p>
+    <p class="hint">Category, environment and terrain drive the statistics lookup. Interview answers below generate planning cues but do not silently change the statistical stratum.</p>
+
+    <h2>Lost person interview</h2>
+    <p class="sensitive-note"><strong>Sensitive information:</strong> collect only what the incident requires. Interview data remains in this browser unless explicitly exported or included with the ModelRun provenance.</p>
+    <details class="interview-card" open><summary>Immediate planning information</summary><div class="interview-body interview-grid">
+      <label>Missing person name<input id="intName" type="text" autocomplete="off"></label><label>Nicknames / callsign<input id="intNickname" type="text" autocomplete="off"></label>
+      <label>Last seen going which way<input id="intDirectionText" type="text" placeholder="Trail, drainage, landmark…"></label><label>Bearing, degrees true<input id="intBearing" type="number" min="0" max="359" placeholder="Optional"></label>
+      <label class="wide">Reason for leaving / known intent<textarea id="intReason"></textarea></label><label class="wide">External factors affecting behavior<textarea id="intExternal"></textarea></label>
+      <label>General condition<select id="intCondition"><option value="">Unknown</option><option>Good</option><option>Fair</option><option>Poor</option><option>Injured</option></select></label><label>Hours overdue<input id="intHoursOverdue" type="number" min="0" step="0.5"></label>
+      <label>Recent photograph<select id="intPhoto"><option value="">Unknown</option><option>Available</option><option>On the way</option><option>Unavailable</option></select></label><label>Photo location / custodian<input id="intPhotoWhere" type="text"></label>
+    </div></details>
+    <details class="interview-card"><summary>Health and vulnerability</summary><div class="interview-body interview-grid">
+      <label>Physical disability / handicap<select id="intHandicap"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Medical problems<select id="intMedical"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label class="wide">Medical details<textarea id="intMedicalDetails"></textarea></label><label>Psychological / cognitive concerns<select id="intPsych"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Prescription medications<select id="intMeds"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label class="wide">Medication, psychological or knowledgeable-person details<textarea id="intHealthDetails"></textarea></label><label>History of depression / running away<select id="intDepression"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Will answer searchers<select id="intAnswerSearchers"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label>May hide from searchers<select id="intHideSearchers"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Likely persistence<select id="intPersistence"><option value="">Unknown</option><option>Give up mentally</option><option>Hole up / shelter</option><option>Keep going</option></select></label>
+      <label class="wide">Fears, injury response and other vulnerability notes<textarea id="intFears"></textarea></label>
+    </div></details>
+    <details class="interview-card"><summary>Clothing, equipment and detectability</summary><div class="interview-body interview-grid">
+      <label class="wide">Clothing description and colors<textarea id="intClothing" placeholder="Shirt, pants, outerwear, headwear, footwear…"></textarea></label><label>Pack / equipment description<input id="intPack" type="text"></label><label>Overall coloration from air<input id="intAirColor" type="text"></label>
+      <label>Water carried<select id="intWater"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Overnight shelter / sleeping bag<select id="intShelter"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label>Flashlight<select id="intFlashlight"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Fire-making equipment<select id="intFire"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label>Map<select id="intMap"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Compass<select id="intCompass"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label>GPS / navigation device<select id="intGps"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Scent articles secured<select id="intScent"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label class="wide">Other clothing, equipment or scent-article location<textarea id="intEquipment"></textarea></label>
+    </div></details>
+    <details class="interview-card"><summary>Outdoor experience and behavior</summary><div class="interview-body interview-grid">
+      <label>Familiar with area<select id="intFamiliar"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Overnight experience<select id="intOvernight"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label>Goes out alone<select id="intAlone"><option value="">Unknown</option><option>Often</option><option>Sometimes</option><option>No</option></select></label><label>Route tendency<select id="intRoute"><option value="">Unknown</option><option>Stay on trail</option><option>Cross country</option><option>Mixed</option></select></label>
+      <label>Outdoor training<select id="intOutdoorTraining"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>First aid training<select id="intFirstAid"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label>Military / scouting experience<select id="intFieldExperience"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label><label>Lost before<select id="intLostBefore"><option value="">Unknown</option><option>Yes</option><option>No</option></select></label>
+      <label class="wide">Athletic ability, prior lost episode and “what to do when lost” training<textarea id="intExperienceNotes"></textarea></label>
+    </div></details>
+    <details class="interview-card"><summary>Trip plan and actions already taken</summary><div class="interview-body interview-grid">
+      <label>Going to / destination<input id="intDestination" type="text"></label><label>Via / planned route<input id="intVia" type="text"></label>
+      <label>Purpose<input id="intPurpose" type="text"></label><label>Planned duration<input id="intDuration" type="text"></label>
+      <label>Group size<input id="intGroupSize" type="number" min="1"></label><label>Transportation<input id="intTransport" type="text"></label>
+      <label>Started at<input id="intStart" type="text"></label><label>Pickup / return plan<input id="intReturn" type="text"></label>
+      <label>Vehicle location / description<input id="intVehicle" type="text"></label><label>Likely contact or route to civilization<input id="intCivilization" type="text"></label>
+      <label class="wide">Actions already taken by friends, family, fire, rescue or law enforcement<textarea id="intActions"></textarea></label>
+      <label class="wide">Additional interview notes<textarea id="intNotes"></textarea></label>
+    </div></details>
+    <div class="interview-actions"><calcite-button id="applyInterview" icon-start="analysis">Apply supported cues to planning</calcite-button><calcite-button id="exportInterview" appearance="outline-fill" icon-start="download">Export interview JSON</calcite-button></div>
+    <label style="display:flex;gap:8px;align-items:flex-start;font-weight:400"><input type="checkbox" id="persistInterview"> Include interview fields in ModelRun provenance when saving to ArcGIS Online</label>
+    <div id="interviewPlan" class="box planning-cues" aria-live="polite">Enter interview information to generate planning cues.</div>
 
     <h2>Matched statistics</h2>
     <div id="statBox"></div>
@@ -227,6 +276,7 @@ svg text{font-family:inherit}
   <section id="tab-model" class="pane" role="tabpanel">
     <h2>Model layers</h2>
     <p class="hint">The probability surface is a weighted sum of normalized layers. A layer with no data for this subject is skipped and the others are renormalized.</p>
+    <div id="interviewModelBox" class="box">Interview planning cues will appear here. Review them before changing model assumptions.</div>
     <div class="slider-line"><span>Distance rings</span><span id="wRingV">30</span></div>
     <input type="range" id="wRing" min="0" max="100" value="30" aria-label="Distance rings weight">
     <div class="slider-line"><span>Direction sectors</span><span id="wSectorV">20</span></div>
@@ -820,6 +870,64 @@ $("addScen").addEventListener("click", () => {
   state.scenarios.push({name:"Scenario " + (state.scenarios.length+1), prob:0, bearing:null});
   renderScenarios();
 });
+
+/* ---------- Lost person interview and planning cues ---------- */
+const INTERVIEW_FIELDS = ["intName","intNickname","intDirectionText","intBearing","intReason","intExternal","intCondition","intHoursOverdue","intPhoto","intPhotoWhere","intHandicap","intMedical","intMedicalDetails","intPsych","intMeds","intHealthDetails","intDepression","intAnswerSearchers","intHideSearchers","intPersistence","intFears","intClothing","intPack","intAirColor","intWater","intShelter","intFlashlight","intFire","intMap","intCompass","intGps","intScent","intEquipment","intFamiliar","intOvernight","intAlone","intRoute","intOutdoorTraining","intFirstAid","intFieldExperience","intLostBefore","intExperienceNotes","intDestination","intVia","intPurpose","intDuration","intGroupSize","intTransport","intStart","intReturn","intVehicle","intCivilization","intActions","intNotes"];
+function interviewProfile(){
+  const out={};
+  INTERVIEW_FIELDS.forEach(id=>{const el=$(id),key=id.slice(3,4).toLowerCase()+id.slice(4),value=el.value.trim();if(value!=="")out[key]=el.type==="number"?+value:value});
+  return out;
+}
+function interviewPlanning(profile=interviewProfile()){
+  const cues=[];
+  const add=(kind,text)=>cues.push({kind,text});
+  if(Number.isFinite(profile.bearing))add("direction","Use the reported direction as a scenario bearing only after checking magnetic-versus-true reference and witness reliability.");
+  if(profile.directionText)add("direction","Plot and verify the reported travel direction or landmark: "+profile.directionText+".");
+  if(profile.destination||profile.via)add("route","Investigate the intended destination and route; add verified trails, roads or drainages as linear planning features.");
+  if(profile.route==="Stay on trail")add("route","Trail-oriented behavior supports increased attention to verified linear features and decision points.");
+  if(profile.route==="Cross country")add("route","Cross-country behavior weakens a trails-only assumption; preserve terrain and sector alternatives.");
+  if(profile.familiar==="Yes")add("behavior","Area familiarity may support purposeful travel, shortcuts, known destinations and self-rescue routes.");
+  if(profile.familiar==="No")add("behavior","Unfamiliarity increases the value of decision points, attraction features, containment and route checks.");
+  const nav=[profile.map,profile.compass,profile.gps].filter(v=>v==="Yes").length;
+  if(nav)add("capability","Navigation equipment reported ("+nav+" item"+(nav>1?"s":"")+"); verify possession, battery state and skill rather than assuming effective use.");
+  if(profile.outdoorTraining==="Yes"||profile.overnight==="Yes"||profile.fieldExperience==="Yes")add("capability","Reported outdoor/field experience may extend mobility and survivability; do not assume the subject followed training.");
+  if(profile.water==="No"||profile.shelter==="No")add("urgency","Limited water or shelter increases exposure urgency; compare against weather, elapsed time and clothing.");
+  if(profile.medical==="Yes"||profile.handicap==="Yes"||profile.meds==="Yes")add("urgency","Medical, mobility or medication concerns require command/medical review and may change urgency and mobility assumptions.");
+  if(profile.psych==="Yes"||profile.depression==="Yes")add("behavior","Psychological or cognitive concerns require category review and behavior-specific tactics; do not infer a diagnosis from this interview.");
+  if(profile.persistence==="Keep going")add("mobility","Continued movement is reported; review the 95% extent and likely travel corridors.");
+  if(profile.persistence==="Hole up / shelter")add("tactics","Sheltering behavior is reported; prioritize protected micro-features and close visual searches.");
+  if(profile.hideSearchers==="Yes"||profile.answerSearchers==="No")add("tactics","The subject may not respond or may hide; adjust attraction, sound, tracking and close-search tactics.");
+  if(profile.scent==="Yes")add("tactics","A scent article is reported secured; coordinate handling and deployment with qualified canine resources.");
+  if(profile.photo==="Available"||profile.airColor)add("detection","Brief teams with the current photograph and overall aerial coloration; confirm clothing may have changed.");
+  if(profile.vehicle)add("investigation","Treat the vehicle location as a key point and verify it independently.");
+  if(profile.actions)add("coordination","Reconcile completed actions to prevent gaps, duplication and contaminated clues.");
+  return cues;
+}
+function renderInterviewPlanning(){
+  const p=interviewProfile(),cues=interviewPlanning(p),answered=INTERVIEW_FIELDS.filter(id=>$(id).value.trim()!=="").length;
+  const body=cues.length?'<ul>'+cues.map(c=>'<li><strong>'+esc(c.kind)+':</strong> '+esc(c.text)+'</li>').join("")+'</ul>':'<p>No planning cues yet. Record immediate planning, health, equipment, experience or trip information.</p>';
+  $("interviewPlan").innerHTML='<strong>Interview progress: '+answered+' of '+INTERVIEW_FIELDS.length+' fields answered</strong>'+body;
+  $("interviewModelBox").innerHTML=cues.length?'<strong>Interview-derived considerations</strong><ul>'+cues.slice(0,8).map(c=>'<li>'+esc(c.text)+'</li>').join("")+'</ul><span class="hint">These are prompts for planner review, not automatic probability evidence.</span>':'Interview planning cues will appear here. Review them before changing model assumptions.';
+}
+INTERVIEW_FIELDS.forEach(id=>{$(id).addEventListener("input",renderInterviewPlanning);$(id).addEventListener("change",renderInterviewPlanning)});
+$("applyInterview").onclick=()=>{
+  const p=interviewProfile(),changes=[];
+  if(Number.isFinite(p.bearing)){state.scenarios[0].bearing=p.bearing;changes.push("primary scenario bearing set to "+p.bearing+"° true")}
+  if(p.route==="Stay on trail"&&+$("wLinear").value<30){$("wLinear").value=30;$("wLinearV").textContent=30;changes.push("linear-feature weight raised to 30")}
+  if(p.persistence==="Keep going"&&$("extent").value!=="3"){$("extent").value="3";changes.push("search extent set to the 95% ring")}
+  renderScenarios();renderInterviewPlanning();toast(changes.length?"Applied: "+changes.join("; ")+". Review before running the model.":"No directly supported cue was available to apply. Review the planning notes.",!changes.length);
+};
+$("exportInterview").onclick=()=>{
+  const p=interviewProfile();if(!Object.keys(p).length){toast("Enter interview information first.",true);return}if(!confirm("Export sensitive lost-person interview information to a local JSON file? Protect the file according to agency policy."))return;
+  const report={schema:"sar-lost-person-interview-v1",incidentId:state.incidentId,incidentName:$("incName").value||"Unnamed",exportedAt:new Date().toISOString(),subject:p,planningCues:interviewPlanning(p)};
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}));a.download="lost_person_interview_"+state.incidentId+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+renderInterviewPlanning();
+function boundedProvenance(value,max=8000){
+  const text=JSON.stringify(value);if(text.length<=max)return text;
+  const compact={...value,interview:undefined,interviewPlanning:undefined,interviewOmitted:"Interview exceeded the ModelRun text limit; use the separately exported protected interview report."};
+  return JSON.stringify(compact);
+}
 
 /* ---------- Subject & stats ---------- */
 function fillCategories(){
@@ -1445,6 +1553,7 @@ require([
         weights:{ring:+$("wRing").value, sector:+$("wSector").value, linear:+$("wLinear").value, terrain:+$("wTerrain").value, elev:+$("wElev").value},
         dem:{used:state.run.usedLayers.includes("terrain"), url:($("demUrl").value.trim() || CONFIG.demUrl), cells:+$("demN").value, maxSlope:+$("maxSlope").value}, grid:+$("res").value,
         extentIdx:extentIdx(), scenarios:state.scenarios, lineFeatures:state.lines.length, layers:state.run.usedLayers};
+      if($("persistInterview").checked){inputs.interview=interviewProfile();inputs.interviewPlanning=interviewPlanning(inputs.interview)}
       const incLayer = new FeatureLayer({url: CONFIG.incidentLayerUrl});
       const segLayer = new FeatureLayer({url: CONFIG.segmentLayerUrl});
       const runTable = new FeatureLayer({url: CONFIG.modelRunTableUrl});
@@ -1458,7 +1567,7 @@ require([
           stat_stratum:stratum, stat_n:m.n, stat_source:m.source, weights_json:JSON.stringify(inputs.weights)}})]});
 
       await runTable.applyEdits({addFeatures:[new Graphic({attributes:{run_id:state.runId, incident_id:state.incidentId, run_time:Date.now(),
-        stat_stratum:stratum, stat_n:m.n, stat_source:m.source, inputs_json:JSON.stringify(inputs).slice(0,8000), segments_count:state.segs.length}})]});
+        stat_stratum:stratum, stat_n:m.n, stat_source:m.source, inputs_json:boundedProvenance(inputs), segments_count:state.segs.length}})]});
 
       const adds = state.segs.map(s => new Graphic({
         geometry:{type:"polygon", rings:[s.cell.ring], spatialReference:{wkid:4326}},
