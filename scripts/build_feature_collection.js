@@ -63,11 +63,12 @@ const incId = () => f("incident_id", STR, "Incident ID", 50, { nullable: false }
 
 /* --------------------------------------------------------------- symbology */
 const NAVY = [0, 59, 92], GOLD = [242, 169, 0];
+// Public GitHub Pages copies avoid the NAPSG origin's cross-origin SVG restriction.
+// Source attribution and original Tool 2.0 URLs are recorded in docs/NAPSG_SYMBOLOGY.md.
 const NAPSG = {
-  sar: "https://symbology.napsgfoundation.org/symbols/Community_Lifelines/Safety_and_Security/Lifelines_SS_SR_BI_NL.svg",
-  ipp: "https://symbology.napsgfoundation.org/symbols/USAR/Search_or_Human_Interactions/USR_SearchHumanInteractions_MissingPersonIPP.svg",
-  clue: "https://symbology.napsgfoundation.org/symbols/Incident/Incident_Intelligence/incdnt-comand-white-solid-detail-clue-relevant-known.svg",
-  reportingParty: "https://symbology.napsgfoundation.org/symbols/Incident/Incident_Intelligence/incdnt-comand-white-solid-detail-reporting-party.svg"
+  sar: "https://jonpedder.github.io/search-and-rescue/assets/napsg/sar.svg",
+  ipp: "https://jonpedder.github.io/search-and-rescue/assets/napsg/missing-person-ipp.svg",
+  clue: "https://jonpedder.github.io/search-and-rescue/assets/napsg/known-clue.svg"
 };
 const POA_RAMP = [[255, 238, 168], [253, 184, 99], [241, 116, 58], [194, 54, 47], [110, 17, 70]];
 const picture = (url, size) => ({ type:"esriPMS", url, imageData:"", contentType:"image/svg+xml", width:size, height:size, angle:0, xoffset:0, yoffset:0 });

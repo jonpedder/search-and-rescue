@@ -20,9 +20,10 @@ PLS and LKP keep distinct gold circle/square symbols until an exact NAPSG equiva
 
 The NAPSG library includes specific symbols for wilderness, canine, cave, mountain, air, radio-direction-finding, swiftwater and USAR teams. These should be applied to a future point-based `Resource` or `TeamLocation` layer driven by a coded `resource_type` field. The current `Task` table and `TrackLog` lines do not provide a team point geometry, so applying those symbols now would be misleading.
 
-## Attribution and dependency
+## Attribution and hosted copies
 
 - The app footer links to the NAPSG Foundation Symbol Library.
-- The service and Web Map renderers reference NAPSG-hosted SVG URLs.
-- The SVGs are not copied into this repository. Before mirroring symbols for disconnected/offline deployment, review NAPSG's current reuse and attribution terms and record the symbol-library version.
-- If an upstream SVG URL becomes unavailable, ArcGIS falls back to missing picture symbols; the schema test guards the expected URL mappings but cannot guarantee upstream availability.
+- The three selected Tool 2.0 SVGs are retained under `app/assets/napsg/` because the NAPSG server does not allow the cross-origin SVG requests required by ArcGIS picture-marker rendering from GitHub Pages.
+- The filenames in this repo are `sar.svg`, `missing-person-ipp.svg` and `known-clue.svg`. Their source records are, respectively, `Lifelines_SS_SR_BI_NL.svg`, `USR_SearchHumanInteractions_MissingPersonIPP.svg` and `incdnt-comand-white-solid-detail-clue-relevant-known.svg` in NAPSG Symbol Library Tool 2.0.
+- The custom app uses relative asset URLs. ArcGIS Online service and Web Map renderers use the public GitHub Pages equivalents so Map Viewer can load them.
+- Before redistributing the assets beyond this application, or adding more symbols, review NAPSG's current reuse and attribution terms and record the symbol-library version/date.
