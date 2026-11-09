@@ -3,86 +3,141 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SAR Planning Workbench</title>
-<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<title>Search &amp; Rescue</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 56'%3E%3Crect width='48' height='56' rx='6' fill='%23003B5C'/%3E%3Cpath d='M24 4 41 10.500v14.500c0 12-7.500 20.500-17 26C14.500 45.500 7 37 7 25V10.500Z' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Ccircle cx='24' cy='26' r='8' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Cpath d='M24 14v6M24 32v6M12 26h6M30 26h6' stroke='%23F2A900' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <style>
+/* Brand palette follows the ca_security_ops (Mission Insights) exemplar:
+   navy header, gold accent, dark panels, Arial, uppercase gold eyebrow labels. */
 :root{
-  --ink:#17252d; --ink-soft:#4a5c66; --paper:#f2f4f5; --panel:#ffffff; --line:#cfd8dc;
-  --accent:#e8590c; --accent-dark:#b94709; --teal:#14657e; --warn:#b42318; --warn-bg:#fdecea;
-  --ok:#1b6b3a; --ok-bg:#e6f4ea; --note-bg:#eef4f7;
+  --navy:#003B5C; --bg:#071824; --panel:#0C2231; --panel2:#123247; --gold:#F2A900;
+  --text:#F4F7F9; --muted:#AFC3CF; --border:#28495B; --focus:#8BD3FF;
+  --critical:#D9364F; --high:#F28C28; --medium:#F2C94C; --low:#36B37E;
+  --warn:#D9364F; --ok:#36B37E;
   --poa1:#ffeea8; --poa2:#fdb863; --poa3:#f1743a; --poa4:#c2362f; --poa5:#6e1146;
+  color-scheme:dark;
+  --calcite-color-brand:var(--gold);
+  --calcite-color-foreground-1:var(--panel);
+  --calcite-color-foreground-2:var(--panel2);
+  --calcite-color-text-1:var(--text);
+  --calcite-color-text-2:var(--muted);
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper);font-size:15px;line-height:1.45}
-#app{display:grid;grid-template-columns:minmax(340px,430px) 1fr;height:100%}
-#panel{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-#panel header{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
-#panel h1{font-size:19px;margin:0;font-weight:700}
-#panel .sub{margin:2px 0 0;color:var(--ink-soft);font-size:13px}
-#tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
-#tabs button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;font:inherit;font-weight:700;color:var(--ink-soft);cursor:pointer}
-#tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+html,body{height:100%;margin:0;overflow:hidden}
+body{font-family:Arial,"Helvetica Neue",sans-serif;color:var(--text);background:var(--bg);font-size:14px;line-height:1.45}
+
+/* App shell: header / (panel + map) / footer */
+#app{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100vh;height:100dvh}
+.app-header{min-height:74px;display:flex;align-items:center;gap:16px;padding:10px 16px;background:linear-gradient(90deg,var(--navy),var(--panel));border-bottom:1px solid var(--border);z-index:5}
+.shield{width:44px;height:50px;display:grid;place-items:center;flex:0 0 auto}
+.shield svg{width:42px;fill:none;stroke:var(--gold);stroke-width:2}
+.brand{min-width:240px}
+.brand h1{font-size:19px;margin:0;color:var(--text);letter-spacing:.2px;font-weight:700}
+.brand p{margin:3px 0 0;color:var(--gold);font-size:12px}
+.brand .powered-by{margin-top:2px;color:var(--muted);font-size:9px;white-space:nowrap}
+.mission{border-left:1px solid var(--border);padding-left:16px}
+.mission strong{display:block;font-size:14px}
+.mission span{font-size:11px;color:var(--muted)}
+.status-row{margin-left:auto;display:flex;gap:16px;align-items:center}
+.clocks{font-size:11px;color:var(--muted);line-height:1.45}
+.clocks strong{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.badge{border:1px solid var(--gold);color:var(--gold);padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.6px;white-space:nowrap}
+.app-footer{min-height:32px;background:#04111a;border-top:1px solid var(--border);color:var(--muted);display:grid;place-items:center;text-align:center;padding:6px 12px;font-size:10px;z-index:6}
+
+#body{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);min-height:0}
+#panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+main{min-width:0;min-height:0;background:#06121c}
+#viewDiv{width:100%;height:100%}
+.esri-view{--esri-view-outline-color:var(--gold)}
+
+/* Tabs */
+#tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--panel)}
+#tabs button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:11px 12px;font:inherit;font-size:12px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);cursor:pointer}
+#tabs button:hover{color:var(--gold)}
+#tabs button[aria-selected="true"]{color:var(--gold);border-bottom-color:var(--gold);background:var(--panel2)}
 .pane{display:none;overflow:auto;padding:14px 16px 24px;flex:1;min-height:0}
 .pane.active{display:block}
-#panel footer{padding:8px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-soft)}
-h2{font-size:15px;margin:18px 0 6px}
+
+/* Type */
+h2{font-size:12px;margin:18px 0 6px;color:var(--gold);text-transform:uppercase;letter-spacing:.7px;font-weight:700}
 h2:first-child{margin-top:0}
-label{display:block;font-weight:700;font-size:13px;margin:10px 0 3px}
+label{display:block;font-weight:700;font-size:12px;margin:10px 0 3px;color:var(--muted)}
 input,select,button{font:inherit}
-input[type=text],input[type=number],input[type=datetime-local],select{width:100%;padding:7px 8px;border:1px solid #9fb0b8;border-radius:4px;background:#fff;color:var(--ink)}
-input[type=range]{width:100%;accent-color:var(--accent)}
+.hint{font-size:12px;color:var(--muted);margin:3px 0 0;line-height:1.45}
+
+/* Controls */
+input[type=text],input[type=number],input[type=datetime-local],select{width:100%;padding:8px;border:1px solid var(--border);border-radius:3px;background:var(--panel2);color:var(--text)}
+input::placeholder{color:var(--muted);opacity:.8}
+input[type=range]{width:100%;accent-color:var(--gold)}
+input[type=checkbox]{accent-color:var(--gold)}
 .row{display:flex;gap:8px}
 .row>*{flex:1;min-width:0}
-.btn{padding:8px 12px;border:1px solid #9fb0b8;background:#fff;border-radius:4px;cursor:pointer;font-weight:700;color:var(--ink)}
-.btn:hover{background:#eef2f4}
-.btn.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff}
-.btn.primary:hover{background:var(--accent-dark)}
-.btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.btn.small{padding:4px 8px;font-size:13px}
+.btn{padding:8px 12px;border:1px solid var(--gold);background:transparent;border-radius:3px;cursor:pointer;font-weight:700;color:var(--gold)}
+.btn:hover{background:var(--panel2)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#111}
+.btn.primary:hover{filter:brightness(1.1);background:var(--gold)}
+.btn.on{background:var(--gold);color:#111;border-color:var(--gold)}
+.btn.small{padding:4px 8px;font-size:12px}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
-.hint{font-size:12.5px;color:var(--ink-soft);margin:3px 0 0}
-.box{border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:12px 0;background:var(--note-bg)}
-.box.warn{background:var(--warn-bg);border-color:#e6a8a1;color:#5c120c}
-.box.ok{background:var(--ok-bg);border-color:#a8d5b4}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* Callouts */
+.box{border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:3px;padding:10px 12px;margin:12px 0;background:#07182488}
+.box.warn{background:color-mix(in srgb,var(--critical) 16%,var(--panel));border-color:var(--critical);color:var(--text)}
+.box.ok{background:color-mix(in srgb,var(--low) 14%,var(--panel));border-color:var(--low)}
 .box ul{margin:4px 0 0;padding-left:18px}
-table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
-th,td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--border)}
 th:first-child,td:first-child{text-align:left}
-th{font-size:12.5px;color:var(--ink-soft)}
+th{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.4px}
 tbody tr.seg{cursor:pointer}
-tbody tr.seg:hover{background:#fff4ec}
+tbody tr.seg:hover{background:var(--panel2)}
 td input[type=number]{width:62px;padding:3px 4px;text-align:right}
 .scen td{padding:3px 3px}
 .scen input{padding:4px 5px}
-.slider-line{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-top:10px}
-.layers label{display:flex;gap:8px;align-items:center;font-weight:400;margin:5px 0}
+.slider-line{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-top:10px;color:var(--text)}
+.slider-line span:last-child{color:var(--gold)}
+.layers label{display:flex;gap:8px;align-items:center;font-weight:400;margin:5px 0;color:var(--text)}
 .swatches{display:flex;height:10px;border-radius:2px;overflow:hidden;margin-top:4px}
 .swatches i{flex:1}
-#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 14px;border-radius:6px;font-size:14px;max-width:80vw;display:none;z-index:50}
-#toast.err{background:var(--warn)}
+
+#toast{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--gold);color:var(--text);padding:9px 14px;border-radius:3px;font-size:13px;max-width:80vw;display:none;z-index:50;box-shadow:0 8px 20px #0008}
+#toast.err{background:color-mix(in srgb,var(--critical) 30%,var(--panel2));border-color:var(--critical)}
 svg text{font-family:inherit}
+
+@media (max-width:1100px){.mission,.brand .powered-by{display:none}}
 @media (max-width:860px){
-  #app{grid-template-columns:1fr;grid-template-rows:55vh 45vh}
-  #panel{order:2;border-right:0;border-top:1px solid var(--line)}
+  .app-header{min-height:60px;padding:7px 10px;gap:10px}
+  .shield{width:32px;height:38px}.shield svg{width:30px}
+  .brand{min-width:0}.brand h1{font-size:15px}.brand p{font-size:10px}
+  .clocks,.badge{display:none}
+  #body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,55%) minmax(0,45%)}
+  #panel{order:2;border-right:0;border-top:1px solid var(--border)}
   main{order:1}
+  .app-footer{font-size:9px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-main{min-width:0;min-height:0}
-#viewDiv{width:100%;height:100%}
 </style>
 </head>
 <body>
 <div id="app">
+<header class="app-header">
+  <div class="shield" aria-hidden="true"><svg viewBox="0 0 48 56"><path d="M24 3 42 10v15c0 13-8 22-18 28C14 47 6 38 6 25V10Z"></path><circle cx="24" cy="26" r="8"></circle><path d="M24 14v6M24 32v6M12 26h6M30 26h6"></path></svg></div>
+  <div class="brand">
+    <h1>Search &amp; Rescue</h1>
+    <p>Lost Person Behavior Workbench</p>
+    <p class="powered-by">Powered by the ArcGIS Maps SDK for JavaScript</p>
+  </div>
+  <div class="mission"><strong>Probability of Area Planning</strong><span>Lost person behavior statistics to ranked search segments</span></div>
+  <div class="status-row">
+    <div class="clocks"><div>UTC <strong id="utc">--:--:--</strong></div><div>Local <strong id="localTime">--:--:--</strong></div></div>
+    <span class="badge">SAR PLANNING</span>
+  </div>
+</header>
+<div id="body">
 <aside id="panel">
-  <header>
-    <h1>SAR planning workbench</h1>
-    <p class="sub">Lost person behavior and probability of area</p>
-  </header>
   <nav id="tabs" role="tablist" aria-label="Workbench sections">
     <button role="tab" aria-selected="true" data-tab="incident">Incident</button>
     <button role="tab" aria-selected="false" data-tab="subject">Subject</button>
@@ -256,9 +311,10 @@ main{min-width:0;min-height:0}
     <p class="hint">Survival is a time-decay fit by subject category and does not account for weather, injury or clothing. Treat it as one input to urgency, not a limit on effort.</p>
   </section>
 
-  <footer>Decision support for trained SAR personnel. Review every output against field information.</footer>
 </aside>
 <main><div id="viewDiv"></div></main>
+</div>
+<footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties.</footer>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -829,14 +885,14 @@ function updateSurvival(){
   let path = "";
   for(let i=0;i<=100;i++){ const d = maxD*i/100; path += (i ? "L" : "M") + x(d).toFixed(1) + "," + y(LPB.survival(curve.a, curve.b, d*24)).toFixed(1); }
   let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Survival probability by days since last seen">';
-  [0,0.25,0.5,0.75,1].forEach(p => s += '<line x1="'+L+'" x2="'+(W-Rr)+'" y1="'+y(p)+'" y2="'+y(p)+'" stroke="#dde4e7"/><text x="'+(L-5)+'" y="'+(y(p)+4)+'" font-size="11" text-anchor="end" fill="#4a5c66">'+Math.round(p*100)+'%</text>');
-  for(let d=0; d<=maxD; d+=2) s += '<text x="'+x(d)+'" y="'+(H-10)+'" font-size="11" text-anchor="middle" fill="#4a5c66">'+d+' d</text>';
-  [1,2,3,4].forEach(d => s += '<line x1="'+x(d)+'" x2="'+x(d)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#9fb0b8" stroke-dasharray="3 3"/>');
-  s += '<path d="' + path + '" fill="none" stroke="#14657e" stroke-width="2.5"/>';
+  [0,0.25,0.5,0.75,1].forEach(p => s += '<line x1="'+L+'" x2="'+(W-Rr)+'" y1="'+y(p)+'" y2="'+y(p)+'" stroke="#28495B"/><text x="'+(L-5)+'" y="'+(y(p)+4)+'" font-size="11" text-anchor="end" fill="#AFC3CF">'+Math.round(p*100)+'%</text>');
+  for(let d=0; d<=maxD; d+=2) s += '<text x="'+x(d)+'" y="'+(H-10)+'" font-size="11" text-anchor="middle" fill="#AFC3CF">'+d+' d</text>';
+  [1,2,3,4].forEach(d => s += '<line x1="'+x(d)+'" x2="'+x(d)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#28495B" stroke-dasharray="3 3"/>');
+  s += '<path d="' + path + '" fill="none" stroke="#F2A900" stroke-width="2.5"/>';
   if(hrs != null && hrs >= 0 && hrs/24 <= maxD){
     const d = hrs/24;
-    s += '<line x1="'+x(d)+'" x2="'+x(d)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#e8590c" stroke-width="2"/>' +
-         '<circle cx="'+x(d)+'" cy="'+y(LPB.survival(curve.a, curve.b, hrs))+'" r="5" fill="#e8590c"/>';
+    s += '<line x1="'+x(d)+'" x2="'+x(d)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#D9364F" stroke-width="2"/>' +
+         '<circle cx="'+x(d)+'" cy="'+y(LPB.survival(curve.a, curve.b, hrs))+'" r="5" fill="#D9364F"/>';
   }
   ch.innerHTML = s + "</svg>";
 }
@@ -915,7 +971,7 @@ require([
   }
   $("clearTrails").addEventListener("click", () => { layers.trail.removeAll(); refreshLineCount(); });
 
-  const trailSymbol = {type:"simple-line", color:[20,101,126,0.95], width:2.5};
+  const trailSymbol = {type:"simple-line", color:[0,59,92,0.95], width:2.5};
   $("loadLines").addEventListener("click", async () => {
     const url = $("lineUrl").value.trim();
     if(!url){ toast("Enter a line layer URL.", true); return; }
@@ -965,7 +1021,7 @@ require([
     layers.ipp.removeAll();
     layers.ipp.add(new Graphic({
       geometry:{type:"point", longitude:lon, latitude:lat},
-      symbol:{type:"simple-marker", style:"diamond", color:[232,89,12], size:14, outline:{color:[255,255,255], width:2}},
+      symbol:{type:"simple-marker", style:"diamond", color:[242,169,0], size:14, outline:{color:[0,59,92], width:2}},
       popupTemplate:{title:"Initial planning point", content: lat.toFixed(5) + ", " + lon.toFixed(5)}
     }));
     if(state.run) toast("IPP moved. Run the model again to update segments.");
@@ -1117,7 +1173,7 @@ require([
     const rs = ["25%","50%","75%","95%"];
     row.dist.forEach((d, i) => {
       layers.ring.add(line(LPB.circleRing(state.ipp.lat, state.ipp.lon, d*1000),
-        {type:"simple-line", color:[20,101,126,0.9], width: i === 3 ? 2 : 1.25, style: i === 3 ? "solid" : "dash"}));
+        {type:"simple-line", color:[0,59,92,0.9], width: i === 3 ? 2 : 1.25, style: i === 3 ? "solid" : "dash"}));
     });
     // sectors
     if(row.disp){
@@ -1261,6 +1317,19 @@ require([
     finally{ btn.disabled = false; }
   });
 });
+</script>
+<script>
+/* Header clocks (UTC + local), as in the Mission Insights exemplar */
+(function(){
+  const utc = document.getElementById("utc"), loc = document.getElementById("localTime");
+  const o = {hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false};
+  function tick(){
+    const n = new Date();
+    utc.textContent = n.toLocaleTimeString("en-GB", Object.assign({timeZone:"UTC"}, o));
+    loc.textContent = n.toLocaleTimeString("en-GB", o);
+  }
+  tick(); setInterval(tick, 1000);
+})();
 </script>
 </body>
 </html>
