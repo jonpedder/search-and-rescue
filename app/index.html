@@ -58,12 +58,12 @@ body{font-family:var(--calcite-sans-family,"Avenir Next","Helvetica Neue",sans-s
 main{min-width:0;min-height:0;background:#06121c;position:relative}
 #viewDiv{width:100%;height:100%}
 .esri-view{--esri-view-outline-color:var(--gold)}
-#mapTools{position:absolute;z-index:4;left:12px;top:12px;display:flex;flex-direction:column;gap:1px;width:124px;padding:var(--calcite-spacing-xxs);background:color-mix(in srgb,var(--calcite-color-foreground-1) 94%,transparent);box-shadow:var(--calcite-shadow-sm)}
+#mapTools{position:absolute;z-index:4;left:12px;top:12px;display:flex;flex-direction:column;gap:1px;width:148px;padding:var(--calcite-spacing-xxs);background:color-mix(in srgb,var(--calcite-color-foreground-1) 94%,transparent);box-shadow:var(--calcite-shadow-sm)}
 .map-tool{width:100%;--calcite-action-background-color:var(--calcite-color-foreground-1);--calcite-action-text-color:var(--calcite-color-text-1)}
 .map-tool[active]{--calcite-action-background-color:var(--calcite-color-foreground-3);--calcite-action-text-color:var(--calcite-color-brand)}
 #mapCoords{position:absolute;z-index:3;right:12px;bottom:28px;padding:5px 8px;background:#071824dd;border:1px solid var(--border);color:var(--muted);font:11px/1.2 monospace;pointer-events:none}
 #mapFile{display:none}
-.tool-help{position:absolute;z-index:4;left:148px;top:12px;width:min(330px,calc(100% - 160px));padding:10px 12px;background:var(--panel);border:1px solid var(--gold);color:var(--text);font-size:11px;line-height:1.45;box-shadow:0 8px 24px #0008}
+.tool-help{position:absolute;z-index:4;left:172px;top:12px;width:min(330px,calc(100% - 184px));padding:10px 12px;background:var(--panel);border:1px solid var(--gold);color:var(--text);font-size:11px;line-height:1.45;box-shadow:0 8px 24px #0008}
 .tool-help[hidden]{display:none}.tool-help strong{color:var(--gold)}
 
 /* Tabs */
@@ -331,11 +331,11 @@ svg text{font-family:inherit}
     <calcite-action class="map-tool" id="toolBasemap" icon="basemap" text="Basemap" text-enabled title="Stackable base maps"></calcite-action>
     <calcite-action class="map-tool" id="toolDraw" icon="pencil" text="Draw" text-enabled title="Draw field annotations"></calcite-action>
     <calcite-action class="map-tool" id="toolMeasure" icon="measure" text="Measure" text-enabled title="Measure distance or area"></calcite-action>
-    <calcite-action class="map-tool" id="toolLocate" icon="locate" text="Locate" text-enabled title="Zoom to my location"></calcite-action>
+    <calcite-action class="map-tool" id="toolLocate" icon="gps-on" text="Locate" text-enabled title="Zoom to my location"></calcite-action>
     <calcite-action class="map-tool" id="toolImport" icon="upload" text="Import" text-enabled title="Import GeoJSON or GPX"></calcite-action>
     <calcite-action class="map-tool" id="toolExport" icon="download" text="Export" text-enabled title="Export map annotations as GeoJSON"></calcite-action>
     <calcite-action class="map-tool" id="toolPrint" icon="print" text="Print" text-enabled title="Print the map"></calcite-action>
-    <calcite-action class="map-tool" id="toolHelp" icon="question" text="Help" title="About the tools"></calcite-action>
+    <calcite-action class="map-tool" id="toolHelp" icon="question" text="Help" text-enabled title="About the tools"></calcite-action>
     <input id="mapFile" type="file" accept=".geojson,.json,.gpx,application/geo+json,application/gpx+xml">
   </div>
   <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Layer and basemap controls, field annotation, distance/area measurement, GPS location, GeoJSON/GPX exchange and print. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
