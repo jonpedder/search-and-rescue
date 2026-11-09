@@ -25,4 +25,7 @@ assert.match(appHtml, /<calcite-segmented-control/);
 assert.match(appHtml, /<calcite-action class="map-tool"/);
 assert.match(appHtml, /<calcite-alert/);
 assert.doesNotMatch(appHtml, /--calcite-ui-/);
-console.log("ok  hosted schema, geometries, Sync, NAPSG and Calcite contracts");
+for(const id of ["32e2ccc6416746a9a72b4d216813f84f","21b3bad712c84cae82830569ce53326f","a6134ae01aad44c499d12feec782b386","d957997ccee7408287a963600a77f61f","1b243539f4514b6ba35e7d995890db1d"]) assert.ok(appHtml.includes(id));
+assert.match(appHtml, /Layer\.fromPortalItem/);
+assert.match(appHtml, /layer\.visible = false/);
+console.log("ok  hosted schema, geometries, Sync, NAPSG, Calcite and Living Atlas contracts");

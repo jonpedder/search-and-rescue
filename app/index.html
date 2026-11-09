@@ -342,7 +342,7 @@ svg text{font-family:inherit}
   <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
 </main>
 </div>
-<footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties. Selected incident symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a>.</footer>
+<footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties. Context: <a href="https://livingatlas.arcgis.com/" target="_blank" rel="noopener">ArcGIS Living Atlas</a>. Symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a>.</footer>
 </div>
 <calcite-alert id="toast" placement="bottom" icon><div slot="message" id="toastMessage"></div></calcite-alert>
 
@@ -760,6 +760,13 @@ const NAPSG_SYMBOLS = {
   ipp: "./assets/napsg/missing-person-ipp.svg",
   clue: "./assets/napsg/known-clue.svg"
 };
+const LIVING_ATLAS_ITEMS = [
+  {id:"32e2ccc6416746a9a72b4d216813f84f", title:"USA Annual NLCD Land Cover", opacity:0.45},
+  {id:"21b3bad712c84cae82830569ce53326f", title:"National Hydrography Dataset Plus High Resolution", opacity:0.75},
+  {id:"a6134ae01aad44c499d12feec782b386", title:"USA Weather Watches and Warnings", opacity:0.55},
+  {id:"d957997ccee7408287a963600a77f61f", title:"USA and Canada Current Wildfires", opacity:0.75},
+  {id:"1b243539f4514b6ba35e7d995890db1d", title:"World Hillshade", opacity:0.55}
+];
 
 const CATEGORY_GROUPS = [
   ["External forces", ["Abduction","Aircraft","Urban Entrapment","Water"]],
@@ -956,10 +963,10 @@ require([
   "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference",
   "esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Measurement",
   "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/CoordinateConversion","esri/widgets/Print",
-  "esri/layers/GeoJSONLayer","esri/portal/Portal"
+  "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer"
 ], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
             webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference,
-            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, CoordinateConversion, Print, GeoJSONLayer, Portal){
+            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer){
 
   if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
   if(CONFIG.appId){
@@ -1006,10 +1013,36 @@ require([
     };
   }
   const layerPanel = addToolPanel(null, 330);
-  // Layer list and legend share one operational panel.
-  const layerBody = layerPanel.lastElementChild; layerBody.innerHTML = '<div id="opsLayerList"></div><div style="border-top:1px solid #28495B" id="opsLegend"></div>';
+  // Layer list, Living Atlas catalogue and legend share one operational panel.
+  const layerBody = layerPanel.lastElementChild;
+  layerBody.innerHTML = '<div style="padding:12px;background:var(--calcite-color-foreground-2);border-bottom:1px solid var(--calcite-color-border-2)"><strong>ArcGIS Living Atlas context</strong><p style="margin:4px 0 10px;color:var(--calcite-color-text-2);font-size:12px">Adds authoritative land cover, hydrography, weather, wildfire and hillshade layers. They load turned off; enable only what supports the current incident.</p><calcite-button id="loadLivingAtlas" appearance="outline-fill" width="full" icon-start="layers">Load 5 context layers</calcite-button><div id="livingAtlasStatus" aria-live="polite" style="margin-top:6px;font-size:11px;color:var(--calcite-color-text-3)">World Elevation is already used by the terrain model.</div></div><div id="opsLayerList"></div><div style="border-top:1px solid var(--calcite-color-border-2)" id="opsLegend"></div>';
   new LayerList({view, container:layerBody.querySelector("#opsLayerList")});
   new Legend({view, container:layerBody.querySelector("#opsLegend")});
+  const livingAtlasLoaded = new Set(), livingAtlasPortal = new Portal({url:"https://www.arcgis.com"});
+  layerBody.querySelector("#loadLivingAtlas").onclick = async e => {
+    const button = e.currentTarget, status = layerBody.querySelector("#livingAtlasStatus");
+    button.loading = true; button.disabled = true;
+    const failed = [];
+    for(const item of LIVING_ATLAS_ITEMS){
+      if(livingAtlasLoaded.has(item.id)) continue;
+      status.textContent = "Loading " + item.title + "…";
+      try{
+        const layer = await Layer.fromPortalItem({portalItem:{id:item.id, portal:livingAtlasPortal}});
+        layer.title = "Living Atlas — " + item.title; layer.visible = false; layer.opacity = item.opacity; layer.listMode = "show";
+        await layer.load(); map.add(layer, 0); livingAtlasLoaded.add(item.id); layers["livingAtlas" + livingAtlasLoaded.size] = layer;
+      }catch(error){ failed.push(item.title); }
+    }
+    button.loading = false;
+    if(failed.length){
+      button.disabled = false; button.textContent = "Retry unavailable layers";
+      status.textContent = livingAtlasLoaded.size + " loaded; unavailable: " + failed.join(", ") + ". Check item access and your ArcGIS session.";
+      toast("Some Living Atlas layers were unavailable.", true);
+    }else{
+      button.textContent = "Living Atlas context loaded";
+      status.textContent = "5 context layers loaded and turned off. Enable them in the layer list as needed.";
+      toast("Living Atlas context layers loaded.");
+    }
+  };
   bindPanel("toolLayers", layerPanel);
 
   const basemapPanel = addToolPanel(new BasemapGallery({view}), 360);
