@@ -60,3 +60,8 @@ a { color: var(--calcite-color-brand); }
   --esri-popup-content-background-color: var(--app-panel);
   --esri-popup-header-background-color: var(--app-navy);
 }
+
+/* Header navigation buttons: one scale/appearance everywhere; Settings is a square icon-only button. */
+.status-row calcite-button,.header-actions calcite-button,.header .actions calcite-button{--calcite-button-corner-radius:2px}
+calcite-button.header-icon-button{width:44px;min-width:44px;flex:0 0 44px}
+calcite-button.header-icon-button::part(content){gap:0}
