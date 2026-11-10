@@ -2,6 +2,10 @@
 
 `app/operations.html` provides an operational common operating picture alongside the statistical SAR Planning workbench. Its workflow is informed by common SARTopo/CalTopo SAR practices and the Esri `Missing Persons` MapSAR-derived feature-service template (`2d675dc81d9d442aab52e30d513d9478`), without copying either product's interface.
 
+## Editing workflow
+
+The page prioritizes a SARTopo-like object workflow while using ArcGIS COTS components: choose a SAR object type, draw it with the ArcGIS `SketchViewModel`, select it from the map or object list, edit its attributes, reshape/move it with native sketch handles and snapping controls, then save or create a linked assignment. Segment-to-assignment handoff generates an operational-period assignment number and opens the assignment editor. Existing assignments can be selected, revised, printed, or removed from the browser workspace.
+
 ## Supported workflows
 
 - Draw operational areas and search segments.
