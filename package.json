@@ -5,7 +5,12 @@
   "private": true,
   "scripts": {
     "test": "node tests/model.test.js && node tests/schema.test.js && node tests/settings.test.js",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
     "serve": "python3 -m http.server 8080 --directory app",
     "embed-seed": "python3 scripts/embed_seed.py"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0"
   }
 }
