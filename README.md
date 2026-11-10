@@ -19,6 +19,7 @@ Built from the science in Robert Koester's *Lost Person Behavior* / ISRID work. 
 - Uses the [Calcite Design System](https://developers.arcgis.com/calcite-design-system/) for interface components, semantic color tokens, dark mode, focus behavior and operational alerts
 - Provides an exemplar-aligned Settings page with Configuration and Help & How-to tabs, template import/export, draft review, browser-local defaults and an operator guide
 - Loads authoritative [ArcGIS Living Atlas](docs/LIVING_ATLAS.md) terrain, land cover, hydrography, weather, wildfire and hillshade context on demand
+- Includes public FCC-sourced [cell tower locations and clearly labeled circular coverage estimates](docs/COMMUNICATIONS.md) for communications planning
 
 ## Quick start
 

@@ -6,6 +6,7 @@ assert.strictEqual(api.load().branding.appName,"Search & Rescue");
 const saved=api.save({...api.BASE_DEFAULTS,branding:{appName:"County SAR",subtitle:"Planning"},map:{...api.BASE_DEFAULTS.map,zoom:12}});
 assert.strictEqual(saved.branding.appName,"County SAR");assert.strictEqual(api.load().map.zoom,12);
 assert.ok(api.validate({...api.BASE_DEFAULTS,map:{...api.BASE_DEFAULTS.map,centerLat:120}}).errors.length);
+assert.ok(api.validate({...api.BASE_DEFAULTS,map:{...api.BASE_DEFAULTS.map,towerCoverageKm:100}}).errors.length);
 assert.strictEqual(api.reset().workspace.startupTab,"incident");
 const settingsHtml=fs.readFileSync(path.join(__dirname,"../app/settings.html"),"utf8");
 assert.match(settingsHtml,/Configuration/);assert.match(settingsHtml,/Help &amp; How-to/);assert.match(settingsHtml,/Export template/);assert.match(settingsHtml,/Apply draft for review/);

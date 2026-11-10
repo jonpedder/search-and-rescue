@@ -797,12 +797,13 @@ const CONFIG = {
   defaultCenter: [-118.03, 34.14],
   defaultZoom: 10
 };
-const APP_SETTINGS = window.SARSettings ? window.SARSettings.load() : {branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},map:{basemap:"topo-vector",centerLat:CONFIG.defaultCenter[1],centerLon:CONFIG.defaultCenter[0],zoom:CONFIG.defaultZoom,showCoordinates:true,autoLoadLivingAtlas:false},workspace:{startupTab:"incident"},model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}};
+const APP_SETTINGS = window.SARSettings ? window.SARSettings.load() : {branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},map:{basemap:"topo-vector",centerLat:CONFIG.defaultCenter[1],centerLon:CONFIG.defaultCenter[0],zoom:CONFIG.defaultZoom,showCoordinates:true,autoLoadLivingAtlas:false,towerCoverageKm:5},workspace:{startupTab:"incident"},model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}};
 const NAPSG_SYMBOLS = {
   sar: "./assets/napsg/sar.svg",
   ipp: "./assets/napsg/missing-person-ipp.svg",
   clue: "./assets/napsg/known-clue.svg"
 };
+const CELL_TOWER_URL = "https://services5.arcgis.com/umIjvohPcWJU5ij6/arcgis/rest/services/Cellular_Towers_New/FeatureServer/0";
 const LIVING_ATLAS_ITEMS = [
   {id:"32e2ccc6416746a9a72b4d216813f84f", title:"USA Annual NLCD Land Cover", opacity:0.45},
   {id:"21b3bad712c84cae82830569ce53326f", title:"National Hydrography Dataset Plus High Resolution", opacity:0.75},
@@ -1071,10 +1072,10 @@ require([
   "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference",
   "esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Measurement",
   "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/CoordinateConversion","esri/widgets/Print",
-  "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer"
+  "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer","esri/geometry/geometryEngine"
 ], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
             webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference,
-            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer){
+            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer, geometryEngine){
 
   if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
   if(CONFIG.appId){
@@ -1089,10 +1090,11 @@ require([
     label: new GraphicsLayer({title:"Segment ranks", listMode:"hide"}),
     ipp: new GraphicsLayer({title:"IPP", listMode:"hide"}),
     notes: new GraphicsLayer({title:"Field annotations"}),
+    towerCoverage: new GraphicsLayer({title:"Estimated cell-tower coverage",visible:true}), towers:null,
     relief: null, travel: null
   };
   const vis = {relief:true, travel:false};
-  const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
+  const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   view.ui.add(new Search({view}), "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
@@ -1113,6 +1115,21 @@ require([
   layerBody.innerHTML = '<div style="padding:12px;background:var(--calcite-color-foreground-2);border-bottom:1px solid var(--calcite-color-border-2)"><strong>ArcGIS Living Atlas context</strong><p style="margin:4px 0 10px;color:var(--calcite-color-text-2);font-size:12px">Adds authoritative land cover, hydrography, weather, wildfire and hillshade layers. They load turned off; enable only what supports the current incident.</p><calcite-button id="loadLivingAtlas" appearance="outline-fill" width="full" icon-start="layers">Load 5 context layers</calcite-button><div id="livingAtlasStatus" aria-live="polite" style="margin-top:6px;font-size:11px;color:var(--calcite-color-text-3)">World Elevation is already used by the terrain model.</div></div><div id="opsLayerList"></div>';
   new LayerList({view, container:layerBody.querySelector("#opsLayerList")});
   addNativeExpand(layerBody, "Layers and Living Atlas", "top-left", "layers");
+
+  // FCC-sourced tower locations with explicitly estimated, not provider-verified, coverage circles.
+  const communicationsBody=document.createElement("div");communicationsBody.className="esri-widget";communicationsBody.style.cssText="width:330px;padding:12px;background:var(--calcite-color-foreground-1)";
+  communicationsBody.innerHTML='<strong>Cellular communications planning</strong><p style="font-size:12px;color:var(--calcite-color-text-2)">Load public FCC-sourced tower registrations, then create equal-radius planning estimates for towers in the current map view.</p><label style="display:block;font-size:12px">Estimated radius (km)<input id="towerRadius" type="number" min="0.5" max="50" step="0.5" value="'+APP_SETTINGS.map.towerCoverageKm+'"></label><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><calcite-button id="loadTowers" appearance="outline-fill" icon-start="pin">Load towers</calcite-button><calcite-button id="estimateTowerCoverage" icon-start="analysis">Estimate current view</calcite-button><calcite-button id="clearTowerCoverage" appearance="outline" icon-start="trash">Clear estimates</calcite-button></div><div id="towerStatus" aria-live="polite" style="margin-top:8px;font-size:11px;color:var(--calcite-color-text-3)">Coverage is not verified RF service. It ignores terrain, antenna sectors, frequency, power, capacity and outages.</div>';
+  async function ensureTowerLayer(){
+    if(layers.towers){layers.towers.visible=true;return layers.towers}
+    const layer=new FeatureLayer({url:CELL_TOWER_URL,title:"FCC-sourced cellular tower locations",definitionExpression:"LicStatus = 'A'",outFields:["FID","Licensee","Callsign","LocAdd","LocCity","LocCounty","LocState","TowReg","SupStruc","AllStruc","StrucType","LicStatus","url"],minScale:750000,
+      renderer:{type:"simple",symbol:{type:"simple-marker",style:"triangle",color:[0,188,212,0.9],size:9,outline:{color:[255,255,255,0.9],width:1}}},
+      popupTemplate:{title:"Cell tower {Callsign}",content:[{type:"fields",fieldInfos:[{fieldName:"Licensee",label:"Licensee"},{fieldName:"Callsign",label:"Callsign"},{fieldName:"TowReg",label:"Tower registration"},{fieldName:"StrucType",label:"Structure type"},{fieldName:"AllStruc",label:"Overall height"},{fieldName:"LocAdd",label:"Address"},{fieldName:"LocCity",label:"City"},{fieldName:"LocCounty",label:"County"},{fieldName:"LocState",label:"State"}]}]}});
+    map.add(layer,1);await layer.load();layers.towers=layer;return layer;
+  }
+  communicationsBody.querySelector("#loadTowers").onclick=async e=>{const b=e.currentTarget;b.loading=true;try{await ensureTowerLayer();communicationsBody.querySelector("#towerStatus").textContent="Tower locations loaded. Zoom below 1:750,000 to display them.";toast("Cell tower locations loaded.")}catch(error){toast("Tower layer unavailable: "+error.message,true)}finally{b.loading=false}};
+  communicationsBody.querySelector("#estimateTowerCoverage").onclick=async e=>{const b=e.currentTarget,radius=+communicationsBody.querySelector("#towerRadius").value,status=communicationsBody.querySelector("#towerStatus");if(!Number.isFinite(radius)||radius<0.5||radius>50){toast("Coverage radius must be between 0.5 and 50 km.",true);return}b.loading=true;try{const layer=await ensureTowerLayer(),q=layer.createQuery();q.geometry=view.extent;q.spatialRelationship="intersects";q.returnGeometry=true;q.outFields=layer.outFields;q.num=300;const result=await layer.queryFeatures(q);layers.towerCoverage.removeAll();const area=Math.PI*radius*radius;const graphics=result.features.map(f=>new Graphic({geometry:geometryEngine.geodesicBuffer(f.geometry,radius,"kilometers"),attributes:{towerId:f.attributes.FID,callsign:f.attributes.Callsign||"Unknown",licensee:f.attributes.Licensee||"Unknown",radiusKm:radius,areaKm2:area},symbol:{type:"simple-fill",color:[0,188,212,0.08],outline:{color:[0,188,212,0.65],width:1}},popupTemplate:{title:"Estimated coverage — {callsign}",content:"<b>Licensee:</b> {licensee}<br><b>Planning radius:</b> {radiusKm} km<br><b>Circle area:</b> {areaKm2} km²<br><br><i>Planning estimate only; not verified carrier RF coverage.</i>"}}));layers.towerCoverage.addMany(graphics);status.textContent=graphics.length+" tower coverage estimates drawn at "+radius+" km radius"+(result.exceededTransferLimit?" (limited to the first 300 towers in view)":"")+". Not verified RF service.";toast("Estimated coverage for "+graphics.length+" towers.")}catch(error){toast("Coverage estimate failed: "+error.message,true)}finally{b.loading=false}};
+  communicationsBody.querySelector("#clearTowerCoverage").onclick=()=>{layers.towerCoverage.removeAll();communicationsBody.querySelector("#towerStatus").textContent="Coverage estimates cleared. Tower locations remain available in Layers."};
+  addNativeExpand(communicationsBody,"Cell towers and estimated coverage","top-left","antenna-height");
   addNativeExpand(new Legend({view}), "Legend");
   const livingAtlasLoaded = new Set(), livingAtlasPortal = new Portal({url:"https://www.arcgis.com"});
   layerBody.querySelector("#loadLivingAtlas").onclick = async e => {

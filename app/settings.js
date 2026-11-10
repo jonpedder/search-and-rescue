@@ -4,7 +4,7 @@
   const BASE_DEFAULTS={
     version:1,
     branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},
-    map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10,showCoordinates:true,autoLoadLivingAtlas:false},
+    map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10,showCoordinates:true,autoLoadLivingAtlas:false,towerCoverageKm:5},
     workspace:{startupTab:"incident"},
     model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}
   };
@@ -29,7 +29,7 @@
     if(!Number.isFinite(v.map.centerLat)||v.map.centerLat < -90||v.map.centerLat > 90)errors.push("Default latitude must be between -90 and 90.");
     if(!Number.isFinite(v.map.centerLon)||v.map.centerLon < -180||v.map.centerLon > 180)errors.push("Default longitude must be between -180 and 180.");
     if(!Number.isFinite(v.map.zoom)||v.map.zoom < 2||v.map.zoom > 20)errors.push("Default zoom must be between 2 and 20.");
-    v.map.showCoordinates=!!v.map.showCoordinates;v.map.autoLoadLivingAtlas=!!v.map.autoLoadLivingAtlas;
+    v.map.showCoordinates=!!v.map.showCoordinates;v.map.autoLoadLivingAtlas=!!v.map.autoLoadLivingAtlas;v.map.towerCoverageKm=Number(v.map.towerCoverageKm);if(!Number.isFinite(v.map.towerCoverageKm)||v.map.towerCoverageKm<0.5||v.map.towerCoverageKm>50)errors.push("Tower coverage estimate must be between 0.5 and 50 km.");
     if(!["incident","subject","model","segments","survival"].includes(v.workspace.startupTab))v.workspace.startupTab="incident";
     for(const k of ["ringWeight","sectorWeight","linearWeight","terrainWeight","elevationWeight"]){v.model[k]=Number(v.model[k]);if(!Number.isFinite(v.model[k])||v.model[k]<0||v.model[k]>100)errors.push(k+" must be between 0 and 100.")}
     v.model.resolution=Math.round(Number(v.model.resolution));if(!Number.isFinite(v.model.resolution)||v.model.resolution<32||v.model.resolution>192)errors.push("Model resolution must be between 32 and 192.");
