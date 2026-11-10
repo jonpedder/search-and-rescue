@@ -6,6 +6,7 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 
 ## What it does
 
+- Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; Operations manages areas, segments, assignments, PLS, clues, cell pings and field assets
 - Captures a structured lost-person interview covering immediate planning, health, clothing/equipment, experience, trip plans, behavior and prior actions; converts supported answers into reviewable planning cues
 - Looks up LPB statistics by subject category, environment and terrain, with fallback and sample-size warnings
 - Builds distance rings, direction sectors, linear-feature proximity, DEM travel time (Tobler hiking function) and elevation bias

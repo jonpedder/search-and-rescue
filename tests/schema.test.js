@@ -41,4 +41,12 @@ for(const id of ["towerRadius","loadTowers","estimateTowerCoverage","clearTowerC
 assert.match(appHtml, /geodesicBuffer/);
 assert.match(appHtml, /Not verified RF service/);
 assert.match(appHtml, /Dr\. Robert J\. Koester/);
+assert.match(appHtml, /href="\.\/operations\.html"/);
+const operationsHtml = fs.readFileSync(path.join(__dirname, "../app/operations.html"), "utf8");
+for(const id of ["incidentId","loadArcGIS","syncArcGIS","assignmentSegment","loadLocal","featureList","assignmentList"]) assert.ok(operationsHtml.includes('id="'+id+'"'));
+for(const kind of ["area","segment","pls","clue","ping","asset"]) assert.ok(operationsHtml.includes('data-draw="'+kind+'"'));
+assert.match(operationsHtml, /CELL PING:/);
+assert.match(operationsHtml, /ASSET:/);
+assert.match(operationsHtml, /serviceRoot\+"\/2"/);
+assert.match(operationsHtml, /SketchViewModel/);
 console.log("ok  hosted schema, native ArcGIS widgets, Settings, interview, communications, Sync, NAPSG, Calcite and Living Atlas contracts");
