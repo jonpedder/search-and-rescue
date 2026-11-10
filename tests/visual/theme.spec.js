@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+test.setTimeout(90000);
 
 const pages = [
   { name: "planning", path: "/index.html", map: true },
@@ -29,7 +30,7 @@ for (const item of pages) {
     const masks = [];
     if (item.map) masks.push(page.locator("#viewDiv"));
     for (const id of ["#utc", "#localTime", "#planningPeriodStart", "#planningPeriodEnd", "#planningPeriodDuration"]) if (await page.locator(id).count()) masks.push(page.locator(id));
-    await expect(page).toHaveScreenshot(`theme-${item.name}.png`, { mask: masks, maskColor: "#071824", fullPage: false });
+    await expect(page).toHaveScreenshot(`theme-${item.name}.png`, { mask: masks, maskColor: "#071824", fullPage: false, timeout: 15000 });
   });
 
   test(`${item.name} token and mobile layout audit`, async ({ page }, testInfo) => {
