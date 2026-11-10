@@ -93,6 +93,19 @@ This file records the prompts used to guide the reporting and synthetic-data add
 - Use an application title bar, tabbed surface, collapsible configuration cards and a persistent Save/Reset action bar consistent with the reference application.
 - Preserve the visual walkthroughs and downloadable Help PDF under Help & How-to.
 
+## Standardize the application header
+
+> Use the Resource & Asset Management application header as the configuration example: https://jonpedder.github.io/resource-asset-management/index.html
+
+### Header acceptance criteria
+
+- Use one shared header composition on Planning, Operations and Settings.
+- Present a linked brand mark, application name and subtitle on the left.
+- Keep Reports/PDF, SAR Planning and SAR Operations together as primary navigation.
+- Keep authenticated user, Sign in/Sign out and Settings together as a distinct session area.
+- Highlight the current page and preserve the required action order.
+- Adapt to narrower screens with ordered rows rather than clipping, horizontal scrolling or hidden controls.
+
 ## Fix and publish
 
 > Fix the HTTP 400 error, commit the changes, and push them to GitHub.

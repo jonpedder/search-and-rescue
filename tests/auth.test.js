@@ -14,6 +14,7 @@ for (const page of ["index.html", "operations.html", "settings.html"]) {
 }
 const headerNav = fs.readFileSync(path.join(app, "header-nav.js"), "utf8");
 for (const id of ["sarReportsControl", "sarPlanningNav", "sarOperationsNav", "sarSessionArea", "sarSettingsNav"]) assert.ok(headerNav.includes(id));
+for (const cls of ["sar-unified-header", "sar-brand", "sar-primary-nav", "sar-session-nav"]) assert.ok(headerNav.includes(cls));
 const reports = fs.readFileSync(path.join(app, "reports.js"), "utf8");
 assert.match(reports, /sarReportType/);
 assert.match(reports, /sarExportReportButton/);
