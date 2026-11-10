@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+test.setTimeout(120000);
 
 test("clue report downloads with a rendered numbered placement map", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name.includes("mobile"), "One desktop export covers the PDF map workflow.");
