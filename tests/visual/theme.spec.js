@@ -27,7 +27,7 @@ for (const item of pages) {
     await stabilize(page, item);
     const masks = [];
     if (item.map) masks.push(page.locator("#viewDiv"));
-    for (const id of ["#utc", "#localTime"]) if (await page.locator(id).count()) masks.push(page.locator(id));
+    for (const id of ["#utc", "#localTime", "#planningPeriodStart", "#planningPeriodEnd", "#planningPeriodDuration"]) if (await page.locator(id).count()) masks.push(page.locator(id));
     await expect(page).toHaveScreenshot(`theme-${item.name}.png`, { mask: masks, maskColor: "#071824", fullPage: false });
   });
 
