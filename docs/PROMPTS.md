@@ -104,10 +104,25 @@ This file records the prompts used to guide the reporting and synthetic-data add
 
 - Use one shared header composition on Planning, Operations and Settings.
 - Present a linked brand mark, application name and subtitle on the left.
-- Keep Reports/PDF, SAR Planning and SAR Operations together as primary navigation.
+- Keep Reports/PDF, SAR Planning, SAR Operations and Incident Analysis together as primary navigation.
 - Keep authenticated user, Sign in/Sign out and Settings together as a distinct session area.
 - Highlight the current page and preserve the required action order.
 - Adapt to narrower screens with ordered rows rather than clipping, horizontal scrolling or hidden controls.
+
+## Add Incident Analysis
+
+> Add a new page for incident analysis and place its navigation button immediately to the right of SAR Operations.
+
+### Incident Analysis acceptance criteria
+
+- Add **Incident Analysis** after **SAR Operations** in the shared Planning, Operations, Analysis and Settings headers.
+- Discover browser-saved SAR Operations workspaces by incident number.
+- Filter the analysis by operational period using the configured period duration.
+- Show mapped-feature, assignment, clue and completion/debrief totals.
+- Summarize feature types, assignment statuses and operational-period distribution.
+- Map the records included by the active incident and period selection.
+- Show an actionable empty state when no Operations workspace is available.
+- Expose the analysis map and controller through the shared inspection globals.
 
 ## Add incident, operational-period and geography filters
 

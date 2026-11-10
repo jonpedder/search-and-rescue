@@ -6,14 +6,14 @@ const app = path.join(__dirname, "../app");
 const auth = fs.readFileSync(path.join(app, "auth.js"), "utf8");
 const settings = fs.readFileSync(path.join(app, "settings.js"), "utf8");
 assert.match(settings, /OAUTH_CLIENT_ID="2eURPxapfMdaZiS7"/, "deployment OAuth client ID must be refreshed");
-for (const page of ["index.html", "operations.html", "settings.html"]) {
+for (const page of ["index.html", "operations.html", "analysis.html", "settings.html"]) {
   const html = fs.readFileSync(path.join(app, page), "utf8");
   assert.match(html, /<script src="\.\/reports\.js(?:\?v=[^"]+)?"><\/script>/, `${page} must load shared report export`);
   assert.match(html, /<script src="\.\/auth\.js"><\/script>/, `${page} must load shared auth UI`);
   assert.match(html, /<script src="\.\/header-nav\.js(?:\?v=[^"]+)?"><\/script>/, `${page} must normalize header order`);
 }
 const headerNav = fs.readFileSync(path.join(app, "header-nav.js"), "utf8");
-for (const id of ["sarReportsControl", "sarPlanningNav", "sarOperationsNav", "sarSessionArea", "sarSettingsNav"]) assert.ok(headerNav.includes(id));
+for (const id of ["sarReportsControl", "sarPlanningNav", "sarOperationsNav", "sarAnalysisNav", "sarSessionArea", "sarSettingsNav"]) assert.ok(headerNav.includes(id));
 for (const cls of ["sar-unified-header", "sar-brand", "sar-primary-nav", "sar-session-nav", "sar-header-filters"]) assert.ok(headerNav.includes(cls));
 for (const id of ["sarIncidentFilter", "sarPeriodFilter", "sarExtentFilter", "sarFindIncidents", "sarApplyFilters"]) assert.ok(headerNav.includes(id));
 const operations = fs.readFileSync(path.join(app, "operations.html"), "utf8");

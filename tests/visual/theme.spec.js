@@ -3,6 +3,7 @@ const { test, expect } = require("@playwright/test");
 const pages = [
   { name: "planning", path: "/index.html", map: true },
   { name: "operations", path: "/operations.html", map: true },
+  { name: "analysis", path: "/analysis.html", map: true },
   { name: "settings", path: "/settings.html", map: false }
 ];
 

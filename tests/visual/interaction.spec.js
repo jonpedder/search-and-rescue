@@ -48,3 +48,26 @@ test("header filters apply incident and operational period state", async ({ page
   expect(state.visible).toEqual(["P2"]);
   expect(state.listed).toEqual(["Period Two"]);
 });
+
+test("incident analysis summarizes a saved Operations workspace", async ({ page }, testInfo) => {
+  test.setTimeout(90000);
+  test.skip(testInfo.project.name.includes("mobile"), "Desktop interaction covers the shared analysis behavior.");
+  await page.addInitScript(() => localStorage.setItem("sar.operations.ANALYSIS-1", JSON.stringify({
+    incident: { id: "ANALYSIS-1", name: "Analysis Test" },
+    records: [
+      { id: "A1", kind: "clue", geometry: { type: "point", longitude: -118.25, latitude: 34.05, spatialReference: { wkid: 4326 } }, attrs: { name: "Clue", status: "Planned", operationalPeriod: 1 } },
+      { id: "A2", kind: "segment", geometry: { type: "polygon", rings: [[[-118.26,34.04],[-118.20,34.04],[-118.20,34.09],[-118.26,34.09],[-118.26,34.04]]], spatialReference: { wkid: 4326 } }, attrs: { name: "S001", status: "Complete", operationalPeriod: 2 } }
+    ],
+    assignments: [{ id: "T-1", status: "Debriefed", operationalPeriod: 2 }]
+  })));
+  await page.goto("/analysis.html");
+  await page.waitForFunction(() => window.__esriView?.ready && document.querySelector("#metricFeatures")?.textContent === "2");
+  await expect(page.locator("#sarAnalysisNav")).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("#metricFeatures")).toHaveText("2");
+  await expect(page.locator("#metricAssignments")).toHaveText("1");
+  await expect(page.locator("#metricClues")).toHaveText("1");
+  await expect(page.locator("#metricComplete")).toHaveText("1");
+  await page.selectOption("#analysisPeriod", "2");
+  await expect(page.locator("#metricFeatures")).toHaveText("1");
+  await expect(page.locator("#metricAssignments")).toHaveText("1");
+});
