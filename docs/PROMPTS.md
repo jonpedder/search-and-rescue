@@ -109,6 +109,20 @@ This file records the prompts used to guide the reporting and synthetic-data add
 - Highlight the current page and preserve the required action order.
 - Adapt to narrower screens with ordered rows rather than clipping, horizontal scrolling or hidden controls.
 
+## Add incident, operational-period and geography filters
+
+> In the header, add an incident-number filter for all features. Support multiple operational periods, default each period to 12 hours, make the period duration configurable in Settings, and find incidents geographically within the current map extent.
+
+### Filter acceptance criteria
+
+- Add incident number, operational period, current-map-extent, Find incidents and Apply filters controls to the Operations header.
+- Loading an incident number scopes mapped operational features and assignments to that incident.
+- Filter map graphics, Operational Picture records, Operational Layers records and Assignment Board records by operational period.
+- Represent incidents with multiple numbered operational periods and show the configured duration in the period choices.
+- Default operational-period duration to 12 hours and validate a Settings override between 1 and 72 hours.
+- Query the Incident layer spatially against the current map extent to populate geographically relevant incident numbers.
+- Keep the controls responsive and available without hiding authentication or primary navigation.
+
 ## Toggle feature zoom
 
 > When an Operations feature is clicked and zoomed to, a second click on that feature should return the map to its initial extent.

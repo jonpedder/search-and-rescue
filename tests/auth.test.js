@@ -10,11 +10,14 @@ for (const page of ["index.html", "operations.html", "settings.html"]) {
   const html = fs.readFileSync(path.join(app, page), "utf8");
   assert.match(html, /<script src="\.\/reports\.js(?:\?v=[^"]+)?"><\/script>/, `${page} must load shared report export`);
   assert.match(html, /<script src="\.\/auth\.js"><\/script>/, `${page} must load shared auth UI`);
-  assert.match(html, /<script src="\.\/header-nav\.js"><\/script>/, `${page} must normalize header order`);
+  assert.match(html, /<script src="\.\/header-nav\.js(?:\?v=[^"]+)?"><\/script>/, `${page} must normalize header order`);
 }
 const headerNav = fs.readFileSync(path.join(app, "header-nav.js"), "utf8");
 for (const id of ["sarReportsControl", "sarPlanningNav", "sarOperationsNav", "sarSessionArea", "sarSettingsNav"]) assert.ok(headerNav.includes(id));
-for (const cls of ["sar-unified-header", "sar-brand", "sar-primary-nav", "sar-session-nav"]) assert.ok(headerNav.includes(cls));
+for (const cls of ["sar-unified-header", "sar-brand", "sar-primary-nav", "sar-session-nav", "sar-header-filters"]) assert.ok(headerNav.includes(cls));
+for (const id of ["sarIncidentFilter", "sarPeriodFilter", "sarExtentFilter", "sarFindIncidents", "sarApplyFilters"]) assert.ok(headerNav.includes(id));
+const operations = fs.readFileSync(path.join(app, "operations.html"), "utf8");
+for (const contract of ["sar-find-incidents", "sar-operations-filter", "q.geometry=view.extent", "activePeriod"]) assert.ok(operations.includes(contract));
 const reports = fs.readFileSync(path.join(app, "reports.js"), "utf8");
 assert.match(reports, /sarReportType/);
 assert.match(reports, /sarExportReportButton/);

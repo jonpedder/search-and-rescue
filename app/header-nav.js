@@ -30,6 +30,26 @@
   [reports, planning, operations].forEach(function (el) { if (el) primary.appendChild(el); });
   if (!session) { session = document.createElement("div"); session.id = "sarSessionArea"; session.className = "sar-session-area"; }
   session.classList.add("sar-session-nav"); session.appendChild(settings);
-  header.className = "sar-unified-header"; header.replaceChildren(brand, primary, session);
+  var filterBar = null;
+  if ((location.pathname.split("/").pop() || "") === "operations.html") {
+    var hours = appSettings?.workspace?.operationalPeriodHours || 12;
+    filterBar = document.createElement("div"); filterBar.className = "sar-header-filters"; filterBar.setAttribute("aria-label", "Incident and operational period filters");
+    filterBar.innerHTML = '<label>Incident number<input id="sarIncidentFilter" list="sarIncidentOptions" placeholder="Enter or find incident"><datalist id="sarIncidentOptions"></datalist></label>' +
+      '<label>Operational period<select id="sarPeriodFilter"><option value="all">All operational periods</option><option value="1">OP 1 · ' + hours + ' hours</option></select></label>' +
+      '<label class="sar-extent-filter"><input id="sarExtentFilter" type="checkbox"> Current map extent</label>' +
+      '<button id="sarFindIncidents" type="button">Find incidents</button><button id="sarApplyFilters" class="primary" type="button">Apply filters</button><span id="sarFilterStatus" role="status"></span>';
+    var incidentInput = filterBar.querySelector("#sarIncidentFilter"), periodInput = filterBar.querySelector("#sarPeriodFilter"), extentInput = filterBar.querySelector("#sarExtentFilter"), status = filterBar.querySelector("#sarFilterStatus");
+    function applyFilters() { window.dispatchEvent(new CustomEvent("sar-operations-filter", { detail: { incidentId: incidentInput.value.trim(), operationalPeriod: periodInput.value, extentOnly: extentInput.checked } })); }
+    filterBar.querySelector("#sarApplyFilters").onclick = applyFilters; incidentInput.onkeydown = function (event) { if (event.key === "Enter") applyFilters(); };
+    filterBar.querySelector("#sarFindIncidents").onclick = function () { status.textContent = "Finding incidents..."; window.dispatchEvent(new CustomEvent("sar-find-incidents", { detail: { extentOnly: extentInput.checked } })); };
+    window.addEventListener("sar-incident-options", function (event) {
+      var detail = event.detail || {}, options = detail.incidents || [], periods = detail.periods || [];
+      filterBar.querySelector("#sarIncidentOptions").innerHTML = options.map(function (x) { return '<option value="' + String(x.id || "").replace(/"/g, "&quot;") + '">' + String(x.name || x.status || "") + '</option>'; }).join("");
+      if (detail.incidentId) incidentInput.value = detail.incidentId;
+      var selected = periodInput.value; periodInput.innerHTML = '<option value="all">All operational periods</option>' + periods.map(function (p) { return '<option value="' + p + '">OP ' + p + ' · ' + hours + ' hours</option>'; }).join(""); periodInput.value = periods.map(String).includes(selected) || selected === "all" ? selected : "all";
+      status.textContent = detail.message || (options.length ? options.length + " incident" + (options.length === 1 ? "" : "s") + " found" : "");
+    });
+  }
+  header.className = "sar-unified-header" + (filterBar ? " sar-has-filters" : ""); header.replaceChildren(brand, primary, session); if (filterBar) { header.appendChild(filterBar); setTimeout(function () { window.dispatchEvent(new CustomEvent("sar-request-filter-state")); }, 0); }
   document.body.classList.add("sar-header-configured");
 })();

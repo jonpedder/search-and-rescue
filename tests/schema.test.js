@@ -53,5 +53,5 @@ assert.match(operationsHtml, /SketchViewModel/);
 assert.match(operationsHtml, /type:'text',text:/);
 assert.match(operationsHtml, /data-layer-zoom/);
 assert.match(operationsHtml, /view\.openPopup/);
-for(const html of [appHtml,operationsHtml]){assert.match(html,/href="\.\/theme\.css"/);assert.match(html,/--calcite-color-brand:#F2A900/);assert.match(html,/--calcite-color-background:#071824/);assert.doesNotMatch(html,/appearance="outline"/)}
+for(const html of [appHtml,operationsHtml]){assert.match(html,/href="\.\/theme\.css(?:\?v=[^"]+)?"/);assert.match(html,/--calcite-color-brand:#F2A900/);assert.match(html,/--calcite-color-background:#071824/);assert.doesNotMatch(html,/appearance="outline"/)}
 console.log("ok  hosted schema, native ArcGIS widgets, Settings, interview, communications, Sync, NAPSG, Calcite and Living Atlas contracts");

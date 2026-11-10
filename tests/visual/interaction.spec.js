@@ -26,3 +26,25 @@ test("second feature click restores the pre-zoom viewpoint", async ({ page }, te
   expect(Math.abs(after.x - before.x)).toBeLessThan(1);
   expect(Math.abs(after.y - before.y)).toBeLessThan(1);
 });
+
+test("header filters apply incident and operational period state", async ({ page }, testInfo) => {
+  test.setTimeout(90000);
+  test.skip(testInfo.project.name.includes("mobile"), "Desktop interaction covers the shared filter behavior.");
+  await page.goto("/operations.html");
+  await page.waitForFunction(() => window.__esriView?.ready && window.__app?.restore && document.querySelector("#sarApplyFilters"));
+  await page.evaluate(() => window.__app.restore({
+    incident: { id: "FILTER-TEST", name: "Filter Test" },
+    records: [
+      { id: "P1", kind: "clue", geometry: { type: "point", longitude: -118.25, latitude: 34.05, spatialReference: { wkid: 4326 } }, attrs: { name: "Period One", status: "Planned", priority: "Normal", folder: "Clues", operationalPeriod: 1, notes: "", created: 1 } },
+      { id: "P2", kind: "clue", geometry: { type: "point", longitude: -118.20, latitude: 34.08, spatialReference: { wkid: 4326 } }, attrs: { name: "Period Two", status: "Planned", priority: "Normal", folder: "Clues", operationalPeriod: 2, notes: "", created: 2 } }
+    ], assignments: [{ id: "T-2", operationalPeriod: 2 }]
+  }));
+  await expect(page.locator("#sarIncidentFilter")).toHaveValue("FILTER-TEST");
+  await expect(page.locator('#sarPeriodFilter option[value="1"]')).toContainText("12 hours");
+  await page.selectOption("#sarPeriodFilter", "2");
+  await page.click("#sarApplyFilters");
+  await page.waitForFunction(() => window.__app.state.activePeriod === "2");
+  const state = await page.evaluate(() => ({ visible: window.__app.state.records.filter(r => r.graphic.visible).map(r => r.id), listed: [...document.querySelectorAll("#featureList .record strong")].map(x => x.textContent) }));
+  expect(state.visible).toEqual(["P2"]);
+  expect(state.listed).toEqual(["Period Two"]);
+});

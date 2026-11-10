@@ -6,7 +6,7 @@
     version:1,
     branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},
     map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10,showCoordinates:true,autoLoadLivingAtlas:false,towerCoverageKm:5},
-    workspace:{startupTab:"incident"},
+    workspace:{startupTab:"incident",operationalPeriodHours:12},
     model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}
   };
   const clone=v=>JSON.parse(JSON.stringify(v));
@@ -32,6 +32,7 @@
     if(!Number.isFinite(v.map.zoom)||v.map.zoom < 2||v.map.zoom > 20)errors.push("Default zoom must be between 2 and 20.");
     v.map.showCoordinates=!!v.map.showCoordinates;v.map.autoLoadLivingAtlas=!!v.map.autoLoadLivingAtlas;v.map.towerCoverageKm=Number(v.map.towerCoverageKm);if(!Number.isFinite(v.map.towerCoverageKm)||v.map.towerCoverageKm<0.5||v.map.towerCoverageKm>50)errors.push("Tower coverage estimate must be between 0.5 and 50 km.");
     if(!["incident","subject","model","segments","survival"].includes(v.workspace.startupTab))v.workspace.startupTab="incident";
+    v.workspace.operationalPeriodHours=Number(v.workspace.operationalPeriodHours);if(!Number.isFinite(v.workspace.operationalPeriodHours)||v.workspace.operationalPeriodHours<1||v.workspace.operationalPeriodHours>72)errors.push("Operational period duration must be between 1 and 72 hours.");
     for(const k of ["ringWeight","sectorWeight","linearWeight","terrainWeight","elevationWeight"]){v.model[k]=Number(v.model[k]);if(!Number.isFinite(v.model[k])||v.model[k]<0||v.model[k]>100)errors.push(k+" must be between 0 and 100.")}
     v.model.resolution=Math.round(Number(v.model.resolution));if(!Number.isFinite(v.model.resolution)||v.model.resolution<32||v.model.resolution>192)errors.push("Model resolution must be between 32 and 192.");
     return{value:v,errors};
