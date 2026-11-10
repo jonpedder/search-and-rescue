@@ -79,6 +79,7 @@ $("exportGeoJSON").onclick=()=>download("sar_operations_"+(incident().id||"draft
 $("importTrigger").onclick=()=>$("importOps").click();$("importOps").onchange=async e=>{try{restore(JSON.parse(await e.target.files[0].text()));saveLocal()}catch(err){alert("Import failed: "+err.message)}};
 $("printAssignments").onclick=()=>{const cards=state.assignments.map(a=>`<article><h2>${esc(a.id)} — ${esc(a.type)}</h2><p><b>Incident:</b> ${esc(incident().name)} (${esc(incident().id)})</p><p><b>Segment:</b> ${esc(a.segment||"Unlinked")} <b>Priority:</b> ${esc(a.priority)} <b>Status:</b> ${esc(a.status)}</p><p><b>Team:</b> ${esc(a.team||"Unassigned")}</p><h3>Briefing / safety</h3><p>${esc(a.notes)||"None recorded"}</p></article>`).join("");const w=open("","_blank");w.document.write(`<style>body{font:14px Arial}article{page-break-after:always;border:2px solid #222;padding:18px}h2{border-bottom:1px solid #555}</style>${cards||"No assignments"}`);w.document.close();w.print()};
 $("tabs").addEventListener("calciteSegmentedControlChange",e=>{["map","assignments","resources"].forEach(t=>$("tab-"+t).hidden=e.target.value!==t)});$("incidentId").onchange=()=>render();
+Object.assign(window.__app,{sketch,serialize,restore,loadArcGIS,syncArcGIS,render});
 render();
 });
 </script>
