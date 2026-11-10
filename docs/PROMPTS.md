@@ -65,6 +65,20 @@ This file records the prompts used to guide the reporting and synthetic-data add
 - Provide Settings controls for saving or clearing that client ID and list the redirect URLs that must be registered.
 - Reuse the authenticated IdentityManager session for private feature-service access and synthetic-data editing.
 
+## Add visual help and downloadable guide
+
+> In Help & How-to, include screenshots and numbered pointers to the available actions and workflow steps. Add a button that downloads the help guide as a PDF.
+
+### Help acceptance criteria
+
+- Include current Planning, Operations and Settings screenshots.
+- Overlay numbered callout dots and pointer labels on the screenshots.
+- Pair every screenshot with a numbered, readable action legend.
+- Restyle procedural lists as connected numbered steps.
+- Add a **Download Help PDF** button in Help & How-to.
+- Generate a multi-page PDF containing the screenshots, numbered dots, legends, recommended sequence and detailed help topics.
+- Keep the walkthrough responsive; on small screens, retain dots and move the complete descriptions into the legend.
+
 ## Fix and publish
 
 > Fix the HTTP 400 error, commit the changes, and push them to GitHub.
