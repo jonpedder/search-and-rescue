@@ -8,7 +8,7 @@ const settings = fs.readFileSync(path.join(app, "settings.js"), "utf8");
 assert.match(settings, /OAUTH_CLIENT_ID="2eURPxapfMdaZiS7"/, "deployment OAuth client ID must be refreshed");
 for (const page of ["index.html", "operations.html", "settings.html"]) {
   const html = fs.readFileSync(path.join(app, page), "utf8");
-  assert.match(html, /<script src="\.\/reports\.js"><\/script>/, `${page} must load shared report export`);
+  assert.match(html, /<script src="\.\/reports\.js(?:\?v=[^"]+)?"><\/script>/, `${page} must load shared report export`);
   assert.match(html, /<script src="\.\/auth\.js"><\/script>/, `${page} must load shared auth UI`);
   assert.match(html, /<script src="\.\/header-nav\.js"><\/script>/, `${page} must normalize header order`);
 }
