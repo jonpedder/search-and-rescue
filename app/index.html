@@ -1100,7 +1100,7 @@ require([
   const vis = {relief:true, travel:false};
   const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
-  window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
+  window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,Extent,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
   view.ui.add(new Search({view}), "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
   view.ui.add(new Home({view}), "top-left");
@@ -1576,7 +1576,8 @@ require([
         weights:{ring:+$("wRing").value, sector:+$("wSector").value, linear:+$("wLinear").value, terrain:+$("wTerrain").value, elev:+$("wElev").value},
         dem:{used:state.run.usedLayers.includes("terrain"), url:($("demUrl").value.trim() || CONFIG.demUrl), cells:+$("demN").value, maxSlope:+$("maxSlope").value}, grid:+$("res").value,
         extentIdx:extentIdx(), scenarios:state.scenarios, lineFeatures:state.lines.length, layers:state.run.usedLayers,
-        operationalPeriod:window.SARPlanningEnhancements?.operationalPeriod ? window.SARPlanningEnhancements.operationalPeriod() : {number:1}};
+        operationalPeriod:window.SARPlanningEnhancements?.operationalPeriod ? window.SARPlanningEnhancements.operationalPeriod() : {number:1},
+        mapExtent:view.extent?.toJSON ? view.extent.toJSON() : null};
       if($("persistInterview").checked){inputs.interview=interviewProfile();inputs.interviewPlanning=interviewPlanning(inputs.interview)}
       const incLayer = new FeatureLayer({url: CONFIG.incidentLayerUrl});
       const segLayer = new FeatureLayer({url: CONFIG.segmentLayerUrl});
@@ -1617,7 +1618,7 @@ require([
   tick(); setInterval(tick, 1000);
 })();
 </script>
-<script src="./planning-enhancements.js?v=20261110-4"></script>
+<script src="./planning-enhancements.js?v=20261110-5"></script>
 <script src="./reports.js?v=20261110-4"></script>
 <script src="./auth.js"></script>
 <script src="./header-nav.js?v=20261110-3"></script>

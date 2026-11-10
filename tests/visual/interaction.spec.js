@@ -77,8 +77,10 @@ test("planning profile survives a round trip through Operations", async ({ page 
   test.skip(testInfo.project.name.includes("mobile"), "Desktop navigation covers shared workspace persistence.");
   await page.goto("/index.html");
   await page.waitForFunction(() => window.SARPlanningEnhancements && document.querySelector("#planList"));
+  await page.waitForFunction(() => window.__esriView?.ready === true);
   await page.fill("#incName", "Current Profile Test");
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
+    await window.__esriView.goTo({ center: [-120, 40], zoom: 9 }, { animate: false });
     const set = (id, value) => { const el = document.getElementById(id); el.value = value; el.dispatchEvent(new Event("input", { bubbles: true })); };
     set("intName", "Morgan Searcher"); set("age", "37"); set("wRing", "48");
     window.__app.planning.state.scenarios = [{ name: "Trail travel", probability: 70, bearing: 45 }, { name: "Sheltered", probability: 30, bearing: null }];
@@ -89,7 +91,8 @@ test("planning profile survives a round trip through Operations", async ({ page 
   await page.waitForSelector("#sarPlanningNav", { timeout: 30000 });
   await page.click("#sarPlanningNav");
   await page.waitForFunction(() => window.SARPlanningEnhancements && document.querySelector("#planList"));
+  await page.waitForFunction(() => window.__esriView?.ready && !window.__esriView.updating && Math.abs(window.__esriView.center.longitude + 120) < 0.02 && Math.abs(window.__esriView.center.latitude - 40) < 0.02);
   await expect(page.locator("#incName")).toHaveValue("Current Profile Test");
-  const restored = await page.evaluate(() => ({ name: document.getElementById("intName").value, age: document.getElementById("age").value, ring: document.getElementById("wRing").value, scenarios: window.__app.planning.state.scenarios }));
-  expect(restored.name).toBe("Morgan Searcher"); expect(restored.age).toBe("37"); expect(restored.ring).toBe("48"); expect(restored.scenarios).toHaveLength(2); await expect(page.locator(".subject-photo-preview")).toHaveCount(3); expect(await page.evaluate(() => window.SARPlanningEnhancements.photoDataUrls.length)).toBe(3);
+  const restored = await page.evaluate(() => ({ longitude: window.__esriView.center.longitude, latitude: window.__esriView.center.latitude, name: document.getElementById("intName").value, age: document.getElementById("age").value, ring: document.getElementById("wRing").value, scenarios: window.__app.planning.state.scenarios }));
+  expect(restored.longitude).toBeCloseTo(-120, 2); expect(restored.latitude).toBeCloseTo(40, 2); expect(restored.name).toBe("Morgan Searcher"); expect(restored.age).toBe("37"); expect(restored.ring).toBe("48"); expect(restored.scenarios).toHaveLength(2); await expect(page.locator(".subject-photo-preview")).toHaveCount(3); expect(await page.evaluate(() => window.SARPlanningEnhancements.photoDataUrls.length)).toBe(3);
 });
