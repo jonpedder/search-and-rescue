@@ -1,7 +1,7 @@
-/* Shared Reports dropdown for Planning (index.html) and Operations (operations.html). */
+/* Shared Reports selector and PDF export for Planning, Operations and Settings. */
 (function () {
   "use strict";
-  if (document.getElementById("sarReportsDropdown")) return;
+  if (document.getElementById("sarReportsControl")) return;
   var SNAPSHOT = "sar.planning.report.snapshot.v1", JSPDF = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
   var $ = function (id) { return document.getElementById(id); }, planning = !!$("incName"), operations = !!$("incidentId");
   var navy = [0, 59, 92], gold = [242, 169, 0], ink = [25, 35, 45], muted = [95, 110, 122];
@@ -95,10 +95,12 @@
     p.paragraph("Preserve and photograph clues in place, record finder and time, and report them through incident command."); return { blob: p.finish("Search & Rescue clue log"), name: "clue-log-report" };
   }
   var busy = false;
-  async function run(kind) { if (busy) return; busy = true; var button = document.querySelector("#sarReportsDropdown [slot=trigger]"); if (button) button.loading = true; try { var r = kind === "clue" ? await clueReport() : await incidentReport(); download(r.blob, r.name); } catch (e) { alert(e.message || "The report could not be generated."); } finally { busy = false; if (button) button.loading = false; } }
-  var host = document.querySelector(".status-row") || document.querySelector(".header-actions"); if (!host) return;
-  var dd = document.createElement("calcite-dropdown"); dd.id = "sarReportsDropdown"; dd.setAttribute("placement", "bottom-end"); dd.setAttribute("width", "m"); dd.setAttribute("overlay-positioning", "fixed");
-  dd.innerHTML = '<calcite-button slot="trigger" appearance="outline-fill" icon-start="file-report" icon-end="chevron-down" scale="m">Reports</calcite-button><calcite-dropdown-group group-title="Reports" selection-mode="none"><calcite-dropdown-item data-report="clue" icon-start="pin-tear">Clue Log Report</calcite-dropdown-item><calcite-dropdown-item data-report="incident" icon-start="user">Incident &amp; Subject Profile Report</calcite-dropdown-item></calcite-dropdown-group>';
-  dd.querySelectorAll("calcite-dropdown-item").forEach(function (item) { item.onclick = function () { run(item.dataset.report); }; });
-  host.insertBefore(dd, host.querySelector("calcite-button") || null);
+  async function run(kind) { if (busy || !kind) return; busy = true; var button = document.getElementById("sarExportReportButton"); if (button) { button.loading = true; button.disabled = true; } try { var r = kind === "clue" ? await clueReport() : await incidentReport(); download(r.blob, r.name); } catch (e) { alert(e.message || "The report could not be generated."); } finally { busy = false; if (button) { button.loading = false; button.disabled = !document.getElementById("sarReportType").value; } } }
+  var host = document.querySelector(".status-row") || document.querySelector(".header-actions") || document.querySelector(".header .actions"); if (!host) return;
+  var control = document.createElement("div"); control.id = "sarReportsControl"; control.className = "sar-report-group";
+  control.innerHTML = '<label for="sarReportType">Reports</label><select id="sarReportType" aria-label="Select report"><option value="">Select a report</option><option value="clue">Clue Log Report</option><option value="incident">Incident &amp; Subject Profile</option></select><calcite-button id="sarExportReportButton" appearance="outline-fill" icon-start="file-pdf" scale="m" disabled>PDF</calcite-button>';
+  var select = control.querySelector("select"), exportButton = control.querySelector("calcite-button");
+  select.onchange = function () { exportButton.disabled = !select.value; };
+  exportButton.onclick = function () { run(select.value); };
+  host.insertBefore(control, host.firstChild);
 })();

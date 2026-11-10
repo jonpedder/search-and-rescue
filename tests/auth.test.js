@@ -8,8 +8,15 @@ const settings = fs.readFileSync(path.join(app, "settings.js"), "utf8");
 assert.match(settings, /OAUTH_CLIENT_ID="2eURPxapfMdaZiS7"/, "deployment OAuth client ID must be refreshed");
 for (const page of ["index.html", "operations.html", "settings.html"]) {
   const html = fs.readFileSync(path.join(app, page), "utf8");
+  assert.match(html, /<script src="\.\/reports\.js"><\/script>/, `${page} must load shared report export`);
   assert.match(html, /<script src="\.\/auth\.js"><\/script>/, `${page} must load shared auth UI`);
+  assert.match(html, /<script src="\.\/header-nav\.js"><\/script>/, `${page} must normalize header order`);
 }
+const headerNav = fs.readFileSync(path.join(app, "header-nav.js"), "utf8");
+for (const id of ["sarReportsControl", "sarPlanningNav", "sarOperationsNav", "sarSessionArea", "sarSettingsNav"]) assert.ok(headerNav.includes(id));
+const reports = fs.readFileSync(path.join(app, "reports.js"), "utf8");
+assert.match(reports, /sarReportType/);
+assert.match(reports, /sarExportReportButton/);
 assert.match(auth, /OAuthInfo/);
 assert.match(auth, /IdentityManager/);
 assert.match(auth, /new Portal/);

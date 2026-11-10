@@ -57,6 +57,7 @@ This file records the prompts used to guide the reporting and synthetic-data add
 ### Authentication acceptance criteria
 
 - Show the same session control in the Planning, Operations and Settings headers.
+- Keep this control order on every page: **Reports selector**, **PDF**, **SAR Planning**, **SAR Operations**, **authenticated user**, **Sign in/Sign out**, **Settings**.
 - Display **Not signed in** or the authenticated user's full name/username.
 - Change the action to **Sign out** while authenticated.
 - Use ArcGIS Maps SDK `OAuthInfo`, `IdentityManager` and `Portal`; never place a token in source, logs or browser storage.
