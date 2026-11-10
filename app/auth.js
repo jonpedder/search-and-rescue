@@ -5,7 +5,7 @@
   var PORTAL = "https://publicsafety.maps.arcgis.com";
   var APP_KEY = "sar.oauth.appId";
   var LEGACY_KEY = "sar.synthetic.appId";
-  var appId = (localStorage.getItem(APP_KEY) || localStorage.getItem(LEGACY_KEY) || "").trim();
+  var appId = (localStorage.getItem(APP_KEY) || localStorage.getItem(LEGACY_KEY) || (window.SARSettings && window.SARSettings.OAUTH_CLIENT_ID) || "").trim();
   var host = document.querySelector(".status-row") || document.querySelector(".header-actions") || document.querySelector(".header .actions");
   if (!host) return;
 
@@ -66,7 +66,7 @@
     card.innerHTML = '<summary>ArcGIS sign-in</summary><div class="card-body"><p class="help">Register an ArcGIS OAuth application with this site and its <code>oauth-callback.html</code> URL, then save its client ID here. The value stays in this browser and is shared by Planning, Operations and synthetic-data tools.</p>' +
       '<div class="grid"><label class="field">OAuth application client ID<input id="authAppId" autocomplete="off" placeholder="ArcGIS OAuth client ID" value="' + appId.replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }) + '"></label>' +
       '<div class="field"><span>Registered redirect URLs</span><span class="readonly">' + location.origin + location.pathname.replace(/[^/]*$/, "") + '<br>' + location.origin + location.pathname.replace(/[^/]*$/, "") + 'oauth-callback.html</span></div></div>' +
-      '<div class="template-tools" style="margin-top:.75rem"><calcite-button id="saveAuthAppId" icon-start="save">Save OAuth client ID</calcite-button><calcite-button id="clearAuthAppId" appearance="outline-fill" kind="danger" icon-start="trash">Clear</calcite-button></div><p class="field-note" id="authConfigStatus"></p></div>';
+      '<div class="template-tools" style="margin-top:.75rem"><calcite-button id="saveAuthAppId" icon-start="save">Save OAuth client ID</calcite-button><calcite-button id="clearAuthAppId" appearance="outline-fill" icon-start="reset">Use deployment default</calcite-button></div><p class="field-note" id="authConfigStatus"></p></div>';
     var anchor = document.getElementById("syntheticDataCard") || document.querySelector(".action-bar"); anchor.parentNode.insertBefore(card, anchor);
     document.getElementById("saveAuthAppId").onclick = function () {
       var value = document.getElementById("authAppId").value.trim();

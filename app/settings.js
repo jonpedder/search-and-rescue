@@ -1,6 +1,7 @@
 (function(global){
   "use strict";
   const STORAGE_KEY="sar-workbench-settings-v1";
+  const OAUTH_CLIENT_ID="2eURPxapfMdaZiS7";
   const BASE_DEFAULTS={
     version:1,
     branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},
@@ -38,5 +39,5 @@
   function load(){try{return validate(JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")).value}catch{return clone(BASE_DEFAULTS)}}
   function save(value){const checked=validate(value);if(checked.errors.length)throw new Error(checked.errors.join(" "));localStorage.setItem(STORAGE_KEY,JSON.stringify(checked.value));return clone(checked.value)}
   function reset(){localStorage.removeItem(STORAGE_KEY);return clone(BASE_DEFAULTS)}
-  global.SARSettings={STORAGE_KEY,BASE_DEFAULTS:clone(BASE_DEFAULTS),clone,merge,validate,load,save,reset};
+  global.SARSettings={STORAGE_KEY,OAUTH_CLIENT_ID,BASE_DEFAULTS:clone(BASE_DEFAULTS),clone,merge,validate,load,save,reset};
 })(window);

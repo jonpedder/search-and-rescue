@@ -41,7 +41,7 @@
   function getCtx() {
     if (ctxPromise) return ctxPromise;
     ctxPromise = (async function () {
-      var appId = (localStorage.getItem(APP_KEY) || localStorage.getItem(LEGACY_APP_KEY) || "").trim();
+      var appId = (localStorage.getItem(APP_KEY) || localStorage.getItem(LEGACY_APP_KEY) || (window.SARSettings && window.SARSettings.OAUTH_CLIENT_ID) || "").trim();
       if (!inProwork && !appId) throw new Error("Configure the ArcGIS OAuth client ID in the ArcGIS sign-in section first.");
       if (appId) { localStorage.setItem(APP_KEY, appId); localStorage.setItem(LEGACY_APP_KEY, appId); }
       if (inProwork && window.__esriAuthReady) await window.__esriAuthReady;

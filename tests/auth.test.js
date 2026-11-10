@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const app = path.join(__dirname, "../app");
 const auth = fs.readFileSync(path.join(app, "auth.js"), "utf8");
+const settings = fs.readFileSync(path.join(app, "settings.js"), "utf8");
+assert.match(settings, /OAUTH_CLIENT_ID="2eURPxapfMdaZiS7"/, "deployment OAuth client ID must be refreshed");
 for (const page of ["index.html", "operations.html", "settings.html"]) {
   const html = fs.readFileSync(path.join(app, page), "utf8");
   assert.match(html, /<script src="\.\/auth\.js"><\/script>/, `${page} must load shared auth UI`);
