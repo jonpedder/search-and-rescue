@@ -176,6 +176,17 @@
       data[7].push({ attributes: { source: STATS_SOURCE, category: cat, subcategory: null, domain: reg.dom, terrain: reg.ter, n: ri(20, 400), dist_km_25: +(m50 * 0.4).toFixed(2), dist_km_50: +m50.toFixed(2), dist_km_75: +(m50 * 2.2).toFixed(2), dist_km_95: +(m50 * 5.5).toFixed(2), uphill_pct: ri(10, 40), downhill_pct: ri(20, 50), same_pct: ri(20, 50), disp_deg_25: ri(8, 20), disp_deg_50: ri(20, 40), disp_deg_75: ri(50, 80), disp_deg_95: ri(70, 120), track_m_25: ri(3, 10), track_m_50: ri(10, 40), track_m_75: ri(40, 120), track_m_max: ri(200, 800), mobility_hr_50: +rnd(0.2, 2).toFixed(2), notes: "SYNTHETIC test row. Not real data. Replace with licensed ISRID/LPB values." } });
       data[8].push({ attributes: { category: cat, a: +rnd(0.9, 1.1).toFixed(4), b: +rnd(0.05, 0.6).toFixed(4), source: STATS_SOURCE + " exponential curve, not real data." } });
     });
+
+    /* Only layers 0-4 are spatial in the hosted schema. Tables 5-8 cannot store
+       geometry, so their tasks/model/reference rows are displayed through their
+       incident/segment relationships. Refuse to upload if any spatial feature is
+       missing a geometry or a WGS84 spatial reference. */
+    [0, 1, 2, 3, 4].forEach(function (id) {
+      data[id].forEach(function (feature, index) {
+        var g = feature.geometry, sr = g && g.spatialReference;
+        if (!g || !sr || sr.wkid !== 4326) throw new Error(LABELS[id] + " record " + index + " is missing WGS84 geometry.");
+      });
+    });
     return data;
   }
 
@@ -186,7 +197,8 @@
   }
   function generate(ctx) {
     var progress = ctx.onProgress || function () { };
-    var data = build(ctx), plan = Object.keys(data).map(Number), grand = plan.reduce(function (s, k) { return s + data[k].length; }, 0), done = 0, summary = { total: grand, layers: {} }, chain = Promise.resolve();
+    var data = build(ctx), plan = Object.keys(data).map(Number), grand = plan.reduce(function (s, k) { return s + data[k].length; }, 0), done = 0;
+    var summary = { total: grand, firstIncidentId: data[0][0] && data[0][0].attributes.incident_id, spatialRecords: data[0].length + data[1].length + data[2].length + data[3].length + data[4].length, tableRecords: data[5].length + data[6].length + data[7].length + data[8].length, layers: {} }, chain = Promise.resolve();
     function addBatch(id, batch, res) {
       return post(ctx, ROOT + "/" + id + "/applyEdits", { adds: JSON.stringify(batch), rollbackOnFailure: false }).then(function (r) {
         var results = r.addResults || [];

@@ -37,6 +37,8 @@ This file records the prompts used to guide the reporting and synthetic-data add
 - Generate exactly the requested total, with **5,000** as the default.
 - Cover all 35 subject categories.
 - Populate Incident, KeyPoints, SearchSegment, Clue, TrackLog, Task, ModelRun, LPB_Stats and SurvivabilityCurve.
+- Write validated WGS84 geometry for every record in the spatial Incident, KeyPoints, SearchSegment, Clue and TrackLog layers. Task, ModelRun, LPB_Stats and SurvivabilityCurve remain nonspatial tables because their service schema has no geometry field.
+- After generation, open the first generated incident in SAR Operations, load its spatial features and zoom the map to them. Display table records through their segment/incident relationships.
 - Include varied incident states, clue types, task types, assignment states, segment states, teams, hazards, facilities and operational assets.
 - Clearly label all generated content as synthetic and unsuitable for operational use.
 - Tag generated records deterministically:

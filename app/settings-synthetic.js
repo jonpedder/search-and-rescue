@@ -13,14 +13,14 @@
   card.className = "card"; card.id = "syntheticDataCard"; card.open = true;
   card.innerHTML =
     '<summary>Synthetic test data</summary><div class="card-body">' +
-    '<p class="help">Placeholder data for demos and testing until real data is available. Generation writes to the hosted <b>SAR Incident Data</b> service: incidents across all 35 subject categories, key points, search segments, clues, assignments (tasks), track logs, model runs and LPB reference rows. Every record is tagged (<code>incident_id</code> starting <code>SYN-</code>, reference rows with source <code>SYNTHETIC_PLACEHOLDER</code>) so <b>Delete all synthetic data</b> removes only generated records.</p>' +
+    '<p class="help">Placeholder data for demos and testing until real data is available. Generation writes to the hosted <b>SAR Incident Data</b> service: incidents across all 35 subject categories, key points, search segments, clues, assignments (tasks), track logs, model runs and LPB reference rows. Every spatial record is validated with WGS84 geometry before upload. Tasks, model runs and reference rows are nonspatial tables and appear through their incident or segment relationships. Every record is tagged (<code>incident_id</code> starting <code>SYN-</code>, reference rows with source <code>SYNTHETIC_PLACEHOLDER</code>) so <b>Delete all synthetic data</b> removes only generated records.</p>' +
     '<div class="callout warning" style="margin:.5rem 0"><strong>Edits the live ArcGIS service.</strong> Requires sign-in with an account that can edit the service. Synthetic records must not be used operationally.</div>' +
     '<div class="grid">' +
     '<label class="field">Total records to generate <span class="field-note">1,500 to 20,000. Default 5,000.</span><input id="synTotal" type="number" min="1500" max="20000" step="100" value="5000"></label>' +
     (inProwork ? "" : '<label class="field">ArcGIS OAuth app ID <span class="field-note">Needed to sign in from this page. Saved in this browser only.</span><input id="synAppId" autocomplete="off" placeholder="Client ID of a registered OAuth app"></label>') +
     '</div>' +
     '<div class="template-tools" style="margin-top:.75rem">' +
-    '<calcite-button id="synGenerate" icon-start="plus-circle">Generate synthetic data</calcite-button>' +
+    '<calcite-button id="synGenerate" icon-start="map-pin">Generate data &amp; open map</calcite-button>' +
     '<calcite-button id="synCount" appearance="outline-fill" icon-start="refresh">Check counts</calcite-button>' +
     '<calcite-button id="synDelete" appearance="outline-fill" kind="danger" icon-start="trash">Delete all synthetic data</calcite-button>' +
     '</div>' +
@@ -77,7 +77,10 @@
       var res = await SARSynthetic.generate(Object.assign({}, ctx, { total: total }));
       var failed = Object.keys(res.layers).reduce(function (s, k) { return s + res.layers[k].failed; }, 0);
       await refresh();
-      status("Generated " + res.total.toLocaleString() + " synthetic records" + (failed ? " (" + failed + " rejected)" : "") + ".", failed ? "error" : "ok");
+      if (failed) return status("Generated " + (res.total - failed).toLocaleString() + " records; " + failed + " were rejected. The map was not opened. " + (Object.values(res.layers).find(function (x) { return x.firstError; }) || {}).firstError, "error");
+      status("Generated " + res.total.toLocaleString() + " records: " + res.spatialRecords.toLocaleString() + " spatial features plus " + res.tableRecords.toLocaleString() + " related table rows. Opening " + res.firstIncidentId + " on the map...", "ok");
+      localStorage.setItem("sar.synthetic.lastIncident", res.firstIncidentId);
+      setTimeout(function () { location.href = "./operations.html?incident=" + encodeURIComponent(res.firstIncidentId) + "&autoload=1"; }, 700);
     });
   };
   $("synDelete").onclick = function () {
