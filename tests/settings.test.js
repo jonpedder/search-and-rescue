@@ -10,4 +10,5 @@ assert.ok(api.validate({...api.BASE_DEFAULTS,map:{...api.BASE_DEFAULTS.map,tower
 assert.strictEqual(api.reset().workspace.startupTab,"incident");
 const settingsHtml=fs.readFileSync(path.join(__dirname,"../app/settings.html"),"utf8");
 assert.match(settingsHtml,/href="\.\/theme\.css"/);assert.match(settingsHtml,/Configuration/);assert.match(settingsHtml,/Help &amp; How-to/);assert.match(settingsHtml,/Export template/);assert.match(settingsHtml,/Apply draft for review/);for(const id of ["operations-guide","assignments-guide","ops-layers-guide","themePreview","themePreviewName","themePreviewSubtitle"])assert.ok(settingsHtml.includes('id="'+id+'"'));assert.match(settingsHtml,/Calcite dark theme with amber primary actions/);assert.doesNotMatch(settingsHtml,/appearance="outline"/);
-console.log("ok  settings validation, persistence, templates and guide contract");
+const layout=fs.readFileSync(path.join(__dirname,"../app/settings-layout.js"),"utf8");assert.match(settingsHtml,/settings-layout\.js/);for(const id of ["preferencesTab","configurationTab","helpTab","deploymentDiagnostics"])assert.ok(layout.includes(id));assert.match(layout,/Data connections and layers/);assert.match(layout,/Browser-local overrides/);
+console.log("ok  settings validation, persistence, three-tab configuration layout and guide contract");

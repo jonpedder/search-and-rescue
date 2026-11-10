@@ -79,6 +79,20 @@ This file records the prompts used to guide the reporting and synthetic-data add
 - Generate a multi-page PDF containing the screenshots, numbered dots, legends, recommended sequence and detailed help topics.
 - Keep the walkthrough responsive; on small screens, retain dots and move the complete descriptions into the legend.
 
+## Reorganize Settings & Help
+
+> Use the Resource & Asset Management Settings page as the layout and configuration example: https://jonpedder.github.io/resource-asset-management/settings.html
+
+### Settings acceptance criteria
+
+- Use three top-level tabs: **Settings**, **Configuration**, and **Help & How-to**.
+- Keep presentation, map, workspace and model preferences under Settings.
+- Move ArcGIS item connections, OAuth configuration, synthetic-data administration and deployment diagnostics under Configuration.
+- Show a clear browser-local configuration notice and never store OAuth tokens or secrets.
+- Provide diagnostics for portal, client ID, authenticated user, item IDs, service layers/tables, saved overrides and network status.
+- Use an application title bar, tabbed surface, collapsible configuration cards and a persistent Save/Reset action bar consistent with the reference application.
+- Preserve the visual walkthroughs and downloadable Help PDF under Help & How-to.
+
 ## Fix and publish
 
 > Fix the HTTP 400 error, commit the changes, and push them to GitHub.
