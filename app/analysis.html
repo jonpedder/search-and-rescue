@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 56'%3E%3Cpath d='M24 4 41 11v14c0 12-8 21-17 26C15 46 7 37 7 25V11Z' fill='%23003B5C' stroke='%23F2A900' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
-<link rel="stylesheet" href="./theme.css?v=20261110-3">
+<link rel="stylesheet" href="./theme.css?v=20261110-4">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="./settings.js?v=20261110-3"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
@@ -45,7 +45,7 @@ function loadIncident(){const id=$("analysisIncident").value.trim(),found=saved(
 $("refreshWorkspaces").onclick=discover;$("runAnalysis").onclick=loadIncident;$("analysisPeriod").onchange=render;$("analysisIncident").onkeydown=e=>{if(e.key==="Enter")loadIncident()};const list=discover();if(list.length===1){$("analysisIncident").value=list[0].data.incident.id;loadIncident()}
 });
 </script>
-<script src="./reports.js?v=20261110-1"></script>
+<script src="./reports.js?v=20261110-4"></script>
 <script src="./auth.js"></script>
 <script src="./header-nav.js?v=20261110-3"></script>
 </body></html>

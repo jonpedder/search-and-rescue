@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 56'%3E%3Crect width='48' height='56' rx='6' fill='%23003B5C'/%3E%3Cpath d='M24 4 41 10.500v14.500c0 12-7.500 20.500-17 26C14.500 45.500 7 37 7 25V10.500Z' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Ccircle cx='24' cy='26' r='8' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Cpath d='M24 14v6M24 32v6M12 26h6M30 26h6' stroke='%23F2A900' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
-<link rel="stylesheet" href="./theme.css?v=20261110-3">
+<link rel="stylesheet" href="./theme.css?v=20261110-4">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="./settings.js?v=20261110-2"></script>
 <style>
@@ -354,9 +354,9 @@ svg text{font-family:inherit}
     <h2>Segments ranked by probability of area</h2>
     <div id="segSummary" class="hint">Run the model to generate segments.</div>
     <div class="swatches" aria-hidden="true"><i style="background:var(--poa1)"></i><i style="background:var(--poa2)"></i><i style="background:var(--poa3)"></i><i style="background:var(--poa4)"></i><i style="background:var(--poa5)"></i></div>
-    <p class="hint">Enter the probability of detection (POD) for segments searched, then apply. Remaining POA is redistributed.</p>
+    <p class="hint">Estimated POD is a planning-only starting point based on segment area and rank. Enter an assignment-specific applied POD after search, then apply; remaining POA is redistributed.</p>
     <table id="segTable">
-      <thead><tr><th>Seg</th><th>POA %</th><th>km²</th><th>POD %</th><th>POS %</th></tr></thead>
+      <thead><tr><th>Seg</th><th>POA %</th><th>km²</th><th>Est. POD %</th><th>Applied POD %</th><th>POS %</th></tr></thead>
       <tbody></tbody>
     </table>
     <div class="btns">
@@ -1100,7 +1100,7 @@ require([
   const vis = {relief:true, travel:false};
   const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
-  window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};
+  window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
   view.ui.add(new Search({view}), "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
   view.ui.add(new Home({view}), "top-left");
@@ -1127,7 +1127,7 @@ require([
   async function ensureTowerLayer(){
     if(layers.towers){layers.towers.visible=true;return layers.towers}
     const layer=new FeatureLayer({url:CELL_TOWER_URL,title:"FCC-sourced cellular tower locations",definitionExpression:"LicStatus = 'A'",outFields:["FID","Licensee","Callsign","LocAdd","LocCity","LocCounty","LocState","TowReg","SupStruc","AllStruc","StrucType","LicStatus","url"],minScale:750000,
-      renderer:{type:"simple",symbol:{type:"simple-marker",style:"triangle",color:[0,188,212,0.9],size:9,outline:{color:[255,255,255,0.9],width:1}}},
+      renderer:{type:"simple",symbol:{type:"picture-marker",url:"./assets/cell-site.svg",width:"30px",height:"30px"}},
       popupTemplate:{title:"Cell tower {Callsign}",content:[{type:"fields",fieldInfos:[{fieldName:"Licensee",label:"Licensee"},{fieldName:"Callsign",label:"Callsign"},{fieldName:"TowReg",label:"Tower registration"},{fieldName:"StrucType",label:"Structure type"},{fieldName:"AllStruc",label:"Overall height"},{fieldName:"LocAdd",label:"Address"},{fieldName:"LocCity",label:"City"},{fieldName:"LocCounty",label:"County"},{fieldName:"LocState",label:"State"}]}]}});
     map.add(layer,1);await layer.load();layers.towers=layer;return layer;
   }
@@ -1506,13 +1506,14 @@ require([
     renderTable();
   }
 
+  function estimateSegmentPOD(s){const area=Math.max(0.01,+s.cell.areaKm2||0.01),areaPenalty=Math.min(32,Math.sqrt(area)*18),rankAdjustment=s.rank<=10?6:s.rank<=25?2:0;return Math.round(Math.max(20,Math.min(70,58-areaPenalty+rankAdjustment)))}
   function renderTable(){
     const tb = document.querySelector("#segTable tbody"); tb.innerHTML = "";
     const order = state.segs.slice().sort((a, b) => a.rank - b.rank);
     order.slice(0, 60).forEach(s => {
       const tr = document.createElement("tr"); tr.className = "seg"; tr.dataset.id = s.cell.id;
       tr.innerHTML = "<td>" + s.cell.id + " (#" + s.rank + ")</td><td>" + (s.poa*100).toFixed(2) + "</td><td>" + s.cell.areaKm2.toFixed(2) +
-        '</td><td><input type="number" min="0" max="100" step="1" value="' + (s.podInput == null ? "" : s.podInput) + '" data-id="' + s.cell.id + '" aria-label="POD percent for ' + s.cell.id + '"></td><td>' +
+        '</td><td title="Planning estimate based on segment area and rank; replace with assignment-specific POD">' + (s.estimatedPod ??= estimateSegmentPOD(s)) + '</td><td><input type="number" min="0" max="100" step="1" value="' + (s.podInput == null ? "" : s.podInput) + '" data-id="' + s.cell.id + '" aria-label="POD percent for ' + s.cell.id + '"></td><td>' +
         (s.cumPos*100).toFixed(2) + "</td>";
       tr.addEventListener("click", ev => {
         if(ev.target.tagName === "INPUT") return;
@@ -1574,7 +1575,8 @@ require([
       const inputs = {profile: profile(), age:$("age").value, sex:$("sex").value, season:$("season").value, light:$("light").value,
         weights:{ring:+$("wRing").value, sector:+$("wSector").value, linear:+$("wLinear").value, terrain:+$("wTerrain").value, elev:+$("wElev").value},
         dem:{used:state.run.usedLayers.includes("terrain"), url:($("demUrl").value.trim() || CONFIG.demUrl), cells:+$("demN").value, maxSlope:+$("maxSlope").value}, grid:+$("res").value,
-        extentIdx:extentIdx(), scenarios:state.scenarios, lineFeatures:state.lines.length, layers:state.run.usedLayers};
+        extentIdx:extentIdx(), scenarios:state.scenarios, lineFeatures:state.lines.length, layers:state.run.usedLayers,
+        operationalPeriod:window.SARPlanningEnhancements?.operationalPeriod ? window.SARPlanningEnhancements.operationalPeriod() : {number:1}};
       if($("persistInterview").checked){inputs.interview=interviewProfile();inputs.interviewPlanning=interviewPlanning(inputs.interview)}
       const incLayer = new FeatureLayer({url: CONFIG.incidentLayerUrl});
       const segLayer = new FeatureLayer({url: CONFIG.segmentLayerUrl});
@@ -1615,7 +1617,8 @@ require([
   tick(); setInterval(tick, 1000);
 })();
 </script>
-<script src="./reports.js?v=20261110-1"></script>
+<script src="./planning-enhancements.js?v=20261110-1"></script>
+<script src="./reports.js?v=20261110-4"></script>
 <script src="./auth.js"></script>
 <script src="./header-nav.js?v=20261110-3"></script>
 </body>

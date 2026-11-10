@@ -8,11 +8,14 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 
 - Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; Operations manages areas, segments, assignments, PLS, clues, cell pings and field assets
 - Captures a structured lost-person interview covering immediate planning, health, clothing/equipment, experience, trip plans, behavior and prior actions; converts supported answers into reviewable planning cues
+- Accepts a compressed subject photograph for named plans and the Incident PDF
+- Saves and retrieves named browser-local incident plans with the profile, interview, scenarios, model settings, operational period, map lines, search segments and subject photograph
+- Initializes operational period 1 from the current time to the next local noon or midnight boundary
 - Looks up LPB statistics by subject category, environment and terrain, with fallback and sample-size warnings
 - Builds distance rings, direction sectors, linear-feature proximity, DEM travel time (Tobler hiking function) and elevation bias
 - Blends layers by adjustable weights and scenarios into ranked search segments
 - Tracks POA, POD and POS as search results come in
-- Shows survivability over time since last seen
+- Shows survivability over time since last seen for every selectable subject category; bundled fallback curves are explicitly marked as placeholders until agency-approved data is loaded
 - Exports CSV or GeoJSON, and saves incidents, model runs and segments to ArcGIS Online
 - Uses native ArcGIS map widgets for layers, legend, basemaps, drawing, measurement, location, coordinates, home, search and print; adds a small supplemental interface only for GeoJSON/GPX import and GeoJSON export
 - Uses a private, Sync-enabled hosted feature service and ArcGIS Online web map as the operational system of record (see [GIS workflow](docs/GIS_WORKFLOW.md))
