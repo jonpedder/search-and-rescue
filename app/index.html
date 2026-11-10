@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 56'%3E%3Crect width='48' height='56' rx='6' fill='%23003B5C'/%3E%3Cpath d='M24 4 41 10.500v14.500c0 12-7.500 20.500-17 26C14.500 45.500 7 37 7 25V10.500Z' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Ccircle cx='24' cy='26' r='8' fill='none' stroke='%23F2A900' stroke-width='3'/%3E%3Cpath d='M24 14v6M24 32v6M12 26h6M30 26h6' stroke='%23F2A900' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
+<link rel="stylesheet" href="./theme.css">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="./settings.js"></script>
 <style>
@@ -149,8 +150,8 @@ svg text{font-family:inherit}
   <div class="status-row">
     <div class="clocks"><div>UTC <strong id="utc">--:--:--</strong></div><div>Local <strong id="localTime">--:--:--</strong></div></div>
     <span class="badge">SAR PLANNING</span>
-    <calcite-button href="./operations.html" appearance="outline" kind="brand" icon-start="map-pin" scale="s" title="SAR Operations">Operations</calcite-button>
-    <calcite-button href="./settings.html" appearance="outline" kind="brand" icon-start="gear" scale="s" title="Settings">Settings</calcite-button>
+    <calcite-button href="./operations.html" appearance="outline-fill" kind="brand" icon-start="map-pin" scale="s" title="SAR Operations">Operations</calcite-button>
+    <calcite-button href="./settings.html" appearance="outline-fill" kind="brand" icon-start="gear" scale="s" title="Settings">Settings</calcite-button>
   </div>
 </header>
 <div id="body">
@@ -1120,7 +1121,7 @@ require([
 
   // FCC-sourced tower locations with explicitly estimated, not provider-verified, coverage circles.
   const communicationsBody=document.createElement("div");communicationsBody.className="esri-widget";communicationsBody.style.cssText="width:330px;padding:12px;background:var(--calcite-color-foreground-1)";
-  communicationsBody.innerHTML='<strong>Cellular communications planning</strong><p style="font-size:12px;color:var(--calcite-color-text-2)">Load public FCC-sourced tower registrations, then create equal-radius planning estimates for towers in the current map view.</p><label style="display:block;font-size:12px">Estimated radius (km)<input id="towerRadius" type="number" min="0.5" max="50" step="0.5" value="'+APP_SETTINGS.map.towerCoverageKm+'"></label><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><calcite-button id="loadTowers" appearance="outline-fill" icon-start="pin">Load towers</calcite-button><calcite-button id="estimateTowerCoverage" icon-start="analysis">Estimate current view</calcite-button><calcite-button id="clearTowerCoverage" appearance="outline" icon-start="trash">Clear estimates</calcite-button></div><div id="towerStatus" aria-live="polite" style="margin-top:8px;font-size:11px;color:var(--calcite-color-text-3)">Coverage is not verified RF service. It ignores terrain, antenna sectors, frequency, power, capacity and outages.</div>';
+  communicationsBody.innerHTML='<strong>Cellular communications planning</strong><p style="font-size:12px;color:var(--calcite-color-text-2)">Load public FCC-sourced tower registrations, then create equal-radius planning estimates for towers in the current map view.</p><label style="display:block;font-size:12px">Estimated radius (km)<input id="towerRadius" type="number" min="0.5" max="50" step="0.5" value="'+APP_SETTINGS.map.towerCoverageKm+'"></label><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><calcite-button id="loadTowers" appearance="outline-fill" icon-start="pin">Load towers</calcite-button><calcite-button id="estimateTowerCoverage" icon-start="analysis">Estimate current view</calcite-button><calcite-button id="clearTowerCoverage" appearance="outline-fill" icon-start="trash">Clear estimates</calcite-button></div><div id="towerStatus" aria-live="polite" style="margin-top:8px;font-size:11px;color:var(--calcite-color-text-3)">Coverage is not verified RF service. It ignores terrain, antenna sectors, frequency, power, capacity and outages.</div>';
   async function ensureTowerLayer(){
     if(layers.towers){layers.towers.visible=true;return layers.towers}
     const layer=new FeatureLayer({url:CELL_TOWER_URL,title:"FCC-sourced cellular tower locations",definitionExpression:"LicStatus = 'A'",outFields:["FID","Licensee","Callsign","LocAdd","LocCity","LocCounty","LocState","TowReg","SupStruc","AllStruc","StrucType","LicStatus","url"],minScale:750000,

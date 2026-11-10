@@ -9,5 +9,5 @@ assert.ok(api.validate({...api.BASE_DEFAULTS,map:{...api.BASE_DEFAULTS.map,cente
 assert.ok(api.validate({...api.BASE_DEFAULTS,map:{...api.BASE_DEFAULTS.map,towerCoverageKm:100}}).errors.length);
 assert.strictEqual(api.reset().workspace.startupTab,"incident");
 const settingsHtml=fs.readFileSync(path.join(__dirname,"../app/settings.html"),"utf8");
-assert.match(settingsHtml,/Configuration/);assert.match(settingsHtml,/Help &amp; How-to/);assert.match(settingsHtml,/Export template/);assert.match(settingsHtml,/Apply draft for review/);
+assert.match(settingsHtml,/href="\.\/theme\.css"/);assert.match(settingsHtml,/Configuration/);assert.match(settingsHtml,/Help &amp; How-to/);assert.match(settingsHtml,/Export template/);assert.match(settingsHtml,/Apply draft for review/);for(const id of ["operations-guide","assignments-guide","ops-layers-guide"])assert.ok(settingsHtml.includes('id="'+id+'"'));assert.match(settingsHtml,/Calcite dark theme with amber primary actions/);assert.doesNotMatch(settingsHtml,/appearance="outline"/);
 console.log("ok  settings validation, persistence, templates and guide contract");

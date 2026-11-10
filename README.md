@@ -17,7 +17,7 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 - Uses native ArcGIS map widgets for layers, legend, basemaps, drawing, measurement, location, coordinates, home, search and print; adds a small supplemental interface only for GeoJSON/GPX import and GeoJSON export
 - Uses a private, Sync-enabled hosted feature service and ArcGIS Online web map as the operational system of record (see [GIS workflow](docs/GIS_WORKFLOW.md))
 - Applies selected [NAPSG Foundation Symbol Library 2.0](https://symbology.napsgfoundation.org/) incident symbols where their meaning matches the SAR schema (see [symbology mapping](docs/NAPSG_SYMBOLOGY.md))
-- Uses the [Calcite Design System](https://developers.arcgis.com/calcite-design-system/) for interface components, semantic color tokens, dark mode, focus behavior and operational alerts
+- Uses a shared Calcite dark/amber theme (`app/theme.css`) across Planning, Operations and Settings for interface components, semantic color tokens, button hierarchy, ArcGIS widgets, focus behavior and operational alerts
 - Provides an exemplar-aligned Settings page with Configuration and Help & How-to tabs, template import/export, draft review, browser-local defaults and an operator guide
 - Loads authoritative [ArcGIS Living Atlas](docs/LIVING_ATLAS.md) terrain, land cover, hydrography, weather, wildfire and hillshade context on demand
 - Includes public FCC-sourced [cell tower locations and clearly labeled circular coverage estimates](docs/COMMUNICATIONS.md) for communications planning
