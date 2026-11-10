@@ -82,7 +82,8 @@ test("planning profile survives a round trip through Operations", async ({ page 
     const set = (id, value) => { const el = document.getElementById(id); el.value = value; el.dispatchEvent(new Event("input", { bubbles: true })); };
     set("intName", "Morgan Searcher"); set("age", "37"); set("wRing", "48");
     window.__app.planning.state.scenarios = [{ name: "Trail travel", probability: 70, bearing: 45 }, { name: "Sheltered", probability: 30, bearing: null }];
-    window.__app.planning.renderScenarios(); window.SARPlanningEnhancements.persistCurrentPlan();
+    window.__app.planning.renderScenarios();
+    const draft = window.SARPlanningEnhancements.serializePlan("Photo round trip"), pixel = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2Q=="; draft.photoDataUrls = [pixel, pixel, pixel]; window.SARPlanningEnhancements.restorePlan(draft, false); window.SARPlanningEnhancements.persistCurrentPlan();
   });
   await page.goto("/operations.html");
   await page.waitForSelector("#sarPlanningNav", { timeout: 30000 });
@@ -90,5 +91,5 @@ test("planning profile survives a round trip through Operations", async ({ page 
   await page.waitForFunction(() => window.SARPlanningEnhancements && document.querySelector("#planList"));
   await expect(page.locator("#incName")).toHaveValue("Current Profile Test");
   const restored = await page.evaluate(() => ({ name: document.getElementById("intName").value, age: document.getElementById("age").value, ring: document.getElementById("wRing").value, scenarios: window.__app.planning.state.scenarios }));
-  expect(restored.name).toBe("Morgan Searcher"); expect(restored.age).toBe("37"); expect(restored.ring).toBe("48"); expect(restored.scenarios).toHaveLength(2);
+  expect(restored.name).toBe("Morgan Searcher"); expect(restored.age).toBe("37"); expect(restored.ring).toBe("48"); expect(restored.scenarios).toHaveLength(2); await expect(page.locator(".subject-photo-preview")).toHaveCount(3); expect(await page.evaluate(() => window.SARPlanningEnhancements.photoDataUrls.length)).toBe(3);
 });

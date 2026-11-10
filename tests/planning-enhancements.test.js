@@ -6,7 +6,8 @@ const reports = fs.readFileSync("app/reports.js", "utf8");
 const theme = fs.readFileSync("app/theme.css", "utf8");
 
 [
-  ["photo upload and preview", /intPhotoFile/.test(enhancements) && /intPhotoPreview/.test(enhancements)],
+  ["multiple photo upload and removable previews", /intPhotoFile/.test(enhancements) && /multiple accept=/.test(enhancements) && /photoDataUrls/.test(enhancements) && /subject-photo-preview/.test(enhancements)],
+  ["all subject photos are included in the missing-person report", /subjectPhotos\.forEach/.test(reports) && /Missing Person Profile Report/.test(reports)],
   ["model information buttons", /model-info-button/.test(enhancements) && /modelHelp/.test(enhancements)],
   ["default public trail and known-place sources", /National_Park_Service_Trails/.test(enhancements) && /USA_Major_Cities/.test(enhancements)],
   ["precalculated estimated POD", /estimateSegmentPOD/.test(index) && /Est\. POD/.test(index)],
