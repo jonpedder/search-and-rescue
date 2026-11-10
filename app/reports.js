@@ -50,6 +50,27 @@
     }
     records.sort(function (a, b) { return (+a.attrs.created || 0) - (+b.attrs.created || 0); }); return { incident: incident, records: records, source: source };
   }
+  function assignmentWorkspaceData() {
+    var incident = { id: "", name: "", period: "" }, assignments = [], records = [], source = "";
+    if (operations && window.__app && window.__app.state) {
+      incident = { id: $("incidentId").value.trim(), name: $("incidentName").value.trim(), period: $("operationalPeriod").value };
+      assignments = window.__app.state.assignments.slice();
+      records = window.__app.state.records.map(function (r) { return { kind: r.kind, attrs: r.attrs || {}, geometry: r.graphic && r.graphic.geometry || r.geometry }; });
+      source = "Live operations workspace";
+    } else {
+      var best = null, wanted = planning && $("incName").value.trim().toLowerCase();
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i); if (k.indexOf("sar.operations.") !== 0) continue;
+        try {
+          var w = JSON.parse(localStorage.getItem(k)), list = w.assignments || []; if (!list.length) continue;
+          var score = list.length + (wanted && String(w.incident && w.incident.name || "").toLowerCase() === wanted ? 10000 : 0);
+          if (!best || score > best.score) best = { score: score, w: w };
+        } catch (_) { }
+      }
+      if (best) { incident = best.w.incident || incident; assignments = best.w.assignments || []; records = (best.w.records || []).map(function (r) { return { kind: r.kind, attrs: r.attrs || {}, geometry: r.geometry }; }); source = "Saved operations workspace"; }
+    }
+    return { incident: incident, assignments: assignments, records: records, source: source };
+  }
   function ll(g) {
     if (!g) return "Not recorded"; if (g.latitude != null) return g.latitude.toFixed(5) + ", " + g.longitude.toFixed(5);
     var x = g.x, y = g.y; if (x == null) return "Not recorded";
@@ -84,6 +105,31 @@
       if (owned) { view.destroy(); host.remove(); }
       else if (oldViewpoint) view.goTo(oldViewpoint, { animate: false }).catch(function () { });
     }
+  }
+  async function assignmentMapImage(workspace, assignment) {
+    var aid = String(assignment.id || "").toLowerCase(), segment = String(assignment.segment || "").toLowerCase(), team = String(assignment.team || "").toLowerCase();
+    var related = workspace.records.filter(function (r) {
+      var name = String(r.attrs && r.attrs.name || "").toLowerCase(), notes = String(r.attrs && r.attrs.notes || "").toLowerCase();
+      if (["segment", "area"].includes(r.kind) && segment && name === segment) return true;
+      if (["route", "track"].includes(r.kind) && (name === aid || notes.indexOf(aid) >= 0 || team && name.indexOf(team) >= 0)) return true;
+      if (["asset", "facility", "lz"].includes(r.kind) && team && name.indexOf(team) >= 0) return true;
+      return false;
+    }).filter(function (r) { return !!r.geometry; });
+    if (!related.length) return null;
+    var modules = await amd(["esri/Map", "esri/views/MapView", "esri/layers/GraphicsLayer", "esri/Graphic"]), Map = modules[0], MapView = modules[1], GraphicsLayer = modules[2], Graphic = modules[3];
+    var view = operations && window.__esriView && window.__esriView.ready ? window.__esriView : null, owned = !view, host = null, map, oldViewpoint = view && view.viewpoint && view.viewpoint.clone();
+    if (owned) { host = document.createElement("div"); host.setAttribute("aria-hidden", "true"); host.style.cssText = "position:fixed;left:-10000px;top:0;width:1200px;height:500px;visibility:visible"; document.body.appendChild(host); map = new Map({ basemap: "topo-vector" }); view = new MapView({ container: host, map: map, constraints: { snapToZoom: false }, ui: { components: [] } }); await view.when(); }
+    else map = view.map;
+    var layer = new GraphicsLayer({ title: "Assignment report tasking", listMode: "hide" }), targets = [];
+    related.forEach(function (item) {
+      var type = item.geometry.type, symbol = type === "polygon" ? { type: "simple-fill", color: [242, 169, 0, 0.2], outline: { color: [242, 169, 0, 1], width: 3 } } : type === "polyline" ? { type: "simple-line", color: [242, 169, 0, 1], width: 4 } : { type: "simple-marker", style: "diamond", size: 18, color: [242, 169, 0, 1], outline: { color: [0, 59, 92, 1], width: 2 } };
+      var graphic = new Graphic({ geometry: item.geometry, symbol: symbol, attributes: { assignmentId: assignment.id, featureName: item.attrs.name || item.kind } }); layer.add(graphic); targets.push(graphic);
+    });
+    var first = targets[0], labelPoint = first.geometry.type === "point" ? first.geometry : first.geometry.extent && first.geometry.extent.center;
+    if (labelPoint) layer.add(new Graphic({ geometry: labelPoint, symbol: { type: "text", text: String(assignment.id || "Assignment"), color: [255, 255, 255, 1], haloColor: [0, 59, 92, 1], haloSize: 2, yoffset: 16, font: { family: "Arial", size: 11, weight: "bold" } } }));
+    map.add(layer);
+    try { await view.goTo(targets.length === 1 && targets[0].geometry.type === "point" ? { target: targets[0].geometry, scale: 18000 } : targets, { animate: false, padding: 70 }); await settle(view); var shot = await view.takeScreenshot({ format: "png", width: 1440, height: 600 }); return shot.dataUrl; }
+    finally { map.remove(layer); if (owned) { view.destroy(); host.remove(); } else if (oldViewpoint) view.goTo(oldViewpoint, { animate: false }).catch(function () { }); }
   }
   function loadPdf() {
     if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
@@ -130,11 +176,30 @@
     p.section("Clue log (chronological)"); p.table(["#", "Clue", "Found / logged", "Op", "Status", "Priority", "Location", "Description / notes"], [.04, .11, .14, .04, .08, .08, .15, .36], d.records.map(function (r, i) { return [i + 1, r.attrs.name || "Clue", date(r.attrs.created), r.attrs.operationalPeriod || "", r.attrs.status || "", r.attrs.priority || "", ll(r.geometry), r.attrs.notes || "No description"]; }));
     p.paragraph("Preserve and photograph clues in place, record finder and time, and report them through incident command."); return { blob: p.finish("Search & Rescue clue log"), name: "clue-log-report" };
   }
+  async function assignmentReport() {
+    var d = assignmentWorkspaceData(); if (!d.assignments.length) throw new Error("No assignments are available. Create or load assignments in SAR Operations first.");
+    var choices = d.assignments.map(function (a) { return String(a.id || "Unnamed assignment"); }), preferred = operations && window.__app && window.__app.state && window.__app.state.selectedAssignment || choices[0];
+    var answer = prompt("Which assignment number should be included in the report?\n\nAvailable assignments: " + choices.join(", "), preferred); if (answer == null) return null; answer = answer.trim();
+    var assignment = d.assignments.find(function (a) { return String(a.id || "").toLowerCase() === answer.toLowerCase(); });
+    if (!assignment && /^\d+$/.test(answer) && +answer >= 1 && +answer <= d.assignments.length) assignment = d.assignments[+answer - 1];
+    if (!assignment) throw new Error("Assignment '" + answer + "' was not found. Available assignments: " + choices.join(", "));
+    var mapImage = await assignmentMapImage(d, assignment).catch(function (error) { console.warn("Assignment report map could not be captured", error); return null; }), js = await loadPdf(), p = pdfApi(js, "Assignment Report", String(assignment.id || "Assignment") + (d.incident.name ? " | " + d.incident.name : ""), true);
+    p.section("Assignment identification"); p.fields([["Incident ID", d.incident.id], ["Incident name", d.incident.name], ["Assignment number", assignment.id], ["Search segment", assignment.segment], ["Operational period", assignment.operationalPeriod || d.incident.period], ["Status", assignment.status], ["Priority", assignment.priority], ["Data source", d.source], ["Generated", new Date().toLocaleString()]], 3);
+    p.section("Assignment tasking map");
+    if (mapImage) p.image(mapImage, 245, "Highlighted geometry shows the assigned segment and any linked route, track, facility or team resource found in the Operations workspace. Basemap and reference data: Esri and data providers.");
+    else p.paragraph("No linked assignment geometry was found. Confirm that the assignment's segment and route names match mapped Operations objects.");
+    p.section("Team and tasking"); p.fields([["Team / resource", assignment.team], ["Task type", assignment.type], ["Team size", assignment.teamSize], ["Transportation", assignment.transport], ["Estimated hours", assignment.expectedHours], ["Radio channel", assignment.radio], ["Prepared by", assignment.preparedBy], ["Created", date(assignment.created)], ["ArcGIS status", assignment.synced ? "Synced" : "Browser workspace / unsynced"]], 3);
+    p.section("Probability of detection"); p.fields([["Responsive POD", empty(assignment.podResponsive) ? "" : assignment.podResponsive + "%"], ["Unresponsive POD", empty(assignment.podUnresponsive) ? "" : assignment.podUnresponsive + "%"], ["Clue POD", empty(assignment.podClue) ? "" : assignment.podClue + "%"]], 3);
+    p.section("Previous search efforts"); p.paragraph(assignment.previous || "No previous search efforts recorded.");
+    p.section("Briefing and safety notes"); p.paragraph(assignment.notes || "No briefing or safety notes recorded.");
+    p.paragraph("Brief the assigned team, verify communications and hazards, and obtain incident-command approval before deployment.");
+    return { blob: p.finish("Search & Rescue assignment tasking"), name: "assignment-" + String(assignment.id || "report").replace(/[^A-Za-z0-9_-]+/g, "-") };
+  }
   var busy = false;
-  async function run(kind) { if (busy || !kind) return; busy = true; var button = document.getElementById("sarExportReportButton"); if (button) { button.loading = true; button.disabled = true; } try { var r = kind === "clue" ? await clueReport() : await incidentReport(); download(r.blob, r.name); } catch (e) { alert(e.message || "The report could not be generated."); } finally { busy = false; if (button) { button.loading = false; button.disabled = !document.getElementById("sarReportType").value; } } }
+  async function run(kind) { if (busy || !kind) return; busy = true; var button = document.getElementById("sarExportReportButton"); if (button) { button.loading = true; button.disabled = true; } try { var r = kind === "clue" ? await clueReport() : kind === "assignment" ? await assignmentReport() : await incidentReport(); if (r) download(r.blob, r.name); } catch (e) { alert(e.message || "The report could not be generated."); } finally { busy = false; if (button) { button.loading = false; button.disabled = !document.getElementById("sarReportType").value; } } }
   var host = document.querySelector(".status-row") || document.querySelector(".header-actions") || document.querySelector(".header .actions"); if (!host) return;
   var control = document.createElement("div"); control.id = "sarReportsControl"; control.className = "sar-report-group";
-  control.innerHTML = '<label for="sarReportType">Reports</label><select id="sarReportType" aria-label="Select report"><option value="">Select a report</option><option value="clue">Clue Log Report</option><option value="incident">Incident &amp; Subject Profile</option></select><calcite-button id="sarExportReportButton" appearance="outline-fill" icon-start="file-pdf" scale="m" disabled>PDF</calcite-button>';
+  control.innerHTML = '<label for="sarReportType">Reports</label><select id="sarReportType" aria-label="Select report"><option value="">Select a report</option><option value="clue">Clue Log Report</option><option value="assignment">Assignment Report</option><option value="incident">Incident &amp; Subject Profile</option></select><calcite-button id="sarExportReportButton" appearance="outline-fill" icon-start="file-pdf" scale="m" disabled>PDF</calcite-button>';
   var select = control.querySelector("select"), exportButton = control.querySelector("calcite-button");
   select.onchange = function () { exportButton.disabled = !select.value; };
   exportButton.onclick = function () { run(select.value); };
