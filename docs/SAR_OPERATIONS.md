@@ -23,6 +23,8 @@ The page prioritizes a SARTopo-like object workflow while using ArcGIS COTS comp
 - Capture deployment details including team size, transportation, estimated duration, radio channel, prepared-by, previous efforts, and responsive/unresponsive/clue POD.
 - Import GeoJSON, GPX, and KML map objects; export GeoJSON, KML, GPX, assignment CSV, and full operations JSON.
 - Use native measurement, coordinate-conversion, locate, compass, print, layer, legend, and basemap tools.
+- Manage operational layer visibility from a persistent right-side panel, zoom to an entire layer, or zoom directly to a named feature.
+- Open formatted Arcade popup content for every operational feature, including status, priority, operational period, folder, geometry measurements, notes, and ArcGIS synchronization state.
 - Load optional land-cover, hydrography, weather-warning, wildfire, and hillshade overlays.
 
 ## Existing ArcGIS schema mapping
