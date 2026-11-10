@@ -1096,6 +1096,7 @@ require([
   const vis = {relief:true, travel:false};
   const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
+  window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};
   view.ui.add(new Search({view}), "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
   view.ui.add(new Home({view}), "top-left");
