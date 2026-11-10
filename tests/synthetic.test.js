@@ -1,5 +1,5 @@
 "use strict";
-const assert = require("assert");
+const assert = require("assert"), fs = require("fs"), path = require("path");
 global.window = global;
 require("../app/synthetic-data.js");
 
@@ -16,4 +16,7 @@ for (const id of [0, 1, 2, 3, 4]) {
   assert.ok(data[id].every(f => f.geometry && f.geometry.spatialReference && f.geometry.spatialReference.wkid === 4326), `spatial layer ${id} must have WGS84 geometry for every record`);
 }
 for (const id of [5, 6, 7, 8]) assert.ok(data[id].every(f => !f.geometry), `nonspatial table ${id} must remain related tabular data`);
-console.log("ok  synthetic generator creates 5,000 tagged records with complete spatial geometry");
+const settingsUi = fs.readFileSync(path.join(__dirname, "../app/settings-synthetic.js"), "utf8");
+for (const id of ["synProgressPanel", "synProgressLabel", "synProgressPercent", "synProgressDetail"]) assert.ok(settingsUi.includes(id), `progress UI must include ${id}`);
+assert.match(settingsUi, /done \/ total/); assert.match(settingsUi, /Writing \" \+ p\.layer/);
+console.log("ok  synthetic generator creates 5,000 tagged records with complete geometry and visible progress");

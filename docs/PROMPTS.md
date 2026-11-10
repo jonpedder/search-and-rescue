@@ -46,7 +46,7 @@ This file records the prompts used to guide the reporting and synthetic-data add
   - `source LIKE 'SYNTHETIC_PLACEHOLDER%'` for reference-table records.
 - The delete action must target only those tags and must preserve real records and the existing `DEMO-` exercise record.
 - Require confirmation before generation and deletion.
-- Show progress and post-operation counts by layer/table.
+- Show a visible determinate progress bar while generating, including the active layer/table, percentage, and completed-versus-total record count; show post-operation counts by layer/table.
 - Split ArcGIS edit batches into bounded requests and recursively retry smaller batches if a gateway returns HTTP 400 for an oversized request.
 - Surface the first feature-level ArcGIS error instead of reporting false success.
 
