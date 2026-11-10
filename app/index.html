@@ -937,6 +937,7 @@ function boundedProvenance(value,max=8000){
 /* ---------- Subject & stats ---------- */
 function fillCategories(){
   const sel = $("category"), cur = sel.value; sel.innerHTML = "";
+  const placeholder = document.createElement("option"); placeholder.value = ""; placeholder.textContent = "Select a subject category"; placeholder.disabled = true; sel.appendChild(placeholder);
   const have = new Set(state.stats.map(s => s.category));
   CATEGORY_GROUPS.forEach(([g, items]) => {
     const og = document.createElement("optgroup"); og.label = g;
@@ -953,7 +954,7 @@ function fillCategories(){
     extra.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c; og.appendChild(o); });
     sel.appendChild(og);
   }
-  sel.value = cur && [...sel.options].some(o => o.value === cur) ? cur : "Dementia";
+  sel.value = cur && [...sel.options].some(o => o.value === cur) ? cur : "";
   $("statsCount").textContent = state.stats.length + " statistics rows, " + state.surv.length + " survival curves loaded.";
 }
 function profile(){
@@ -961,6 +962,7 @@ function profile(){
 }
 function renderStats(){
   $("terrain").disabled = $("domain").value === "Urban";
+  if(!$("category").value){state.match=null;$("statBox").innerHTML='<div class="box">Select a subject category to match lost-person behavior statistics.</div>';return;}
   const m = LPB.matchStats(state.stats, profile());
   state.match = m;
   const box = $("statBox");
@@ -1013,6 +1015,7 @@ function elapsedHours(){
 function updateSurvival(){
   const cat = $("category").value, curve = state.surv.find(c => c.category === cat);
   const hrs = elapsedHours(), box = $("survBox"), ch = $("survChart");
+  if(!cat){box.innerHTML='<div class="box">Select a subject category to view survivability over time.</div>';ch.innerHTML="";return;}
   if(!curve){
     box.innerHTML = '<div class="box">No survival curve is loaded for <b>' + esc(cat) + "</b>.</div>"; ch.innerHTML = ""; return;
   }
