@@ -52,7 +52,7 @@ body{font-family:var(--calcite-sans-family,"Avenir Next","Helvetica Neue",sans-s
 .clocks{font-size:11px;color:var(--muted);line-height:1.45}
 .clocks strong{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
 .badge{border:1px solid var(--gold);color:var(--gold);padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.6px;white-space:nowrap}
-.app-footer{min-height:32px;background:#04111a;border-top:1px solid var(--border);color:var(--muted);display:grid;place-items:center;text-align:center;padding:6px 12px;font-size:10px;z-index:6}.app-footer a{color:var(--gold)}
+.app-footer{min-height:32px;background:#04111a;border-top:1px solid var(--border);color:var(--muted);display:block;text-align:center;padding:8px 12px;font-size:10px;z-index:6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.app-footer a{color:var(--gold)}
 
 #body{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);min-height:0}
 #panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
@@ -385,7 +385,7 @@ svg text{font-family:inherit}
   <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
 </main>
 </div>
-<footer class="app-footer">Decision support for trained SAR personnel. Review every output against field information. Outputs are estimates, not certainties. Lost person behavior science credit: <a href="https://lostpersonbehavior.com/" target="_blank" rel="noopener">Dr. Robert J. Koester — <cite>Lost Person Behavior</cite></a>. Context: <a href="https://livingatlas.arcgis.com/" target="_blank" rel="noopener">ArcGIS Living Atlas</a>. Symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a>.</footer>
+<footer class="app-footer" title="Decision support for trained SAR personnel. Review every output against field information; estimates are not certainties.">Credits • Lost Person Behavior: <a href="https://lostpersonbehavior.com/" target="_blank" rel="noopener">Dr. Robert J. Koester</a> • Context: <a href="https://livingatlas.arcgis.com/" target="_blank" rel="noopener">ArcGIS Living Atlas</a> • Symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a></footer>
 </div>
 <calcite-alert id="toast" placement="bottom" icon><div slot="message" id="toastMessage"></div></calcite-alert>
 
