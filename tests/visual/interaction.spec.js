@@ -71,3 +71,24 @@ test("incident analysis summarizes a saved Operations workspace", async ({ page 
   await expect(page.locator("#metricFeatures")).toHaveText("1");
   await expect(page.locator("#metricAssignments")).toHaveText("1");
 });
+
+test("planning profile survives a round trip through Operations", async ({ page }, testInfo) => {
+  test.setTimeout(90000);
+  test.skip(testInfo.project.name.includes("mobile"), "Desktop navigation covers shared workspace persistence.");
+  await page.goto("/index.html");
+  await page.waitForFunction(() => window.SARPlanningEnhancements && document.querySelector("#planList"));
+  await page.fill("#incName", "Current Profile Test");
+  await page.evaluate(() => {
+    const set = (id, value) => { const el = document.getElementById(id); el.value = value; el.dispatchEvent(new Event("input", { bubbles: true })); };
+    set("intName", "Morgan Searcher"); set("age", "37"); set("wRing", "48");
+    window.__app.planning.state.scenarios = [{ name: "Trail travel", probability: 70, bearing: 45 }, { name: "Sheltered", probability: 30, bearing: null }];
+    window.__app.planning.renderScenarios(); window.SARPlanningEnhancements.persistCurrentPlan();
+  });
+  await page.goto("/operations.html");
+  await page.waitForSelector("#sarPlanningNav", { timeout: 30000 });
+  await page.click("#sarPlanningNav");
+  await page.waitForFunction(() => window.SARPlanningEnhancements && document.querySelector("#planList"));
+  await expect(page.locator("#incName")).toHaveValue("Current Profile Test");
+  const restored = await page.evaluate(() => ({ name: document.getElementById("intName").value, age: document.getElementById("age").value, ring: document.getElementById("wRing").value, scenarios: window.__app.planning.state.scenarios }));
+  expect(restored.name).toBe("Morgan Searcher"); expect(restored.age).toBe("37"); expect(restored.ring).toBe("48"); expect(restored.scenarios).toHaveLength(2);
+});

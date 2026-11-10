@@ -9,7 +9,7 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 - Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; Operations manages areas, segments, assignments, PLS, clues, cell pings and field assets
 - Captures a structured lost-person interview covering immediate planning, health, clothing/equipment, experience, trip plans, behavior and prior actions; converts supported answers into reviewable planning cues
 - Accepts a compressed subject photograph for named plans and the Incident PDF
-- Saves and retrieves named browser-local incident plans with the profile, interview, scenarios, model settings, operational period, map lines, search segments and subject photograph
+- Automatically restores the current Planning workspace after navigating to Operations and back, and saves/retrieves named browser-local incident plans with the profile, interview, scenarios, model settings, operational period, map lines, search segments and subject photograph
 - Initializes operational period 1 from the current time to the next local noon or midnight boundary
 - Looks up LPB statistics by subject category, environment and terrain, with fallback and sample-size warnings
 - Builds distance rings, direction sectors, linear-feature proximity, DEM travel time (Tobler hiking function) and elevation bias
