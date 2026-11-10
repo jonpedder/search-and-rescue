@@ -65,3 +65,11 @@ a { color: var(--calcite-color-brand); }
 .status-row calcite-button,.header-actions calcite-button,.header .actions calcite-button{--calcite-button-corner-radius:2px}
 calcite-button.header-icon-button{width:44px;min-width:44px;flex:0 0 44px}
 calcite-button.header-icon-button::part(content){gap:0}
+
+/* Shared ArcGIS session control. */
+.sar-session-area{display:flex;align-items:center;gap:.55rem;padding-left:.65rem;border-left:1px solid var(--app-border)}
+.sar-user-chip{display:flex;align-items:center;gap:.4rem;max-width:180px;color:var(--app-muted);font-size:.7rem;white-space:nowrap}
+.sar-user-chip span:last-child{overflow:hidden;text-overflow:ellipsis}
+.sar-user-dot{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#6f7f89}
+.sar-user-dot.online{background:var(--calcite-color-status-success);box-shadow:0 0 0 2px color-mix(in srgb,var(--calcite-color-status-success) 22%,transparent)}
+@media(max-width:900px){.sar-user-chip{display:none}.sar-session-area{padding-left:.35rem;gap:.25rem}}

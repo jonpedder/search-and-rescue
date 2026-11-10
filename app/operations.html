@@ -37,11 +37,11 @@ body.calcite-mode-dark{--calcite-color-brand:#F2A900;--calcite-color-brand-hover
 <footer class="footer" title="SAR decision support. Validate all map data against incident command and current field intelligence.">Credits • Lost Person Behavior: <a href="https://lostpersonbehavior.com/" target="_blank" rel="noopener">Dr. Robert J. Koester</a> • Context: <a href="https://livingatlas.arcgis.com/" target="_blank" rel="noopener">ArcGIS Living Atlas</a> • Symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a></footer>
 </div>
 <script>
-const CONFIG={portalUrl:"https://publicsafety.maps.arcgis.com",appId:localStorage.getItem("sar.synthetic.appId")||"",webMapItemId:"5bd5bbf575794e9c9565abcb20feb991",serviceRoot:"https://services6.arcgis.com/SdBwj74JF24xKhpX/arcgis/rest/services/SAR_LPB_Incident_Data/FeatureServer"};
+const CONFIG={portalUrl:"https://publicsafety.maps.arcgis.com",appId:localStorage.getItem("sar.oauth.appId")||localStorage.getItem("sar.synthetic.appId")||"",webMapItemId:"5bd5bbf575794e9c9565abcb20feb991",serviceRoot:"https://services6.arcgis.com/SdBwj74JF24xKhpX/arcgis/rest/services/SAR_LPB_Incident_Data/FeatureServer"};
 const SETTINGS=window.SARSettings?window.SARSettings.load():{map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10}};
 require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/layers/FeatureLayer","esri/layers/Layer","esri/Graphic","esri/widgets/Sketch/SketchViewModel","esri/widgets/Search","esri/widgets/Home","esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Expand","esri/widgets/Print","esri/widgets/ScaleBar","esri/widgets/Measurement","esri/widgets/Locate","esri/widgets/CoordinateConversion","esri/widgets/Compass","esri/geometry/geometryEngine","esri/geometry/support/webMercatorUtils","esri/identity/OAuthInfo","esri/identity/IdentityManager"],function(Map,MapView,GraphicsLayer,FeatureLayer,Layer,Graphic,SketchViewModel,Search,Home,LayerList,Legend,BasemapGallery,Expand,Print,ScaleBar,Measurement,Locate,CoordinateConversion,Compass,geometryEngine,webMercatorUtils,OAuthInfo,IdentityManager){
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-if(CONFIG.appId)IdentityManager.registerOAuthInfos([new OAuthInfo({appId:CONFIG.appId,portalUrl:CONFIG.portalUrl,popup:true})]);
+if(CONFIG.appId)IdentityManager.registerOAuthInfos([new OAuthInfo({appId:CONFIG.appId,portalUrl:CONFIG.portalUrl,popup:false,flowType:"implicit",popupCallbackUrl:location.origin+location.pathname.replace(/[^/]*$/,'')+"oauth-callback.html"})]);
 const state={records:[],assignments:[],selected:null,selectedAssignment:null,pending:null};
 const layers={areas:new GraphicsLayer({title:"Operational areas and exclusions"}),segments:new GraphicsLayer({title:"Search segments"}),routes:new GraphicsLayer({title:"Routes and intended travel"}),tracks:new GraphicsLayer({title:"Field tracks"}),pingCoverage:new GraphicsLayer({title:"Range and cell-ping uncertainty"}),points:new GraphicsLayer({title:"PLS, clues, facilities and assets"})};
 const map=new Map({basemap:SETTINGS.map.basemap||"topo-vector",layers:[layers.areas,layers.segments,layers.routes,layers.tracks,layers.pingCoverage,layers.points]});
@@ -121,4 +121,5 @@ if(launchIncident){$("incidentId").value=launchIncident;render();if(launch.get("
 });
 </script>
 <script src="./reports.js"></script>
+<script src="./auth.js"></script>
 </body></html>

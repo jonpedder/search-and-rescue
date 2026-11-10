@@ -790,7 +790,7 @@ if(typeof module !== "undefined") module.exports = LPB;
    service URLs printed by provision_sar_schema.py. */
 const CONFIG = {
   portalUrl: "https://publicsafety.maps.arcgis.com",
-  appId: "", // register an ArcGIS OAuth app before enabling private-data sign-in
+  appId: localStorage.getItem("sar.oauth.appId") || localStorage.getItem("sar.synthetic.appId") || "", // configured in Settings
   apiKey: "",
   webMapItemId: "5bd5bbf575794e9c9565abcb20feb991",
   featureServiceItemId: "d63935292bb648129cb66ad8f2b45d81",
@@ -1083,7 +1083,7 @@ require([
 
   if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
   if(CONFIG.appId){
-    esriId.registerOAuthInfos([new OAuthInfo({appId: CONFIG.appId, portalUrl: CONFIG.portalUrl, popup: true})]);
+    esriId.registerOAuthInfos([new OAuthInfo({appId:CONFIG.appId,portalUrl:CONFIG.portalUrl,popup:false,flowType:"implicit",popupCallbackUrl:location.origin+location.pathname.replace(/[^/]*$/,'')+"oauth-callback.html"})]);
   }
 
   const layers = {
@@ -1616,5 +1616,6 @@ require([
 })();
 </script>
 <script src="./reports.js"></script>
+<script src="./auth.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
 (function () {
   "use strict";
   if (document.getElementById("syntheticDataCard")) return;
-  var PORTAL = "https://publicsafety.maps.arcgis.com", SDK = "https://js.arcgis.com/4.31/@arcgis/core/", APP_KEY = "sar.synthetic.appId";
+  var PORTAL = "https://publicsafety.maps.arcgis.com", SDK = "https://js.arcgis.com/4.31/@arcgis/core/", APP_KEY = "sar.oauth.appId", LEGACY_APP_KEY = "sar.synthetic.appId";
   var $ = function (id) { return document.getElementById(id); };
   var inProwork = !!(window.__esriAuthCtx && window.__esriAuthCtx.authenticated);
 
@@ -17,7 +17,6 @@
     '<div class="callout warning" style="margin:.5rem 0"><strong>Edits the live ArcGIS service.</strong> Requires sign-in with an account that can edit the service. Synthetic records must not be used operationally.</div>' +
     '<div class="grid">' +
     '<label class="field">Total records to generate <span class="field-note">1,500 to 20,000. Default 5,000.</span><input id="synTotal" type="number" min="1500" max="20000" step="100" value="5000"></label>' +
-    (inProwork ? "" : '<label class="field">ArcGIS OAuth app ID <span class="field-note">Needed to sign in from this page. Saved in this browser only.</span><input id="synAppId" autocomplete="off" placeholder="Client ID of a registered OAuth app"></label>') +
     '</div>' +
     '<div class="template-tools" style="margin-top:.75rem">' +
     '<calcite-button id="synGenerate" icon-start="map-pin">Generate data &amp; open map</calcite-button>' +
@@ -29,8 +28,6 @@
     '<div id="synCounts"></div></div>';
   var anchor = document.querySelector(".action-bar");
   if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(card, anchor); else document.querySelector("main").appendChild(card);
-  if ($("synAppId")) $("synAppId").value = localStorage.getItem(APP_KEY) || "";
-
   var busy = false;
   function status(msg, kind) { var s = $("synStatus"); s.textContent = msg; s.style.color = kind === "error" ? "#ff9aaa" : kind === "ok" ? "#6fdcae" : ""; }
   function setBusy(b) { busy = b; ["synGenerate", "synCount", "synDelete"].forEach(function (id) { $(id).disabled = b; }); }
@@ -44,9 +41,9 @@
   function getCtx() {
     if (ctxPromise) return ctxPromise;
     ctxPromise = (async function () {
-      var appId = $("synAppId") ? $("synAppId").value.trim() : "";
-      if (!inProwork && !appId) throw new Error("Enter the ArcGIS OAuth app ID first.");
-      if (appId) localStorage.setItem(APP_KEY, appId);
+      var appId = (localStorage.getItem(APP_KEY) || localStorage.getItem(LEGACY_APP_KEY) || "").trim();
+      if (!inProwork && !appId) throw new Error("Configure the ArcGIS OAuth client ID in the ArcGIS sign-in section first.");
+      if (appId) { localStorage.setItem(APP_KEY, appId); localStorage.setItem(LEGACY_APP_KEY, appId); }
       if (inProwork && window.__esriAuthReady) await window.__esriAuthReady;
       var req = (await import(SDK + "request.js")).default;
       if (appId) {

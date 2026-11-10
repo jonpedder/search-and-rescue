@@ -50,6 +50,20 @@ This file records the prompts used to guide the reporting and synthetic-data add
 - Split ArcGIS edit batches into bounded requests and recursively retry smaller batches if a gateway returns HTTP 400 for an oversized request.
 - Surface the first feature-level ArcGIS error instead of reporting false success.
 
+## Add ArcGIS sign-in
+
+> Add a Sign in button and show the authenticated ArcGIS user. Use the Resource & Asset Management application as the example.
+
+### Authentication acceptance criteria
+
+- Show the same session control in the Planning, Operations and Settings headers.
+- Display **Not signed in** or the authenticated user's full name/username.
+- Change the action to **Sign out** while authenticated.
+- Use ArcGIS Maps SDK `OAuthInfo`, `IdentityManager` and `Portal`; never place a token in source, logs or browser storage.
+- Store only the deployment-specific OAuth client ID in browser-local configuration.
+- Provide Settings controls for saving or clearing that client ID and list the redirect URLs that must be registered.
+- Reuse the authenticated IdentityManager session for private feature-service access and synthetic-data editing.
+
 ## Fix and publish
 
 > Fix the HTTP 400 error, commit the changes, and push them to GitHub.
