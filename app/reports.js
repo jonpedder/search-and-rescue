@@ -83,7 +83,7 @@
   async function clueMapImage(records) {
     var located = records.map(function (r, i) { return { geometry: r.geometry, number: i + 1 }; }).filter(function (r) { var g = r.geometry; return g && (g.type === "point" || g.latitude != null || g.x != null); });
     if (!located.length) return null;
-    var modules = await amd(["esri/Map", "esri/views/MapView", "esri/layers/GraphicsLayer", "esri/Graphic"]), Map = modules[0], MapView = modules[1], GraphicsLayer = modules[2], Graphic = modules[3];
+    var modules = await amd(["esri/Map", "esri/views/MapView", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/geometry/Extent"]), Map = modules[0], MapView = modules[1], GraphicsLayer = modules[2], Graphic = modules[3], Extent = modules[4];
     var view = operations && window.__esriView && window.__esriView.ready ? window.__esriView : null, owned = !view, host = null, map, oldViewpoint = view && view.viewpoint && view.viewpoint.clone();
     if (owned) {
       host = document.createElement("div"); host.setAttribute("aria-hidden", "true"); host.style.cssText = "position:fixed;left:-10000px;top:0;width:1200px;height:500px;visibility:visible"; document.body.appendChild(host);
@@ -97,8 +97,12 @@
     });
     map.add(layer);
     try {
-      if (targets.length === 1) await view.goTo({ target: targets[0].geometry, scale: 18000 }, { animate: false });
-      else await view.goTo(targets, { animate: false, padding: 70 });
+      await view.whenLayerView(layer);
+      var points = targets.map(function (graphic) { return graphic.geometry; }), sr = points[0].spatialReference, sameSR = points.every(function (point) { return point.spatialReference && point.spatialReference.wkid === sr.wkid; });
+      var clueExtent = targets.length > 1 && sameSR ? new Extent({ xmin: Math.min.apply(Math, points.map(function (p) { return p.x; })), ymin: Math.min.apply(Math, points.map(function (p) { return p.y; })), xmax: Math.max.apply(Math, points.map(function (p) { return p.x; })), ymax: Math.max.apply(Math, points.map(function (p) { return p.y; })), spatialReference: sr }) : null;
+      if (clueExtent && clueExtent.width > 0 && clueExtent.height > 0) await view.goTo(clueExtent.expand(1.4), { animate: false });
+      else if (targets.length > 1) await view.goTo(targets, { animate: false, padding: 70 });
+      else await view.goTo({ target: targets[0].geometry, scale: 18000 }, { animate: false });
       await settle(view);
       var shot = await view.takeScreenshot({ format: "png", width: 1440, height: 600 }); return shot.dataUrl;
     } finally {
@@ -190,7 +194,7 @@
     var mapImage = await clueMapImage(d.records).catch(function (error) { console.warn("Clue report map could not be captured", error); return null; }), js = await loadPdf(), p = pdfApi(js, "Clue Log Report", (d.incident.name || "Unnamed incident") + (d.incident.id ? " | " + d.incident.id : ""), true);
     p.section("Log summary"); p.fields([["Incident ID", d.incident.id], ["Incident name", d.incident.name], ["Operational period", d.incident.period], ["Total clues", d.records.length], ["Data source", d.source], ["Generated", new Date().toLocaleString()]], 3);
     p.section("Clue placement map");
-    if (mapImage) p.image(mapImage, 245, "Numbered markers correspond to the chronological clue-log rows below. Basemap and reference data: Esri and data providers.");
+    if (mapImage) p.image(mapImage, 245, "The map is zoomed to the complete clue extent. Numbered markers correspond to the chronological clue-log rows below. Basemap and reference data: Esri and data providers.");
     else p.paragraph("A placement map could not be generated. Coordinates remain available in the clue log below.");
     p.section("Clue log (chronological)"); p.table(["#", "Clue", "Found / logged", "Op", "Status", "Priority", "Location", "Description / notes"], [.04, .11, .14, .04, .08, .08, .15, .36], d.records.map(function (r, i) { return [i + 1, r.attrs.name || "Clue", date(r.attrs.created), r.attrs.operationalPeriod || "", r.attrs.status || "", r.attrs.priority || "", ll(r.geometry), r.attrs.notes || "No description"]; }));
     p.paragraph("Preserve and photograph clues in place, record finder and time, and report them through incident command."); return { blob: p.finish("Search & Rescue clue log"), name: "clue-log-report" };

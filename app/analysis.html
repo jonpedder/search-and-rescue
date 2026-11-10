@@ -45,7 +45,7 @@ function loadIncident(){const id=$("analysisIncident").value.trim(),found=saved(
 $("refreshWorkspaces").onclick=discover;$("runAnalysis").onclick=loadIncident;$("analysisPeriod").onchange=render;$("analysisIncident").onkeydown=e=>{if(e.key==="Enter")loadIncident()};const list=discover();if(list.length===1){$("analysisIncident").value=list[0].data.incident.id;loadIncident()}
 });
 </script>
-<script src="./reports.js?v=20261110-5"></script>
+<script src="./reports.js?v=20261110-6"></script>
 <script src="./auth.js"></script>
 <script src="./header-nav.js?v=20261110-3"></script>
 </body></html>
