@@ -12,6 +12,14 @@
 - Export protected operations JSON or interoperable GeoJSON.
 - Import an operations JSON backup.
 - Print assignment cards.
+- Organize map objects and assignments by operational period and category.
+- Add hazards, landing zones, facilities, exclusion/no-search areas, intended routes, field tracks, and range rings.
+- Edit or duplicate geometry and filter the common operating picture by current period, safety, assignments, or resources.
+- Run segment QA for approximate 60–120 acre ground-team sizing and polygon overlaps.
+- Capture deployment details including team size, transportation, estimated duration, radio channel, prepared-by, previous efforts, and responsive/unresponsive/clue POD.
+- Import GeoJSON, GPX, and KML map objects; export GeoJSON, KML, GPX, assignment CSV, and full operations JSON.
+- Use native measurement, coordinate-conversion, locate, compass, print, layer, legend, and basemap tools.
+- Load optional land-cover, hydrography, weather-warning, wildfire, and hillshade overlays.
 
 ## Existing ArcGIS schema mapping
 
@@ -30,6 +38,10 @@ Assets and cell pings use structured JSON in `KeyPoints.notes` because the curre
 ## Cell-ping limitations
 
 A cell-ping sector records a source point, radius, bearing, and angular width. It is an investigative visualization, not a guaranteed device location or RF propagation model. It does not account for timing advance interpretation, carrier uncertainty, terrain, antenna patterns, network configuration, or device behavior. Record provider, timestamp, method, confidence, and legal/operational provenance in the notes.
+
+## Capabilities that require additional infrastructure
+
+The training guide also describes capabilities that cannot be represented honestly by a browser-only page. Continuous background GPS collection, offline mobile synchronization, live APRS/inReach/ADS-B feeds, expiring mutual-aid workspaces, multiuser uniqueness enforcement, geospatial PDF map books, automated notifications, and secure temporary access require mobile clients, backend services, portal administration, print services, or external APIs. They are not simulated in this workbench.
 
 ## Security
 
