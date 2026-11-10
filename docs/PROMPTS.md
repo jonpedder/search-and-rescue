@@ -109,6 +109,19 @@ This file records the prompts used to guide the reporting and synthetic-data add
 - Highlight the current page and preserve the required action order.
 - Adapt to narrower screens with ordered rows rather than clipping, horizontal scrolling or hidden controls.
 
+## Toggle feature zoom
+
+> When an Operations feature is clicked and zoomed to, a second click on that feature should return the map to its initial extent.
+
+### Feature-zoom acceptance criteria
+
+- Capture the current viewpoint immediately before the first feature zoom.
+- Support feature clicks on the map, the Operational Picture list and the Operational Layers panel.
+- A second click on the same feature restores the exact captured center and scale.
+- Clicking another feature retains the original return viewpoint while zooming to the newly selected feature.
+- Mark the currently zoomed feature and display a **Click again to return to extent** cue.
+- Preserve popup behavior and keyboard activation.
+
 ## Fix and publish
 
 > Fix the HTTP 400 error, commit the changes, and push them to GitHub.
