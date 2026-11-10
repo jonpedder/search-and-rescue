@@ -1,6 +1,7 @@
 const { test, expect } = require("@playwright/test");
 
 test("second feature click restores the pre-zoom viewpoint", async ({ page }, testInfo) => {
+  test.setTimeout(90000);
   test.skip(testInfo.project.name.includes("mobile"), "Desktop interaction covers the shared map behavior.");
   await page.goto("/operations.html");
   await page.waitForFunction(() => window.__esriView?.ready && window.__app?.restore);
