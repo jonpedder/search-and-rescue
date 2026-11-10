@@ -56,6 +56,35 @@
     if (Math.abs(x) > 180) { var R = 6378137; return ((2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI).toFixed(5) + ", " + (x / R * 180 / Math.PI).toFixed(5); }
     return Number(y).toFixed(5) + ", " + Number(x).toFixed(5);
   }
+  function amd(modules) { return new Promise(function (resolve, reject) { if (typeof window.require !== "function") return reject(new Error("ArcGIS Maps SDK is unavailable.")); window.require(modules, function () { resolve(Array.from(arguments)); }, reject); }); }
+  async function settle(view) { for (var i = 0; i < 40; i++) { if (!view.updating) { await new Promise(function (r) { setTimeout(r, 250); }); if (!view.updating) return; } await new Promise(function (r) { setTimeout(r, 150); }); } }
+  async function clueMapImage(records) {
+    var located = records.map(function (r, i) { return { geometry: r.geometry, number: i + 1 }; }).filter(function (r) { var g = r.geometry; return g && (g.type === "point" || g.latitude != null || g.x != null); });
+    if (!located.length) return null;
+    var modules = await amd(["esri/Map", "esri/views/MapView", "esri/layers/GraphicsLayer", "esri/Graphic"]), Map = modules[0], MapView = modules[1], GraphicsLayer = modules[2], Graphic = modules[3];
+    var view = operations && window.__esriView && window.__esriView.ready ? window.__esriView : null, owned = !view, host = null, map, oldViewpoint = view && view.viewpoint && view.viewpoint.clone();
+    if (owned) {
+      host = document.createElement("div"); host.setAttribute("aria-hidden", "true"); host.style.cssText = "position:fixed;left:-10000px;top:0;width:1200px;height:500px;visibility:visible"; document.body.appendChild(host);
+      map = new Map({ basemap: "topo-vector" }); view = new MapView({ container: host, map: map, constraints: { snapToZoom: false }, ui: { components: [] } }); await view.when();
+    } else map = view.map;
+    var layer = new GraphicsLayer({ title: "Clue report numbers", listMode: "hide" }), targets = [];
+    located.forEach(function (item) {
+      var marker = new Graphic({ geometry: item.geometry, attributes: { clueNumber: item.number }, symbol: { type: "simple-marker", style: "circle", size: 23, color: [242, 169, 0, 0.96], outline: { color: [0, 59, 92, 1], width: 2 } } });
+      var number = new Graphic({ geometry: item.geometry, attributes: { clueNumber: item.number }, symbol: { type: "text", text: String(item.number), color: [0, 42, 66, 1], haloColor: [255, 255, 255, 0.9], haloSize: 0.5, font: { family: "Arial", size: 9, weight: "bold" } } });
+      layer.addMany([marker, number]); targets.push(marker);
+    });
+    map.add(layer);
+    try {
+      if (targets.length === 1) await view.goTo({ target: targets[0].geometry, scale: 18000 }, { animate: false });
+      else await view.goTo(targets, { animate: false, padding: 70 });
+      await settle(view);
+      var shot = await view.takeScreenshot({ format: "png", width: 1440, height: 600 }); return shot.dataUrl;
+    } finally {
+      map.remove(layer);
+      if (owned) { view.destroy(); host.remove(); }
+      else if (oldViewpoint) view.goTo(oldViewpoint, { animate: false }).catch(function () { });
+    }
+  }
   function loadPdf() {
     if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
     return new Promise(function (resolve, reject) {
@@ -74,6 +103,7 @@
         for (var i = 0; i < pairs.length; i += columns) { var row = pairs.slice(i, i + columns), h = 34; row.forEach(function (p) { h = Math.max(h, doc.splitTextToSize(clean(p[1]), cw - 10).length * 11 + 16); }); need(h); row.forEach(function (p, j) { var x = M + j * cw; doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor.apply(doc, muted); doc.text(clean(p[0]).toUpperCase(), x, y); doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor.apply(doc, ink); doc.text(doc.splitTextToSize(clean(p[1]), cw - 10), x, y + 12); }); y += h; }
       },
       paragraph: function (s) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor.apply(doc, ink); var lines = doc.splitTextToSize(clean(s), CW); lines.forEach(function (line) { need(12); doc.text(line, M, y); y += 12; }); y += 4; },
+      image: function (dataUrl, height, caption) { height = height || 245; need(height + 28); doc.setDrawColor(180, 192, 202); doc.setLineWidth(0.8); doc.rect(M, y, CW, height); doc.addImage(dataUrl, "PNG", M + 1, y + 1, CW - 2, height - 2, undefined, "FAST"); y += height + 11; if (caption) { doc.setFont("helvetica", "italic"); doc.setFontSize(7.5); doc.setTextColor.apply(doc, muted); doc.text(doc.splitTextToSize(clean(caption), CW), M, y); y += 18; } },
       table: function (heads, widths, rows) { function head() { need(25); doc.setFillColor.apply(doc, navy); doc.rect(M, y - 10, CW, 17, "F"); doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(8); var x = M; heads.forEach(function (h, i) { doc.text(clean(h), x + 4, y + 2); x += widths[i] * CW; }); y += 14; } head(); rows.forEach(function (row, ri) { var cells = row.map(function (v, i) { return doc.splitTextToSize(clean(v), widths[i] * CW - 8); }), h = Math.max.apply(Math, cells.map(function (x) { return x.length; })) * 10 + 8; if (y + h > H - 44) { doc.addPage(); header(); head(); } if (ri % 2 === 0) { doc.setFillColor(241, 245, 248); doc.rect(M, y - 10, CW, h, "F"); } doc.setTextColor.apply(doc, ink); doc.setFont("helvetica", "normal"); doc.setFontSize(8.2); var x = M; cells.forEach(function (c, i) { doc.text(c, x + 4, y + 1); x += widths[i] * CW; }); y += h; }); y += 6; },
       finish: function (note) { var pages = doc.getNumberOfPages(); for (var p = 1; p <= pages; p++) { doc.setPage(p); doc.setDrawColor(200, 208, 214); doc.line(M, H - 34, W - M, H - 34); doc.setFontSize(7.5); doc.setTextColor.apply(doc, muted); doc.text(clean(note), M, H - 22); doc.text("Page " + p + " of " + pages, W - M, H - 22, { align: "right" }); } return doc.output("blob"); }
     };
@@ -89,8 +119,14 @@
     p.paragraph("Sensitive information: restrict this report to personnel who require it for the incident."); return { blob: p.finish("Search & Rescue incident and subject profile"), name: "incident-subject-profile-report" };
   }
   async function clueReport() {
-    var d = clueData(); if (!d.records.length) throw new Error("No clues are logged. Add clues in SAR Operations first."); var js = await loadPdf(), p = pdfApi(js, "Clue Log Report", (d.incident.name || "Unnamed incident") + (d.incident.id ? " | " + d.incident.id : ""), true);
+    var d = clueData(); if (!d.records.length) throw new Error("No clues are logged. Add clues in SAR Operations first.");
+    /* Capture the ArcGIS map before loading jsPDF: jsPDF temporarily masks AMD's
+       global define function, so running both tasks concurrently breaks SDK imports. */
+    var mapImage = await clueMapImage(d.records).catch(function (error) { console.warn("Clue report map could not be captured", error); return null; }), js = await loadPdf(), p = pdfApi(js, "Clue Log Report", (d.incident.name || "Unnamed incident") + (d.incident.id ? " | " + d.incident.id : ""), true);
     p.section("Log summary"); p.fields([["Incident ID", d.incident.id], ["Incident name", d.incident.name], ["Operational period", d.incident.period], ["Total clues", d.records.length], ["Data source", d.source], ["Generated", new Date().toLocaleString()]], 3);
+    p.section("Clue placement map");
+    if (mapImage) p.image(mapImage, 245, "Numbered markers correspond to the chronological clue-log rows below. Basemap and reference data: Esri and data providers.");
+    else p.paragraph("A placement map could not be generated. Coordinates remain available in the clue log below.");
     p.section("Clue log (chronological)"); p.table(["#", "Clue", "Found / logged", "Op", "Status", "Priority", "Location", "Description / notes"], [.04, .11, .14, .04, .08, .08, .15, .36], d.records.map(function (r, i) { return [i + 1, r.attrs.name || "Clue", date(r.attrs.created), r.attrs.operationalPeriod || "", r.attrs.status || "", r.attrs.priority || "", ll(r.geometry), r.attrs.notes || "No description"]; }));
     p.paragraph("Preserve and photograph clues in place, record finder and time, and report them through incident command."); return { blob: p.finish("Search & Rescue clue log"), name: "clue-log-report" };
   }

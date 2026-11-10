@@ -1,0 +1,12 @@
+"use strict";
+const assert = require("assert"), fs = require("fs"), path = require("path");
+const source = fs.readFileSync(path.join(__dirname, "../app/reports.js"), "utf8");
+assert.match(source, /async function clueMapImage/);
+assert.match(source, /Clue placement map/);
+assert.match(source, /Numbered markers correspond to the chronological clue-log rows/);
+assert.match(source, /clueNumber: item\.number/);
+assert.match(source, /text: String\(item\.number\)/);
+assert.match(source, /view\.takeScreenshot/);
+assert.match(source, /p\.image\(mapImage/);
+assert.ok(source.indexOf('p.section("Clue placement map")') < source.indexOf('p.section("Clue log (chronological)")'), "map must appear before the clue table");
+console.log("ok  clue report includes a placement map with numbered markers linked to log rows");

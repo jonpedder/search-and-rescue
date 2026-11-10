@@ -21,6 +21,7 @@ This file records the prompts used to guide the reporting and synthetic-data add
 
 - Show a **Reports** dropdown in the header on `index.html` and `operations.html`.
 - The **Clue Log Report** reads clues from the live Operations workspace or its browser-saved workspace, sorts them chronologically, and includes incident, operational-period, status, priority, coordinate and description fields.
+- Add a clue-placement map to the Clue Log Report. Draw amber numbered markers at each clue location and use the same numbers in the chronological clue table so operators can identify each mapped clue.
 - The **Incident & Subject Profile Report** includes the incident, IPP, last-seen time, scenarios, subject category and demographics, environment, terrain, season, light, interview fields and generated planning cues.
 - Download reports as PDF files.
 - Match the existing navy-and-amber Search & Rescue interface.
