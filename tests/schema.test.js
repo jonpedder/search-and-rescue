@@ -45,7 +45,7 @@ assert.match(appHtml, /href="\.\/operations\.html"/);
 const operationsHtml = fs.readFileSync(path.join(__dirname, "../app/operations.html"), "utf8");
 for(const id of ["incidentId","loadArcGIS","syncArcGIS","assignmentSegment","loadLocal","featureList","assignmentList"]) assert.ok(operationsHtml.includes('id="'+id+'"'));
 for(const kind of ["area","segment","pls","clue","ping","asset","hazard","lz","facility","route","track","exclusion","range"]) assert.ok(operationsHtml.includes('data-draw="'+kind+'"'));
-for(const id of ["operationalPeriod","mapFilter","editSelected","duplicateSelected","segmentQA","assignmentTeamSize","assignmentTransport","assignmentRadio","podResponsive","importMap","exportKML","exportGPX","exportCSV"]) assert.ok(operationsHtml.includes('id="'+id+'"'));
+for(const id of ["operationalPeriod","mapFilter","editSelected","duplicateSelected","segmentQA","assignmentTeamSize","assignmentTransport","assignmentRadio","podResponsive","importMap","exportKML","exportGPX","exportCSV","bulkStatus","bulkOP","applyBulk"]) assert.ok(operationsHtml.includes('id="'+id+'"'));
 assert.match(operationsHtml, /CELL PING:/);
 assert.match(operationsHtml, /ASSET:/);
 assert.match(operationsHtml, /serviceRoot\+"\/2"/);
