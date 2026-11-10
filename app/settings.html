@@ -69,5 +69,6 @@ $("exportTemplate").onclick=()=>{const checked=api.validate(collect());if(checke
 $("importTemplate").onclick=()=>$("templateFile").click();$("templateFile").onchange=async e=>{try{const parsed=JSON.parse(await e.target.files[0].text()),checked=api.validate(parsed);if(checked.errors.length)throw new Error(checked.errors.join(" "));render(checked.value);show("Template imported for review. Select Save settings to apply it.","success")}catch(err){show("Template import failed: "+err.message,"danger")}finally{e.target.value=""}};
 render(current);selectTab(location.hash.startsWith("#help")?"help":"configuration",false);
 </script>
+<script src="./synthetic-data.js"></script>
+<script src="./settings-synthetic.js"></script>
 </body></html>
-ml>

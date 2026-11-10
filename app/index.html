@@ -1615,16 +1615,6 @@ require([
   tick(); setInterval(tick, 1000);
 })();
 </script>
-</body>
-</html>
-digit", hour12:false};
-  function tick(){
-    const n = new Date();
-    utc.textContent = n.toLocaleTimeString("en-GB", Object.assign({timeZone:"UTC"}, o));
-    loc.textContent = n.toLocaleTimeString("en-GB", o);
-  }
-  tick(); setInterval(tick, 1000);
-})();
-</script>
+<script src="./reports.js"></script>
 </body>
 </html>
