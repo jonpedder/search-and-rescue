@@ -2,7 +2,7 @@
 
 A search and rescue planning tool that turns lost person behavior (LPB) statistics into a ranked, map-based probability of area (POA) surface. It runs on the ArcGIS Maps SDK for JavaScript and stores incident data in ArcGIS Online.
 
-Built from the science in Robert Koester's *Lost Person Behavior* / ISRID work. This repository contains no licensed ISRID data. See [Data](#data).
+Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost Person Behavior*, and the associated ISRID research. This repository contains no licensed ISRID data. See [Data](#data).
 
 ## What it does
 

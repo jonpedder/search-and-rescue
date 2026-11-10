@@ -40,4 +40,5 @@ assert.match(appHtml, /Cellular_Towers_New\/FeatureServer\/0/);
 for(const id of ["towerRadius","loadTowers","estimateTowerCoverage","clearTowerCoverage","towerStatus"]) assert.ok(appHtml.includes('id="'+id+'"'));
 assert.match(appHtml, /geodesicBuffer/);
 assert.match(appHtml, /Not verified RF service/);
+assert.match(appHtml, /Dr\. Robert J\. Koester/);
 console.log("ok  hosted schema, native ArcGIS widgets, Settings, interview, communications, Sync, NAPSG, Calcite and Living Atlas contracts");
