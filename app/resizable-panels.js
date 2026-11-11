@@ -111,8 +111,12 @@
     handle.setAttribute("aria-label", config.label);
     handle.title = "Drag to resize; double-click to reset";
     panel.appendChild(handle);
-    const instance = { config, panel, variableTarget, handle, width: storageRead(config), active: false, dragging: false, startX: 0, startWidth: 0 };
+    const instance = { config, panel, variableTarget, handle, width: storageRead(config), active: false, dragging: false, startX: 0, startWidth: 0, classObserver: null };
     instances.set(config.id, instance);
+    if (config.inactiveClass) {
+      instance.classObserver = new MutationObserver(() => refresh(instance));
+      instance.classObserver.observe(panel, { attributes: true, attributeFilter: ["class"] });
+    }
 
     handle.addEventListener("pointerdown", event => {
       if (!instance.active || event.button !== 0) return;
@@ -149,6 +153,7 @@
     const instance = instances.get(id);
     if (!instance) return;
     clearWidth(instance);
+    instance.classObserver?.disconnect();
     instance.handle.remove();
     instance.panel.classList.remove("sar-resizable-panel");
     instances.delete(id);
@@ -168,7 +173,7 @@
   function init() {
     scan();
     if (!observer) observer = new MutationObserver(scan);
-    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
     window.addEventListener("resize", () => instances.forEach(refresh));
     window.__app = window.__app || {};
     window.__app.layout = { reset, scan, instances, teardown };
