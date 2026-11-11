@@ -1075,6 +1075,10 @@ window.addEventListener("storage", e => { if(e.key === window.SARSettings?.STORA
 <script src="./bookmarks.js?v=20261112-1"></script>
 <script src="./terrain-3d.js?v=20261118-1"></script>
 <script src="./map-legend.js?v=20261118-1"></script>
+<script>window.__sarAmdDefine=window.define;window.define=undefined;</script>
+<script src="./vendor/shpwrite.js?v=0.4.3"></script>
+<script>window.define=window.__sarAmdDefine;delete window.__sarAmdDefine;</script>
+<script src="./data-export.js?v=20261118-1"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
 <script>
 require([
@@ -1112,6 +1116,13 @@ require([
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,Extent,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
   window.__app.planning.terrain3D=window.SARTerrain3D.init({map,view,SceneView,Legend,Expand});
+  if(window.SARDataExport){
+    const ippGeometry=()=>state.ipp?{type:"point",longitude:state.ipp.lon,latitude:state.ipp.lat,spatialReference:{wkid:4326}}:null;
+    window.SARDataExport.attach({host:$("scenTable").closest(".pane"),label:"Planning scenarios",filename:"sar_planning_scenarios",getData:()=>({rows:state.scenarios.map(s=>({...s})),contextGeometry:ippGeometry()})});
+    window.SARDataExport.attach({host:$("statBox").closest(".pane"),label:"Matched lost-person statistics",filename:"sar_matched_statistics",getData:()=>{const r=state.match?.row;if(!r)return {rows:[]};const rows=[{statistic:"distance_km",p25:r.dist?.[0],p50:r.dist?.[1],p75:r.dist?.[2],p95:r.dist?.[3]},{statistic:"distance_miles",p25:r.dist?.[0]*KM2MI,p50:r.dist?.[1]*KM2MI,p75:r.dist?.[2]*KM2MI,p95:r.dist?.[3]*KM2MI}];if(r.disp)rows.push({statistic:"dispersion_angle_degrees",p25:r.disp[0],p50:r.disp[1],p75:r.disp[2],p95:r.disp[3]});if(r.track)rows.push({statistic:"track_offset_meters",p25:r.track[0],p50:r.track[1],p75:r.track[2],p95:r.track[3]});rows.forEach(x=>Object.assign(x,{category:r.category,domain:r.domain,terrain:r.terrain,sample_size:r.n,source:r.source}));return {rows,contextGeometry:ippGeometry()};}});
+    window.SARDataExport.attach({host:$("survChart").closest(".pane"),label:"Survivability curve",filename:"sar_survivability_curve",getData:()=>{const curve=state.surv.find(c=>c.category===$("category").value),rows=[];if(curve)for(let h=0;h<=240;h+=6)rows.push({category:curve.category,hours_since_last_seen:h,days_since_last_seen:h/24,survival_probability:LPB.survival(curve.a,curve.b,h),curve_a:curve.a,curve_b:curve.b,source:curve.source});return {rows,contextGeometry:ippGeometry()};}});
+    window.SARDataExport.attach({host:$("segTable").closest(".pane"),label:"Ranked search segments",filename:"sar_ranked_search_segments",getData:()=>{const rows=state.segs.slice().sort((a,b)=>a.rank-b.rank).map(s=>({segment_id:s.cell.id,rank:s.rank,poa_percent:s.poa*100,initial_poa_percent:s.poa0*100,area_km2:s.cell.areaKm2,distance_km:s.cell.distKm,estimated_pod_percent:s.estimatedPod??estimateSegmentPOD(s),applied_pod_percent:(s.pod||0)*100,cumulative_pos_percent:(s.cumPos||0)*100}));return {rows,features:state.segs.map(s=>({geometry:{type:"polygon",rings:[s.cell.ring],spatialReference:{wkid:4326}},properties:{segment_id:s.cell.id,rank:s.rank,poa_pct:s.poa*100,area_km2:s.cell.areaKm2,dist_km:s.cell.distKm,est_pod:s.estimatedPod??estimateSegmentPOD(s),applied_pod:(s.pod||0)*100,cum_pos:(s.cumPos||0)*100}}))};}});
+  }
   const addressSearch = new Search({
     view,
     goToOverride: (searchView, goToParams) => {
