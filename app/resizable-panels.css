@@ -1,0 +1,18 @@
+/* Shared resize handles. The 14px hit target contains a quiet 2px amber edge. */
+.sar-resizable-panel{isolation:isolate}
+.sar-resizable-panel:is(#panel,#planningAssignmentPanel,.panel,.analysis-left,.analysis-right,.help-nav){position:relative}
+.sar-resize-handle{position:absolute;top:0;bottom:0;z-index:20;width:14px;padding:0;border:0;background:transparent;cursor:col-resize;touch-action:none;user-select:none;outline:0}
+.sar-resize-handle--left{right:0}
+.sar-resize-handle--right{left:0}
+.sar-resize-handle::before{content:"";position:absolute;top:0;bottom:0;left:6px;width:2px;background:color-mix(in srgb,var(--app-accent,var(--calcite-color-brand,#F2A900)) 48%,var(--app-border,var(--calcite-color-border-2,#28495B)));box-shadow:0 0 0 1px color-mix(in srgb,var(--app-bg,#071824) 75%,transparent);transition:background-color .12s,box-shadow .12s,width .12s}
+.sar-resize-handle:hover::before,.sar-resize-handle:focus-visible::before,.sar-resize-handle.is-dragging::before{left:5px;width:4px;background:var(--app-accent,var(--calcite-color-brand,#F2A900));box-shadow:0 0 0 2px color-mix(in srgb,var(--app-accent,var(--calcite-color-brand,#F2A900)) 24%,transparent)}
+.sar-resize-handle:focus-visible{outline:2px solid var(--calcite-color-focus,#8BD3FF);outline-offset:-3px}
+.sar-resize-handle[hidden]{display:none!important}
+html.sar-resizing,html.sar-resizing *{cursor:col-resize!important}
+html.sar-resizing{user-select:none!important}
+@media(max-width:900px){#body>.panel>.sar-resize-handle,#opsLayerPanel>.sar-resize-handle{display:none!important}}
+@media(max-width:860px){#panel>.sar-resize-handle,#planningAssignmentPanel>.sar-resize-handle{display:none!important}}
+@media(max-width:650px){.analysis-left>.sar-resize-handle,.analysis-right>.sar-resize-handle{display:none!important}}
+@media(max-width:1050px){.analysis-right>.sar-resize-handle{display:none!important}}
+@media(max-width:720px){.help-nav>.sar-resize-handle{display:none!important}}
+@media(forced-colors:active){.sar-resize-handle::before{background:ButtonText}.sar-resize-handle:focus-visible::before{background:Highlight}}

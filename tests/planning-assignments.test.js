@@ -2,7 +2,7 @@
 const assert = require("assert"), fs = require("fs");
 const planning = fs.readFileSync("app/planning-assignments.js", "utf8"), index = fs.readFileSync("app/index.html", "utf8"), operations = fs.readFileSync("app/operations.html", "utf8"), reports = fs.readFileSync("app/reports.js", "utf8"), theme = fs.readFileSync("app/theme.css", "utf8"), design = fs.readFileSync("app/sar-design.js", "utf8");
 [
-  ["Planning loads a right-side assignment panel", /planningAssignmentPanel/.test(planning) && /grid-template-columns:minmax\(330px,410px\).*minmax\(300px,360px\)/.test(index)],
+  ["Planning loads a right-side assignment panel", /planningAssignmentPanel/.test(planning) && /--sar-planning-left/.test(index) && /--sar-planning-right/.test(index)],
   ["Plans captures segment, team name and task description", /planAssignmentSegment/.test(planning) && /planAssignmentTeam/.test(planning) && /planAssignmentDescription/.test(planning)],
   ["Planning assignments hand off segments and tasks to Operations", /sar\.operations\./.test(planning) && /segmentRecords/.test(planning) && /autoload=local/.test(planning)],
   ["Selecting a segment zooms and flashes it on the map", /focusSegment/.test(planning) && /geometry\.extent\.expand\(1\.8\)/.test(planning) && /layerView\.highlight\(graphic\)/.test(planning)],
