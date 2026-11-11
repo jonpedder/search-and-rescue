@@ -30,11 +30,47 @@ test("all-incidents and single-incident workflows stay filter-linked", async ({ 
   await expect(page.locator("#metricIncidents")).toHaveText("1");
   await expect(page.locator('[data-id="I-100"]')).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#operationalSummary")).toContainText("1 local assignments");
+  await expect(page.locator("#comboChart .volume-bar")).toHaveCount(1);
+  await expect(page.locator("#monthDayChart .month-day-cell[class*=purple]")).toHaveCount(1);
   const zoom = await page.evaluate(() => window.__esriView.zoom);
   expect(zoom).toBeGreaterThanOrEqual(10);
   await page.locator("#resetFilters").click();
   await expect(page.locator("#scopeFilter")).toHaveValue("all");
   await expect(page.locator("#metricIncidents")).toHaveText("2");
+  await expect(page.locator("#comboChart .volume-bar")).toHaveCount(2);
+  await page.locator("#reloadData").click();
+  await page.waitForFunction(() => window.__app.analysis.state.phase === "ready" && window.__app.analysis.state.mapAppliedGeneration === window.__app.analysis.state.renderGeneration);
+  await expect(page.locator("#incidentCount")).toContainText("2 visible");
+  await expect(page.locator("#comboChart .volume-bar")).toHaveCount(2);
+});
+
+test("bottom analytics band renders accessible filter-linked combo and month/day charts", async ({ page }) => {
+  await openReady(page);
+  await expect(page.locator(".analysis-bottom")).toBeVisible();
+  await expect(page.locator("#comboChart svg[role=img]")).toBeVisible();
+  await expect(page.locator("#comboChart .volume-bar")).toHaveCount(2);
+  await expect(page.locator("#comboChart .trend-line")).toHaveCount(1);
+  await expect(page.locator("#comboChart")).toContainText("Cumulative incidents");
+  await expect(page.locator("#monthDayChart .month-day-cell.purple-5")).toHaveCount(2);
+  expect(await page.locator("#monthDayChart .month-day-cell.zero").count()).toBeGreaterThan(0);
+  expect(await page.locator("#monthDayChart .month-day-cell.unavailable").count()).toBeGreaterThan(0);
+  await expect(page.locator("#monthDayChart .heat-legend")).toContainText("Max 1");
+
+  await page.locator("#statusFilter").selectOption("Active");
+  await page.locator("#applyFilters").click();
+  await page.waitForFunction(() => window.__app.analysis.state.phase === "ready" && window.__app.analysis.state.mapAppliedGeneration === window.__app.analysis.state.renderGeneration);
+  await expect(page.locator("#metricIncidents")).toHaveText("1");
+  await expect(page.locator("#incidentCount")).toContainText("1 visible");
+  await expect(page.locator("#comboChart .volume-bar")).toHaveCount(1);
+  await expect(page.locator("#comboChart .trend-point")).toHaveCount(1);
+  await expect(page.locator("#monthDayChart .month-day-cell[class*=purple]")).toHaveCount(1);
+  const linked = await page.evaluate(async () => ({
+    filtered: window.__app.analysis.state.filtered.incidents.length,
+    map: await window.__esriLayers["Incident locations"].queryFeatureCount(),
+    bars: document.querySelectorAll("#comboChart .volume-bar").length,
+    heat: document.querySelectorAll("#monthDayChart .month-day-cell[class*=purple]").length
+  }));
+  expect(linked).toEqual({ filtered: 1, map: 1, bars: 1, heat: 1 });
 });
 
 test("located heat mode uses a client FeatureLayer HeatmapRenderer", async ({ page }) => {
@@ -68,13 +104,21 @@ test("analysis loading, empty and error states are explicit", async ({ page }) =
 
 test("desktop and mobile keep map first without horizontal overflow", async ({ page }, testInfo) => {
   await openReady(page);
-  const layout = await page.evaluate(() => { const map = document.querySelector(".analysis-map").getBoundingClientRect(), left = document.querySelector(".analysis-left").getBoundingClientRect(), right = document.querySelector(".analysis-right").getBoundingClientRect(); return { width: innerWidth, scroll: document.documentElement.scrollWidth, map, left, right }; });
+  const layout = await page.evaluate(() => { const map = document.querySelector(".analysis-map").getBoundingClientRect(), left = document.querySelector(".analysis-left").getBoundingClientRect(), right = document.querySelector(".analysis-right").getBoundingClientRect(), bottom = document.querySelector(".analysis-bottom").getBoundingClientRect(); return { width: innerWidth, scroll: document.documentElement.scrollWidth, map, left, right, bottom }; });
   expect(layout.scroll).toBeLessThanOrEqual(layout.width + 1);
   if (testInfo.project.name.includes("mobile")) {
-    expect(layout.map.top).toBeLessThan(layout.left.top);
+    expect(layout.map.top).toBeLessThan(layout.bottom.top);
+    expect(layout.bottom.top).toBeLessThan(layout.left.top);
     expect(layout.map.height).toBeGreaterThanOrEqual(390);
+    expect(layout.bottom.width).toBeLessThanOrEqual(layout.width + 1);
   } else {
     expect(layout.map.width).toBeGreaterThan(layout.left.width);
-    expect(layout.map.height).toBeGreaterThan(500);
+    expect(layout.map.height).toBeGreaterThan(400);
+    expect(layout.map.height).toBeGreaterThan(layout.bottom.height * 2);
+    expect(layout.bottom.top).toBeGreaterThanOrEqual(layout.map.bottom - 1);
+    expect(layout.bottom.left).toBeCloseTo(layout.map.left, 0);
+    expect(layout.bottom.right).toBeCloseTo(layout.right.right, 0);
+    expect(layout.bottom.height).toBeGreaterThanOrEqual(220);
+    expect(layout.bottom.height).toBeLessThanOrEqual(280);
   }
 });

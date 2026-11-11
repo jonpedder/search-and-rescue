@@ -48,6 +48,21 @@ assert.equal(A.timelineBucket([{ lastSeen: t0 }, { lastSeen: t0 + 20 * D }]), "d
 assert.equal(A.timelineBucket([{ lastSeen: t0 }, { lastSeen: t0 + 100 * D }]), "week");
 assert.equal(A.timelineBucket([{ lastSeen: t0 }, { lastSeen: t0 + 400 * D }]), "month");
 assert.equal(A.timeline(merged.incidents, "day").reduce((n, x) => n + x.count, 0), 2, "timeline excludes undated local incidents");
+const series = A.timelineSeries(merged.incidents, "day");
+assert.deepEqual(series.map(x => x.cumulative), [1, 2], "cumulative line advances across the same adaptive timeline buckets");
+assert.equal(series.at(-1).cumulative, series.reduce((n, x) => n + x.count, 0), "cumulative endpoint reconciles with bar volume");
+const calendar = A.monthDayMatrix([
+  { lastSeen: "2024-02-29T12:30:00Z" }, { lastSeen: "2024-02-29T23:59:00Z" },
+  { lastSeen: "2025-04-30T00:00:00Z" }, { lastSeen: "2025-02-30T00:00:00Z" }, { lastSeen: "not-a-date" }, { lastSeen: null }
+]);
+assert.equal(calendar.validCount, 3, "leap day is valid while normalized impossible and invalid timestamps are excluded");
+assert.equal(calendar.matrix[1][28], 2, "February 29 is an available leap-day cell");
+assert.equal(calendar.matrix[1][29], null, "February 30 is unavailable rather than zero");
+assert.equal(calendar.matrix[3][29], 1);
+assert.equal(calendar.matrix[3][30], null, "April 31 is unavailable");
+const filteredCalendar = A.monthDayMatrix(A.applyFilters(merged, { scope: "I-1" }).incidents);
+assert.equal(filteredCalendar.validCount, 1, "month/day analytics accepts the same filtered incident set");
+assert.equal(A.timelineSeries(A.applyFilters(merged, { scope: "I-1" }).incidents).at(-1).cumulative, 1, "combo series is filter-linked");
 const matrix = A.dayHourMatrix(merged.incidents);
 assert.equal(matrix.flat().reduce((a, b) => a + b, 0), 2);
 assert.equal(matrix[new Date(t0).getUTCDay()][10], 1);

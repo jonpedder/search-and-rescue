@@ -17,8 +17,14 @@
     if (value == null || value === "") return null;
     var n = typeof value === "number" ? value : Number(value);
     if (Number.isFinite(n) && n > 0) return n;
-    n = Date.parse(value);
-    return Number.isFinite(n) ? n : null;
+    var text = String(value).trim(), match = /^(\d{4})-(\d{2})-(\d{2})(?:T|$)/.exec(text);
+    n = Date.parse(text);
+    if (!Number.isFinite(n)) return null;
+    if (match) {
+      var d = new Date(n);
+      if (d.getUTCFullYear() !== +match[1] || d.getUTCMonth() + 1 !== +match[2] || d.getUTCDate() !== +match[3]) return null;
+    }
+    return n;
   }
   function coords(geometry) {
     if (!geometry) return null;
@@ -134,12 +140,28 @@
   }
   function timeline(incidents, unit) {
     unit = unit || timelineBucket(incidents); var counts = {};
-    incidents.forEach(function (x) { if (!x.lastSeen) return; var k = bucketStart(x.lastSeen, unit); counts[k] = (counts[k] || 0) + 1; });
+    incidents.forEach(function (x) { var ms = dateMs(x.lastSeen); if (!ms) return; var k = bucketStart(ms, unit); counts[k] = (counts[k] || 0) + 1; });
     return Object.keys(counts).map(Number).sort().map(function (time) { return { time: time, count: counts[time], unit: unit }; });
+  }
+  function timelineSeries(incidents, unit) {
+    var cumulative = 0;
+    return timeline(incidents, unit).map(function (point) { cumulative += point.count; return { time: point.time, count: point.count, cumulative: cumulative, unit: point.unit }; });
+  }
+  function monthDayMatrix(incidents) {
+    var days = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var matrix = days.map(function (limit) { return Array.from({ length: 31 }, function (_, i) { return i < limit ? 0 : null; }); });
+    var validCount = 0;
+    (incidents || []).forEach(function (x) {
+      var ms = dateMs(x.lastSeen); if (!ms) return;
+      var d = new Date(ms), month = d.getUTCMonth(), day = d.getUTCDate();
+      if (month < 0 || month > 11 || day < 1 || matrix[month][day - 1] == null) return;
+      matrix[month][day - 1]++; validCount++;
+    });
+    return { matrix: matrix, validCount: validCount, max: Math.max.apply(null, matrix.flat().filter(function (x) { return x != null; }).concat(0)) };
   }
   function dayHourMatrix(incidents) {
     var matrix = Array.from({ length: 7 }, function () { return Array(24).fill(0); });
-    incidents.forEach(function (x) { if (!x.lastSeen) return; var d = new Date(x.lastSeen); matrix[d.getUTCDay()][d.getUTCHours()]++; });
+    incidents.forEach(function (x) { var ms = dateMs(x.lastSeen); if (!ms) return; var d = new Date(ms); matrix[d.getUTCDay()][d.getUTCHours()]++; });
     return matrix;
   }
   function haversine(a, b) {
@@ -162,7 +184,7 @@
       activeCount: data.incidents.filter(function (x) { return String(x.status).toLowerCase() === "active"; }).length,
       durations: durations, medianHours: median(hours), averageHours: hours.length ? hours.reduce(function (a, b) { return a + b; }, 0) / hours.length : null, bins: durationBins(hours),
       displacements: displacement, medianKm: median(kms), averageKm: kms.length ? kms.reduce(function (a, b) { return a + b; }, 0) / kms.length : null,
-      categories: topCounts(data.incidents, function (x) { return x.category; }), statuses: topCounts(data.incidents, function (x) { return x.status; }), timeline: timeline(data.incidents), matrix: dayHourMatrix(data.incidents) };
+      categories: topCounts(data.incidents, function (x) { return x.category; }), statuses: topCounts(data.incidents, function (x) { return x.status; }), timeline: timelineSeries(data.incidents), matrix: dayHourMatrix(data.incidents), monthDay: monthDayMatrix(data.incidents) };
   }
   async function queryAll(layer, fields, returnGeometry) {
     await layer.load(); var all = [], start = 0, pageSize = Math.min(layer.capabilities && layer.capabilities.query && layer.capabilities.query.maxRecordCount || 2000, 2000);
@@ -194,7 +216,7 @@
     if (typeof document === "undefined" || !document.getElementById("analysisRoot")) return;
     var $ = function (id) { return document.getElementById(id); }, SETTINGS = window.SARSettings && window.SARSettings.load ? window.SARSettings.load() : { map: { basemap: "topo-vector", centerLon: -118.03, centerLat: 34.14, zoom: 4 }, workspace: { operationalPeriodHours: 12 } };
     require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/Graphic", "esri/widgets/Home", "esri/widgets/Legend", "esri/widgets/Expand", "esri/widgets/ScaleBar", "esri/widgets/Search"], function (Map, MapView, FeatureLayer, Graphic, Home, Legend, Expand, ScaleBar, Search) {
-      var state = { phase: "loading", source: "browser", freshness: null, data: { incidents: [], keypoints: [], clues: [], tasks: [] }, filtered: null, summary: null, selectedId: null, mapMode: "combined", hostedError: null, localErrors: [] };
+      var state = { phase: "loading", source: "browser", freshness: null, data: { incidents: [], keypoints: [], clues: [], tasks: [] }, filtered: null, summary: null, selectedId: null, mapMode: "combined", hostedError: null, localErrors: [], renderGeneration: 0, mapAppliedGeneration: 0 };
       var incidentLayer = new FeatureLayer({ title: "Incident locations", source: [], objectIdField: "OBJECTID", geometryType: "point", spatialReference: { wkid: 4326 }, fields: [{ name: "OBJECTID", type: "oid" }, { name: "incident_id", type: "string" }, { name: "name", type: "string" }, { name: "status", type: "string" }, { name: "category", type: "string" }], renderer: { type: "simple", symbol: { type: "simple-marker", style: "diamond", size: 10, color: [242, 169, 0, .9], outline: { color: [7, 24, 36, 1], width: 1.5 } } }, popupTemplate: { title: "{name}", content: "<b>{incident_id}</b><br>{status} · {category}" } });
       var findFields = [{ name: "OBJECTID", type: "oid" }, { name: "incident_id", type: "string" }, { name: "name", type: "string" }, { name: "point_time", type: "date" }];
       var heatLayer = new FeatureLayer({ title: "Located subject observations", source: [], objectIdField: "OBJECTID", geometryType: "point", spatialReference: { wkid: 4326 }, fields: findFields, renderer: { type: "heatmap", radius: 22, maxDensity: .04, minDensity: 0, colorStops: [{ ratio: 0, color: [10, 24, 35, 0] }, { ratio: .35, color: [0, 170, 220, .65] }, { ratio: .7, color: [242, 169, 0, .85] }, { ratio: 1, color: [255, 70, 60, 1] }] }, popupEnabled: false });
@@ -228,6 +250,37 @@
         var table = '<details><summary>Accessible day/hour counts</summary><table class="analysis-table"><thead><tr><th>Day</th><th>Hour (UTC)</th><th>Incidents</th></tr></thead><tbody>' + matrix.flatMap(function (row, d) { return row.map(function (n, h) { return n ? "<tr><td>" + days[d] + "</td><td>" + h + ":00</td><td>" + n + "</td></tr>" : ""; }); }).join("") + "</tbody></table></details>";
         return '<div class="heat-matrix" role="img" aria-label="Last-seen incidents by UTC weekday and hour">' + cells + "</div>" + table;
       }
+      function comboChart(series) {
+        if (!series.length) return '<p class="empty-copy">No valid last-seen timestamps in this filter.</p>';
+        var W = 720, H = 170, left = 42, right = 46, top = 12, bottom = 35, pw = W - left - right, ph = H - top - bottom;
+        var maxVolume = Math.max.apply(null, series.map(function (x) { return x.count; }).concat(1)), maxCumulative = series[series.length - 1].cumulative || 1, slot = pw / series.length, barWidth = Math.max(2, Math.min(28, slot * .62));
+        var dateFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: series[0].unit === "month" ? undefined : "numeric", year: series[0].unit === "month" ? "2-digit" : undefined, timeZone: "UTC" });
+        var grid = Array.from({ length: 5 }, function (_, i) { var y = top + ph * i / 4, volume = Math.round(maxVolume * (4 - i) / 4), cumulative = Math.round(maxCumulative * (4 - i) / 4); return '<line class="grid" x1="' + left + '" y1="' + y + '" x2="' + (W - right) + '" y2="' + y + '"></line><text x="' + (left - 6) + '" y="' + (y + 3) + '" text-anchor="end">' + volume + '</text><text x="' + (W - right + 6) + '" y="' + (y + 3) + '">' + cumulative + "</text>"; }).join("");
+        var bars = series.map(function (x, i) { var height = ph * x.count / maxVolume, cx = left + slot * (i + .5), label = dateFormat.format(x.time) + ": " + x.count + " incidents in bucket; " + x.cumulative + " cumulative incidents"; return '<rect class="volume-bar" tabindex="0" role="img" aria-label="' + escapeHtml(label) + '" x="' + (cx - barWidth / 2) + '" y="' + (top + ph - height) + '" width="' + barWidth + '" height="' + height + '"><title>' + escapeHtml(label) + "</title></rect>"; }).join("");
+        var points = series.map(function (x, i) { return [left + slot * (i + .5), top + ph * (1 - x.cumulative / maxCumulative), x]; }), path = points.map(function (p, i) { return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+        var line = '<path class="trend-line" d="' + path + '"></path>' + points.map(function (p) { var label = dateFormat.format(p[2].time) + ": " + p[2].cumulative + " cumulative incidents"; return '<circle class="trend-point" tabindex="0" role="img" aria-label="' + escapeHtml(label) + '" cx="' + p[0] + '" cy="' + p[1] + '" r="3"><title>' + escapeHtml(label) + "</title></circle>"; }).join("");
+        var every = Math.max(1, Math.ceil(series.length / 7)), labels = series.map(function (x, i) { if (i % every && i !== series.length - 1) return ""; var cx = left + slot * (i + .5); return '<text class="axis-label" x="' + cx + '" y="' + (H - 16) + '" text-anchor="middle">' + escapeHtml(dateFormat.format(x.time)) + "</text>"; }).join("");
+        var rows = series.map(function (x) { return '<tr><td>' + escapeHtml(dateFormat.format(x.time)) + "</td><td>" + x.count + "</td><td>" + x.cumulative + "</td></tr>"; }).join("");
+        return '<div class="chart-legend" aria-hidden="true"><span class="legend-key"><i class="legend-swatch"></i>Incident volume (incidents/bucket)</span><span class="legend-key"><i class="legend-swatch line"></i>Cumulative incidents</span><span>Bucket: ' + escapeHtml(series[0].unit) + ' · UTC</span></div><div class="combo-chart-wrap"><svg class="combo-chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-labelledby="comboSvgTitle comboSvgDesc"><title id="comboSvgTitle">Incident volume and cumulative timeline</title><desc id="comboSvgDesc">Bars show filtered incidents per adaptive UTC ' + escapeHtml(series[0].unit) + ' bucket. The purple line shows the cumulative filtered incident count.</desc>' + grid + '<line class="axis" x1="' + left + '" y1="' + (top + ph) + '" x2="' + (W - right) + '" y2="' + (top + ph) + '"></line>' + bars + line + labels + '<text class="axis-label" x="4" y="9">Incidents/bucket</text><text class="axis-label" x="' + (W - 4) + '" y="9" text-anchor="end">Cumulative incidents</text></svg></div><details><summary>Accessible timeline data</summary><table class="analysis-table"><thead><tr><th>UTC bucket</th><th>Incident volume</th><th>Cumulative incidents</th></tr></thead><tbody>' + rows + "</tbody></table></details>";
+      }
+      function monthDayChart(result) {
+        if (!result.validCount) return '<p class="empty-copy">No valid last-seen timestamps in this filter.</p>';
+        var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], max = result.max || 1;
+        var header = '<span></span>' + Array.from({ length: 31 }, function (_, i) { return '<b class="month-day-number">' + (i + 1) + "</b>"; }).join("");
+        var rows = "", tableRows = "";
+        result.matrix.forEach(function (row, m) {
+          rows += '<b class="month-day-label">' + months[m] + "</b>" + row.map(function (count, day) {
+            if (count == null) return '<span class="month-day-cell unavailable" aria-hidden="true" title="' + months[m] + " " + (day + 1) + ': unavailable calendar date"></span>';
+            var level = count ? Math.max(1, Math.ceil(count / max * 5)) : 0, label = months[m] + " " + (day + 1) + ": " + count + " incident last-seen" + (count === 1 ? "" : "s") + " (UTC)";
+            if (count) tableRows += "<tr><td>" + months[m] + "</td><td>" + (day + 1) + "</td><td>" + count + "</td></tr>";
+            return '<span class="month-day-cell ' + (level ? "purple-" + level : "zero") + '" tabindex="0" role="img" aria-label="' + escapeHtml(label) + '" title="' + escapeHtml(label) + '"></span>';
+          }).join("");
+        });
+        return '<div class="month-day-scroll"><div class="month-day-grid" role="img" aria-label="Filtered incident last-seen count by UTC month and day">' + header + rows + '</div></div><div class="heat-legend" aria-label="Heatmap legend, minimum zero, maximum ' + max + '"><span>0</span><span class="heat-ramp" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span>Max ' + max + '</span><span>incidents/day</span></div><details><summary>Accessible nonzero month/day counts</summary><table class="analysis-table"><thead><tr><th>Month (UTC)</th><th>Day</th><th>Incident last-seen count</th></tr></thead><tbody>' + tableRows + "</tbody></table></details>";
+      }
+      function setAnalyticsLoading() {
+        ["timelineChart", "dayHourChart", "durationChart", "spatialSummary", "operationalSummary", "comboChart", "monthDayChart"].forEach(function (id) { $(id).innerHTML = '<p class="empty-copy">Loading filtered analytics…</p>'; });
+      }
       function operationalSummary() {
         var incidents = state.filtered.incidents, records = incidents.flatMap(function (x) { return x.localRecords || []; }), assignments = incidents.flatMap(function (x) { return x.localAssignments || []; }), op = $("periodFilter").value;
         if (op !== "all") { records = records.filter(function (x) { return opOf(x) === +op; }); assignments = assignments.filter(function (x) { return opOf(x) === +op; }); }
@@ -243,6 +296,8 @@
         $("dayHourChart").innerHTML = s.incidentCount ? renderHeatMatrix(s.matrix) : '<p class="empty-copy">No last-seen timestamps in this filter.</p>';
         $("durationChart").innerHTML = s.durations.length ? '<div class="metric-line"><b>Median ' + fmtHours(s.medianHours) + '</b><span>Average ' + fmtHours(s.averageHours) + '</span></div>' + barChart(s.bins.map(function (x) { return [x.label, x.count]; }), "incidents") + '<p class="chart-note">n=' + s.durations.length + ' incidents with a non-negative last-seen → earliest Find interval. Invalid or negative intervals excluded.</p>' : '<p class="empty-copy">No valid last-seen to Find intervals.</p>';
         $("spatialSummary").innerHTML = '<div class="metric-line"><b>Median ' + (s.medianKm == null ? "—" : s.medianKm.toFixed(2) + " km") + '</b><span>Average ' + (s.averageKm == null ? "—" : s.averageKm.toFixed(2) + " km") + '</span></div><p class="chart-note">Straight-line displacement from Incident/IPP to each Find; n=' + s.displacements.length + ' located observations. Incidents and observations are distinct counts.</p><h4>Top subject categories</h4>' + (s.categories.length ? barChart(s.categories, "incidents") : '<p class="empty-copy">No categories.</p>') + '<h4>Incident statuses</h4>' + (s.statuses.length ? barChart(s.statuses, "incidents") : '<p class="empty-copy">No statuses.</p>');
+        $("comboChart").innerHTML = comboChart(s.timeline);
+        $("monthDayChart").innerHTML = monthDayChart(s.monthDay);
         operationalSummary();
       }
       function renderList() {
@@ -256,35 +311,44 @@
         var incidents = state.mapMode !== "heat", located = state.mapMode !== "incidents";
         incidentLayer.visible = incidents; heatLayer.visible = located; findPointLayer.visible = located;
       }
-      var refreshTimer;
-      function refreshMap() {
-        clearTimeout(refreshTimer); refreshTimer = setTimeout(async function () {
-          var incGraphics = state.filtered.incidents.map(function (x, i) { return new Graphic({ geometry: x.geometry, attributes: { OBJECTID: i + 1, incident_id: x.id, name: x.name, status: x.status, category: x.category } }); }).filter(function (g) { return !!g.geometry; });
-          var finds = state.filtered.keypoints.filter(function (x) { return String(x.pointType).toLowerCase() === "find" && x.geometry; }), findGraphics = finds.map(function (x, i) { return new Graphic({ geometry: x.geometry, attributes: { OBJECTID: i + 1, incident_id: x.incidentId, name: x.name || "Subject located", point_time: x.time } }); });
-          try { await Promise.all([replaceSource(incidentLayer, incGraphics), replaceSource(heatLayer, findGraphics), replaceSource(findPointLayer, findGraphics)]); } catch (error) { console.error("Map source refresh failed", error); }
-          applyMapMode();
-          var graphics = incGraphics.concat(findGraphics); if (graphics.length && !state.selectedId) view.goTo(graphics, { padding: 60 }).catch(function () {});
+      var refreshTimer, mapRefreshQueue = Promise.resolve();
+      function refreshMap(generation) {
+        clearTimeout(refreshTimer); refreshTimer = setTimeout(function () {
+          var filtered = state.filtered, selectedId = state.selectedId;
+          mapRefreshQueue = mapRefreshQueue.then(async function () {
+            if (generation !== state.renderGeneration) return;
+            var incGraphics = filtered.incidents.map(function (x, i) { return new Graphic({ geometry: x.geometry, attributes: { OBJECTID: i + 1, incident_id: x.id, name: x.name, status: x.status, category: x.category } }); }).filter(function (g) { return !!g.geometry; });
+            var finds = filtered.keypoints.filter(function (x) { return String(x.pointType).toLowerCase() === "find" && x.geometry; }), findGraphics = finds.map(function (x, i) { return new Graphic({ geometry: x.geometry, attributes: { OBJECTID: i + 1, incident_id: x.incidentId, name: x.name || "Subject located", point_time: x.time } }); });
+            try { await Promise.all([replaceSource(incidentLayer, incGraphics), replaceSource(heatLayer, findGraphics), replaceSource(findPointLayer, findGraphics)]); } catch (error) { console.error("Map source refresh failed", error); }
+            if (generation !== state.renderGeneration) return;
+            state.mapAppliedGeneration = generation; applyMapMode();
+            var graphics = incGraphics.concat(findGraphics); if (graphics.length && !selectedId) view.goTo(graphics, { padding: 60 }).catch(function () {});
+          });
         }, 100);
       }
       function apply() {
-        setPhase("loading", "Applying filters…");
+        var generation = ++state.renderGeneration;
+        setPhase("loading", "Applying filters…"); setAnalyticsLoading();
         setTimeout(function () {
+          if (generation !== state.renderGeneration) return;
           state.filtered = applyFilters(state.data, filterValue()); state.summary = summarize(state.filtered); state.selectedId = $("scopeFilter").value === "all" ? null : $("scopeFilter").value;
-          renderList(); renderAnalytics(); refreshMap();
+          renderList(); renderAnalytics(); refreshMap(generation);
           if (!state.filtered.incidents.length) setPhase("empty", "No incidents match the active filters. Reset filters or broaden the date range."); else setPhase("ready", "");
         }, 0);
       }
       function reset() { $("scopeFilter").value = "all"; $("startDate").value = ""; $("endDate").value = ""; $("statusFilter").value = "all"; $("categoryFilter").value = "all"; $("periodFilter").value = "all"; $("incidentSearch").value = ""; apply(); }
       async function reload() {
-        setPhase("loading", "Loading browser workspaces and hosted ArcGIS records…"); $("reloadData").disabled = true;
+        var reloadToken = ++state.renderGeneration;
+        setPhase("loading", "Loading browser workspaces and hosted ArcGIS records…"); setAnalyticsLoading(); $("reloadData").disabled = true;
         var params = new URLSearchParams(location.search), hostedMode = params.get("hosted"), skipHosted = hostedMode === "off", delay = Math.min(3000, Math.max(0, +(params.get("delay") || 0)));
         if (delay) await new Promise(function (resolve) { setTimeout(resolve, delay); });
         var hostedLoader = skipHosted ? null : hostedMode === "error" ? function () { return Promise.reject(new Error("Hosted query unavailable")); } : function () { return loadHosted(FeatureLayer, SERVICE_ROOT); };
         var loaded = await loadMergedData({ storage: localStorage, loadHosted: hostedLoader });
+        if (reloadToken !== state.renderGeneration) return;
         state.data = loaded.data; state.hostedError = loaded.hostedError; state.localErrors = loaded.localErrors; state.freshness = Date.now(); state.source = loaded.hostedError || skipHosted ? "Browser workspaces" : "Browser + hosted ArcGIS";
         $("sourceStatus").innerHTML = '<strong>' + escapeHtml(state.source) + '</strong><span>Updated ' + escapeHtml(fmtDate(state.freshness)) + (state.hostedError ? " · Hosted query unavailable; browser-only fallback active." : "") + (loaded.localErrors.length ? " · " + loaded.localErrors.length + " malformed local workspace(s) skipped." : "") + "</span>";
         populateFilters(); $("reloadData").disabled = false;
-        if (!state.data.incidents.length) { state.filtered = state.data; state.summary = summarize(state.data); renderList(); renderAnalytics(); refreshMap(); setPhase(loaded.hostedError ? "error" : "empty", loaded.hostedError ? "Hosted ArcGIS data is unavailable and no valid browser workspaces were found." : "No incidents are available in the selected sources."); } else apply();
+        if (!state.data.incidents.length) { state.filtered = state.data; state.summary = summarize(state.data); renderList(); renderAnalytics(); refreshMap(reloadToken); setPhase(loaded.hostedError ? "error" : "empty", loaded.hostedError ? "Hosted ArcGIS data is unavailable and no valid browser workspaces were found." : "No incidents are available in the selected sources."); } else apply();
       }
       function selectIncident(id) {
         var incident = state.data.incidents.find(function (x) { return x.id === id; }); if (!incident) return;
@@ -301,5 +365,5 @@
     });
   }
   if (typeof window !== "undefined") window.addEventListener("DOMContentLoaded", initBrowser);
-  return { SERVICE_ROOT: SERVICE_ROOT, escapeHtml: escapeHtml, dateMs: dateMs, localWorkspaces: localWorkspaces, normalizeHosted: normalizeHosted, mergeData: mergeData, applyFilters: applyFilters, locationDurations: locationDurations, durationBins: durationBins, timelineBucket: timelineBucket, timeline: timeline, dayHourMatrix: dayHourMatrix, haversine: haversine, displacements: displacements, summarize: summarize, queryAll: queryAll, loadHosted: loadHosted, loadMergedData: loadMergedData };
+  return { SERVICE_ROOT: SERVICE_ROOT, escapeHtml: escapeHtml, dateMs: dateMs, localWorkspaces: localWorkspaces, normalizeHosted: normalizeHosted, mergeData: mergeData, applyFilters: applyFilters, locationDurations: locationDurations, durationBins: durationBins, timelineBucket: timelineBucket, timeline: timeline, timelineSeries: timelineSeries, monthDayMatrix: monthDayMatrix, dayHourMatrix: dayHourMatrix, haversine: haversine, displacements: displacements, summarize: summarize, queryAll: queryAll, loadHosted: loadHosted, loadMergedData: loadMergedData };
 });
