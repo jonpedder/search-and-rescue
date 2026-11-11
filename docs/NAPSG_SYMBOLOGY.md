@@ -24,7 +24,7 @@ PLS and LKP keep distinct gold circle/square symbols until an exact NAPSG equiva
 
 ## Asset resource points
 
-Planning asset points and Operations `asset` records use ArcGIS `PictureMarkerSymbol` objects selected from the asset type. The files are hosted with the app so GitHub Pages and browser CORS behavior do not depend on the NAPSG server. `Other` safely falls back to `sar.svg`; older saved records with unknown asset types also normalize to that fallback.
+Planning asset points and Operations `asset` records use ArcGIS `PictureMarkerSymbol` objects selected from the asset type. Planning's accessible custom listbox displays the same local image beside every option and in the collapsed selection; the native select remains as the compatible value store because native HTML options cannot reliably render images. Arrow keys, Home/End, Enter/Space, Escape and click-outside behavior are supported. The files are hosted with the app so GitHub Pages and browser CORS behavior do not depend on the NAPSG server. `Other` safely falls back to `sar.svg`; older saved records with unknown asset types also normalize to that fallback.
 
 ## Attribution and hosted copies
 

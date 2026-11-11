@@ -13,8 +13,9 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 - Initializes operational period 1 from the current time to the next local noon or midnight boundary
 - Looks up LPB statistics by subject category, environment and terrain, with fallback and sample-size warnings
 - Builds distance rings, direction sectors, linear-feature proximity, DEM travel time (Tobler hiking function) and elevation bias
-- Provides a concise Assignment Editing Palette for buffered point-to-point/freehand lines, status-colored assignment polygons and named asset points; assignment status changes immediately recolor linked polygons, required fields receive accessible inline validation, and all edits persist with the incident and hand off to Operations
-- Renders Ground Team, Canine, Air, Command, Medical and Vehicle asset points with locally hosted official NAPSG SVGs (with the existing SAR symbol as the Other fallback) in both Planning and Operations
+- Provides a concise Assignment Editing Palette for buffered point-to-point/freehand lines and status-colored assignment polygons; assignment status changes immediately recolor linked polygons and required fields receive accessible inline validation
+- Provides a separate, assignment-independent Asset editor with required name, keyboard-accessible NAPSG icon/type picker, optional description, explicit place-and-save action, and in-place detail editing; assets persist in current/named plans and hand off only their resource record to Operations
+- Renders Ground Team, Canine, Air, Command, Medical and Vehicle asset points with locally hosted official NAPSG SVGs (with the existing SAR symbol as the Other fallback) in the collapsed picker, open option list, Design list, Planning map and Operations
 - Blends layers by adjustable weights and scenarios into ranked search segments
 - Tracks POA, POD and POS as search results come in
 - Shows survivability over time since last seen for every selectable subject category; bundled fallback curves are explicitly marked as placeholders until agency-approved data is loaded

@@ -49,7 +49,7 @@
     para("This guide explains the Planning, Operations and Settings workspaces. Numbered dots in the screenshots point to the controls used during the workflow.");
     para("Decision support only. Validate model output, map content, assignments and field reports through incident command and current agency procedures.");
     y += 8; heading("Recommended sequence", 15);
-    ["Sign in and verify the authenticated ArcGIS user.", "Create or open an incident and set the Initial Planning Point.", "Complete the subject profile and interview; review planning cues.", "Run the model, inspect assumptions and create ranked search segments.", "Open SAR Operations, load the incident, create assignments and map clues/tracks.", "Export reports and preserve approved incident records."].forEach(function (x) { para(x, true); });
+    ["Sign in and verify the authenticated ArcGIS user.", "Create or open an incident and set the Initial Planning Point.", "Complete the subject profile and interview; review planning cues.", "Run the model, inspect assumptions and create ranked search segments.", "Use the independent Asset editor to enter a required name, choose a NAPSG icon/type, optionally describe the resource, then place and save it. Select an asset in Assignment & Asset Design to edit details without moving it.", "Prepare assignments separately; an asset never requires or creates an assignment.", "Open SAR Operations, load the incident, create assignments and map clues/tracks.", "Export reports and preserve approved incident records."].forEach(function (x) { para(x, true); });
 
     for (var gi = 0; gi < guides.length; gi++) {
       var g = guides[gi], img = await loadImage(g.image); next(g.title, "Numbered controls and actions");

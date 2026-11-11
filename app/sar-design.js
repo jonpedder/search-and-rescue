@@ -23,9 +23,31 @@
     if (value === "Command Post") return "Command";
     return ASSET_FILES[value] ? value : "Other";
   }
+  function assetFile(value) { return ASSET_FILES[assetType(value)]; }
+  function assetIconUrl(value) { return "./assets/napsg/" + assetFile(value); }
   function assetSymbol(value, size = 32) {
-    const type = assetType(value);
-    return { type: "picture-marker", url: "./assets/napsg/" + ASSET_FILES[type], width: size + "px", height: size + "px" };
+    return { type: "picture-marker", url: assetIconUrl(value), width: size + "px", height: size + "px" };
+  }
+  function createAssetTypeCombobox(select) {
+    select = fieldElement(select); if (!select || select.dataset.assetComboboxReady) return select?._assetCombobox || null;
+    select.dataset.assetComboboxReady = "true"; select.classList.add("sar-native-select"); select.setAttribute("aria-hidden", "true"); select.tabIndex = -1;
+    const root = document.createElement("div"); root.className = "sar-asset-combobox";
+    const button = document.createElement("button"); button.type = "button"; button.className = "sar-asset-combobox-button"; button.setAttribute("aria-haspopup", "listbox"); button.setAttribute("aria-expanded", "false");
+    const list = document.createElement("div"); list.className = "sar-asset-options"; list.id = select.id + "-listbox"; list.role = "listbox"; list.hidden = true; button.setAttribute("aria-controls", list.id);
+    const types = Object.keys(ASSET_FILES); let active = Math.max(0, types.indexOf(assetType(select.value)));
+    function icon(type, decorative = true) { const img = document.createElement("img"); img.src = assetIconUrl(type); img.alt = decorative ? "" : type + " NAPSG icon"; if (decorative) img.setAttribute("aria-hidden", "true"); return img; }
+    function paintButton() { const type = assetType(select.value); button.replaceChildren(icon(type), document.createTextNode(type)); button.setAttribute("aria-label", "Asset type, " + type); }
+    function paintOptions() { [...list.children].forEach((option, index) => { const selected = types[index] === assetType(select.value); option.setAttribute("aria-selected", String(selected)); option.classList.toggle("active", index === active); }); }
+    function close(focus = false) { list.hidden = true; button.setAttribute("aria-expanded", "false"); if (focus) button.focus(); }
+    function open() { list.hidden = false; button.setAttribute("aria-expanded", "true"); active = Math.max(0, types.indexOf(assetType(select.value))); paintOptions(); list.children[active]?.focus(); }
+    function choose(index) { active = (index + types.length) % types.length; select.value = types[active]; select.dispatchEvent(new Event("change", { bubbles: true })); paintButton(); paintOptions(); close(true); }
+    types.forEach((type, index) => { const option = document.createElement("button"); option.type = "button"; option.className = "sar-asset-option"; option.role = "option"; option.id = select.id + "-option-" + index; option.tabIndex = -1; option.dataset.value = type; option.append(icon(type), document.createTextNode(type)); option.onclick = () => choose(index); option.onkeydown = event => { if (["ArrowDown", "ArrowRight"].includes(event.key)) { event.preventDefault(); active = (index + 1) % types.length; paintOptions(); list.children[active].focus(); } else if (["ArrowUp", "ArrowLeft"].includes(event.key)) { event.preventDefault(); active = (index - 1 + types.length) % types.length; paintOptions(); list.children[active].focus(); } else if (event.key === "Home") { event.preventDefault(); active = 0; paintOptions(); list.children[active].focus(); } else if (event.key === "End") { event.preventDefault(); active = types.length - 1; paintOptions(); list.children[active].focus(); } else if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(index); } else if (event.key === "Escape") { event.preventDefault(); close(true); } else if (event.key === "Tab") close(false); }; list.appendChild(option); });
+    button.onclick = () => list.hidden ? open() : close(false);
+    button.onkeydown = event => { if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) { event.preventDefault(); open(); } else if (event.key === "Escape") close(false); };
+    select.addEventListener("change", () => { paintButton(); paintOptions(); });
+    document.addEventListener("pointerdown", event => { if (!root.contains(event.target)) close(false); });
+    select.after(root); root.append(button, list); paintButton(); paintOptions();
+    return select._assetCombobox = { root, button, list, open, close, setValue(value) { select.value = assetType(value); select.dispatchEvent(new Event("change", { bubbles: true })); } };
   }
   function assignmentSymbol(value, width = 2) {
     const status = assignmentStatus(value), colors = STATUS_COLORS[status];
@@ -70,6 +92,6 @@
     if (labelText) field.setAttribute("aria-label", labelText + ", required");
     field.addEventListener("input", () => clear(field)); field.addEventListener("change", () => clear(field));
   }
-  window.SARDesign = { ASSET_FILES, STATUS_COLORS, assignmentStatus, assignmentSymbol, assetType, assetSymbol };
+  window.SARDesign = { ASSET_FILES, STATUS_COLORS, assignmentStatus, assignmentSymbol, assetType, assetFile, assetIconUrl, assetSymbol, createAssetTypeCombobox };
   window.SARValidation = { required, validate, invalidate, clear };
 })();
