@@ -116,3 +116,13 @@ test("Planning assignments flow through Operations debrief and back", async ({ p
   await page.click("#planningAssignmentList [data-assignment-id]");
   await expect(page.locator("#planAssignmentWorkflow")).toContainText("Complete"); await expect(page.locator("#planAssignmentWorkflow")).toContainText("72%"); await expect(page.locator("#planAssignmentWorkflow")).toContainText("Yes");
 });
+
+test("Assignment Buffer converts a traced line into a persisted polygon", async ({ page }, testInfo) => {
+  test.setTimeout(90000);
+  test.skip(testInfo.project.name.includes("mobile"), "Desktop workflow covers map tracing and buffering.");
+  await page.goto("/index.html");
+  await page.waitForFunction(() => window.__app?.planningAssignments?.bufferSketch && window.__app?.planning?.Graphic);
+  const result = await page.evaluate(() => { const Graphic = window.__app.planning.Graphic, line = new Graphic({ geometry: { type: "polyline", paths: [[[-118.25,34.05],[-118.23,34.07],[-118.20,34.08]]], spatialReference: { wkid: 4326 } } }); const entry = window.__app.planningAssignments.createAssignmentBuffer(line.geometry, 100, "feet"); window.SARPlanningEnhancements.persistCurrentPlan(); return { entry, polygons: window.__app.planning.layers.assignmentBuffers.graphics.length, traces: window.__app.planning.layers.assignmentBufferLines.graphics.length, selected: document.getElementById("planAssignmentSegment").value, saved: JSON.parse(localStorage.getItem("sar.planning.current.v1")).assignmentBuffers.length }; });
+  expect(result.entry.id).toBe("BUF-001"); expect(result.entry.units).toBe("feet"); expect(result.entry.distance).toBe(100); expect(result.entry.areaSqM).toBeGreaterThan(0); expect(result.polygons).toBe(1); expect(result.traces).toBe(1); expect(result.selected).toBe("BUF-001"); expect(result.saved).toBe(1);
+  await expect(page.locator("#assignmentBufferStatus")).toContainText("BUF-001 created");
+});
