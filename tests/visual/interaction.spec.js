@@ -96,3 +96,23 @@ test("planning profile survives a round trip through Operations", async ({ page 
   const restored = await page.evaluate(() => ({ longitude: window.__esriView.center.longitude, latitude: window.__esriView.center.latitude, name: document.getElementById("intName").value, age: document.getElementById("age").value, ring: document.getElementById("wRing").value, scenarios: window.__app.planning.state.scenarios }));
   expect(restored.longitude).toBeCloseTo(-120, 2); expect(restored.latitude).toBeCloseTo(40, 2); expect(restored.name).toBe("Morgan Searcher"); expect(restored.age).toBe("37"); expect(restored.ring).toBe("48"); expect(restored.scenarios).toHaveLength(2); await expect(page.locator(".subject-photo-preview")).toHaveCount(3); expect(await page.evaluate(() => window.SARPlanningEnhancements.photoDataUrls.length)).toBe(3);
 });
+
+test("Planning assignments flow through Operations debrief and back", async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  test.skip(testInfo.project.name.includes("mobile"), "Desktop workflow covers the cross-workspace assignment handoff.");
+  await page.goto("/index.html");
+  await page.waitForFunction(() => window.__app?.planningAssignments && document.querySelector("#planningAssignmentPanel"));
+  const incidentId = await page.evaluate(() => { const state = window.__app.planning.state; state.segs = [{ cell: { id: "S001", ring: [[-118.26,34.04],[-118.20,34.04],[-118.20,34.09],[-118.26,34.09],[-118.26,34.04]], center: [-118.23,34.065], areaKm2: 1, distKm: 1 }, poa: .4, poa0: .4, pod: 0, cumPos: 0, rank: 1 }]; document.getElementById("incName").value = "Assignment Handoff Test"; window.__app.planningAssignments.render(); return state.incidentId; });
+  await page.selectOption("#planAssignmentSegment", "S001"); await page.fill("#planAssignmentTeam", "Team Alpha"); await page.fill("#planAssignmentDescription", "Search the north drainage using a tight grid."); await page.click("#savePlanAssignment");
+  await expect(page.locator("#planAssignmentMessage")).toContainText("handed off to Operations");
+  await page.goto("/operations.html?incident=" + encodeURIComponent(incidentId) + "&autoload=local");
+  await page.waitForFunction(() => window.__app?.state?.assignments?.length === 1 && document.querySelector("#assignmentPOD"));
+  const planned = await page.evaluate(() => window.__app.state.assignments[0]); expect(planned.team).toBe("Team Alpha"); expect(planned.segment).toBe("S001"); expect(planned.status).toBe("Planned");
+  await page.evaluate(() => { const set = (id, value) => document.getElementById(id).value = value; const assignment = window.__app.state.assignments[0]; document.querySelector('[data-aid="' + assignment.id + '"]')?.click(); set("assignmentStatus", "Complete"); set("assignmentPOD", "72"); set("assignmentSearchAgain", "Yes"); set("assignmentDebrief", "Dense brush reduced visibility; repeat with canine team."); document.getElementById("saveAssignment").click(); });
+  await page.waitForFunction(() => window.__app.state.assignments[0].status === "Complete" && window.__app.state.assignments[0].podPercent === 72);
+  await page.click("#sarPlanningNav");
+  await page.waitForFunction(() => window.__app?.planningAssignments && document.querySelector("#planningAssignmentPanel"));
+  await page.waitForFunction(() => document.querySelector("#planningAssignmentList")?.textContent.includes("Complete"));
+  await page.click("#planningAssignmentList [data-assignment-id]");
+  await expect(page.locator("#planAssignmentWorkflow")).toContainText("Complete"); await expect(page.locator("#planAssignmentWorkflow")).toContainText("72%"); await expect(page.locator("#planAssignmentWorkflow")).toContainText("Yes");
+});

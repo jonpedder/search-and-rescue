@@ -6,7 +6,7 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 
 ## What it does
 
-- Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; Operations manages areas, segments, assignments, PLS, clues, cell pings and field assets
+- Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; a right-side Planning panel prepares segment assignments, team names and task descriptions, while Operations confirms Assigned/Complete/Abandoned status, records the team debrief POD, and decides whether the area should be searched again
 - Captures a structured lost-person interview covering immediate planning, health, clothing/equipment, experience, trip plans, behavior and prior actions; converts supported answers into reviewable planning cues
 - Accepts up to eight compressed subject photographs, supports individual removal, and includes every image in named plans and the Missing Person Profile PDF
 - Automatically restores the current Planning workspace after navigating to Operations and back, and saves/retrieves named browser-local incident plans with the profile, interview, scenarios, model settings, operational period, map lines, current map extent, search segments and subject photographs

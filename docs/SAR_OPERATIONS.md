@@ -10,7 +10,8 @@ The page prioritizes a SARTopo-like object workflow while using ArcGIS COTS comp
 
 - Draw operational areas and search segments.
 - Load ranked planning segments by incident ID from the private SAR service.
-- Create assignments linked to segments, including team, task type, priority, status, briefing, and safety notes.
+- Prepare assignments from the Planning page's right-side panel with a segment, team name, description, priority and operational period; hand them to Operations with their segment geometry.
+- In Operations, confirm assignment status as Assigned, Complete or Abandoned; completed/abandoned work requires a team-debrief POD percentage and an Operations decision on whether the area should be searched again.
 - Map a point last seen (PLS), clues, cell-ping uncertainty sectors, and field assets.
 - Track browser-local unsaved versus ArcGIS-synced records.
 - Export protected operations JSON or interoperable GeoJSON.
@@ -20,7 +21,7 @@ The page prioritizes a SARTopo-like object workflow while using ArcGIS COTS comp
 - Add hazards, landing zones, facilities, exclusion/no-search areas, intended routes, field tracks, and range rings.
 - Edit or duplicate geometry and filter the common operating picture by current period, safety, assignments, or resources.
 - Run segment QA for approximate 60–120 acre ground-team sizing and polygon overlaps.
-- Capture deployment details including team size, transportation, estimated duration, radio channel, prepared-by, previous efforts, and responsive/unresponsive/clue POD.
+- Capture deployment details including team size, transportation, estimated duration, radio channel, prepared-by, previous efforts, responsive/unresponsive/clue POD, team-debrief POD, debrief notes and the search-again decision.
 - Import GeoJSON, GPX, and KML map objects; export GeoJSON, KML, GPX, assignment CSV, and full operations JSON.
 - Use native measurement, coordinate-conversion, locate, compass, print, layer, legend, and basemap tools.
 - Manage operational layer visibility from a persistent right-side panel, zoom to an entire layer, or zoom directly to a named feature.

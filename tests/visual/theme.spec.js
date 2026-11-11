@@ -19,7 +19,7 @@ async function stabilize(page, item) {
     if (local) local.textContent = "12:00:00";
     document.querySelectorAll("calcite-alert").forEach(x => x.open = false);
   });
-  if (item.name === "planning") await page.waitForFunction(() => !!document.getElementById("planList"), null, { timeout: 30000 });
+  if (item.name === "planning") await page.waitForFunction(() => !!document.getElementById("planList") && !!document.getElementById("planningAssignmentPanel"), null, { timeout: 30000 });
   else if (item.map) await page.waitForFunction(() => window.__esriView?.ready === true, null, { timeout: 30000 });
   await page.waitForTimeout(400);
 }
