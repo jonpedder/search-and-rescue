@@ -1083,10 +1083,10 @@ require([
   "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference",
   "esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Measurement",
   "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/Bookmarks","esri/webmap/Bookmark","esri/widgets/CoordinateConversion","esri/widgets/Print",
-  "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer","esri/geometry/geometryEngine"
+  "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer","esri/layers/TileLayer","esri/geometry/geometryEngine"
 ], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
             webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference,
-            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, Bookmarks, Bookmark, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer, geometryEngine){
+            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, Bookmarks, Bookmark, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer, TileLayer, geometryEngine){
 
   if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
   if(CONFIG.appId){
@@ -1094,6 +1094,7 @@ require([
   }
 
   const layers = {
+    usgsTopo: new TileLayer({title:"USGS Topo",url:"https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer"}),
     seg: new GraphicsLayer({title:"Search segments"}),
     ring: new GraphicsLayer({title:"Distance rings"}),
     sector: new GraphicsLayer({title:"Direction sectors"}),
@@ -1105,7 +1106,7 @@ require([
     relief: null, travel: null
   };
   const vis = {relief:true, travel:false};
-  const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
+  const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.usgsTopo, layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,Extent,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
   const addressSearch = new Search({
