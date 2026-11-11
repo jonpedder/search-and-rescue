@@ -62,6 +62,25 @@ The generated PDF is exactly one US Letter portrait page (612×792 points) with 
 
 The three map products are created directly with jsPDF landscape page geometry: ANSI E is the custom 3168×2448-point (44×34-inch) format, legal is 1008×612 points and letter is 792×612 points. The ArcGIS map screenshot is bounded to 1800×1000 pixels for browser memory safety, then placed in the printable map frame. Operators must inspect the downloaded PDF and printer settings before operational use; automated tests verify workflow, source dimensions and download generation, not physical printer output or cartographic print fidelity.
 
+## Incident Analysis dashboard
+
+`app/analysis.html` is a map-first read-only analysis workspace. **All incidents** is an explicit scope; selecting a list row or incident scope switches to a single incident. Date, status, subject category and operational-period filters are applied to the incident list, map and every metric. Apply commits filter changes; Reset restores the all-incidents view. The list is keyboard-accessible and renders at most the first 200 matches while preserving the full visible count.
+
+Analysis merges two sources without editing either one:
+
+- Browser workspaces stored as `sar.operations.<incident id>`, including local features and assignments.
+- Paginated ArcGIS Maps SDK `FeatureLayer.queryFeatures` reads from Incident (0), KeyPoints (1), Clue (3) and Task (5). Only analysis fields are requested. Incidents are deduplicated by `incident_id`; matching browser operational records remain attached. If hosted access fails, a visible source message identifies the browser-only fallback. **Reload data** refreshes both sources and the freshness timestamp.
+
+Metric definitions and limits:
+
+- **Incident count** is unique filtered `incident_id` count. **Located incidents** counts incidents with at least one KeyPoints `Find`; the heatmap and displacement sample count individual Find observations, so those numbers can differ.
+- **Time until located** is the interval from Incident `last_seen` to the earliest valid Find `point_time`. Negative/missing intervals are excluded. The dashboard reports median, average, sample size and `<6h`, `6–12h`, `12–24h`, `1–3d`, `>3d` bins.
+- The timeline buckets by UTC day, week or month according to range. The weekday/hour matrix uses UTC `last_seen` timestamps and includes an accessible count table.
+- Displacement is straight-line geodesic approximation from IPP when present, otherwise the Incident point, to each Find. It is not travel distance, route length or probability of area. Heatmap density depends on map scale and is not a count surface.
+- Operational-period filtering applies to local records/assignments and hosted tasks when period metadata exists. The hosted core schema does not assign an operational period to Incident, KeyPoints or Clue rows.
+
+Analytics may expose sensitive subject locations, clues, tasking and responder information from both local storage and the private service. Use an approved device, keep service sharing restricted, avoid screenshots/public exports, and reconcile all totals with incident command. Browser freshness indicates load time, not authoritative field-data currency.
+
 ## Capabilities that require additional infrastructure
 
 The training guide also describes capabilities that cannot be represented honestly by a browser-only page. Continuous background GPS collection, offline mobile synchronization, live APRS/inReach/ADS-B feeds, expiring mutual-aid workspaces, multiuser uniqueness enforcement, geospatial PDF map books, automated notifications, and secure temporary access require mobile clients, backend services, portal administration, print services, or external APIs. They are not simulated in this workbench.

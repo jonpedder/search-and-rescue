@@ -4,7 +4,7 @@
   "description": "Lost-person-behavior planning workbench for search and rescue, built on ArcGIS Online and the ArcGIS Maps SDK for JavaScript.",
   "private": true,
   "scripts": {
-    "test": "node tests/model.test.js && node tests/schema.test.js && node tests/settings.test.js && node tests/coordinate-format.test.js && node tests/synthetic.test.js && node tests/auth.test.js && node tests/reports.test.js && node tests/planning-enhancements.test.js && node tests/planning-assignments.test.js && node tests/help.test.js && node tests/bookmarks.test.js",
+    "test": "node tests/model.test.js && node tests/schema.test.js && node tests/settings.test.js && node tests/coordinate-format.test.js && node tests/synthetic.test.js && node tests/auth.test.js && node tests/reports.test.js && node tests/planning-enhancements.test.js && node tests/planning-assignments.test.js && node tests/help.test.js && node tests/bookmarks.test.js && node tests/analysis.test.js",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "serve": "python3 -m http.server 8080 --directory app",

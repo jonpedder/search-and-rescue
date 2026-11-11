@@ -53,23 +53,23 @@ test("incident analysis summarizes a saved Operations workspace", async ({ page 
   test.setTimeout(90000);
   test.skip(testInfo.project.name.includes("mobile"), "Desktop interaction covers the shared analysis behavior.");
   await page.addInitScript(() => localStorage.setItem("sar.operations.ANALYSIS-1", JSON.stringify({
-    incident: { id: "ANALYSIS-1", name: "Analysis Test" },
+    incident: { id: "ANALYSIS-1", name: "Analysis Test", category: "Hiker", status: "Active", lastSeen: Date.UTC(2025,0,1), geometry: { type: "point", x: -118.25, y: 34.05, spatialReference: { wkid: 4326 } } },
     records: [
-      { id: "A1", kind: "clue", geometry: { type: "point", longitude: -118.25, latitude: 34.05, spatialReference: { wkid: 4326 } }, attrs: { name: "Clue", status: "Planned", operationalPeriod: 1 } },
+      { id: "A1", kind: "clue", geometry: { type: "point", x: -118.25, y: 34.05, spatialReference: { wkid: 4326 } }, attrs: { name: "Clue", status: "Planned", operationalPeriod: 1 } },
       { id: "A2", kind: "segment", geometry: { type: "polygon", rings: [[[-118.26,34.04],[-118.20,34.04],[-118.20,34.09],[-118.26,34.09],[-118.26,34.04]]], spatialReference: { wkid: 4326 } }, attrs: { name: "S001", status: "Complete", operationalPeriod: 2 } }
     ],
     assignments: [{ id: "T-1", status: "Debriefed", operationalPeriod: 2 }]
   })));
-  await page.goto("/analysis.html");
-  await page.waitForFunction(() => window.__esriView?.ready && document.querySelector("#metricFeatures")?.textContent === "2");
+  await page.goto("/analysis.html?hosted=off");
+  await page.waitForFunction(() => window.__esriView?.ready && window.__app?.analysis?.state?.phase === "ready");
   await expect(page.locator("#sarAnalysisNav")).toHaveAttribute("aria-current", "page");
-  await expect(page.locator("#metricFeatures")).toHaveText("2");
-  await expect(page.locator("#metricAssignments")).toHaveText("1");
-  await expect(page.locator("#metricClues")).toHaveText("1");
-  await expect(page.locator("#metricComplete")).toHaveText("1");
-  await page.selectOption("#analysisPeriod", "2");
-  await expect(page.locator("#metricFeatures")).toHaveText("1");
-  await expect(page.locator("#metricAssignments")).toHaveText("1");
+  await expect(page.locator("#metricIncidents")).toHaveText("1");
+  await expect(page.locator("#operationalSummary")).toContainText("2 local features");
+  await expect(page.locator("#operationalSummary")).toContainText("1 local assignments");
+  await page.selectOption("#periodFilter", "2");
+  await page.click("#applyFilters");
+  await expect(page.locator("#operationalSummary")).toContainText("1 local features");
+  await expect(page.locator("#operationalSummary")).toContainText("1 local assignments");
 });
 
 test("planning profile survives a round trip through Operations", async ({ page }, testInfo) => {

@@ -9,7 +9,7 @@ const pages = [
 ];
 
 async function stabilize(page, item) {
-  await page.goto(item.path, { waitUntil: "load", timeout: 60000 });
+  await page.goto(item.path + (item.name === "analysis" ? "?hosted=off" : ""), { waitUntil: "load", timeout: 60000 });
   await page.waitForFunction(() => customElements.get("calcite-button"), null, { timeout: 20000 });
   await page.addStyleTag({ content: "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}html{scroll-behavior:auto!important}" });
   await page.evaluate(() => {

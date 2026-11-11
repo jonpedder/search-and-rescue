@@ -7,6 +7,7 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 ## What it does
 
 - Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; the right-side **Assignment & Asset Design** panel separately lists every assignment and planning asset with counts, type/name/status details and keyboard-accessible zoom/flash controls, while Operations confirms Unassigned/Assigned/Complete/Abandoned status, records the team debrief POD, and decides whether the area should be searched again
+- Provides a map-first **Incident Analysis** dashboard with explicit All incidents and single-incident modes, shared date/status/category/operational-period filters, incident and located-subject map modes, filter-linked KPIs, adaptive timeline, weekday/hour matrix, time-to-locate distribution, displacement summaries and browser-local operational detail. It merges paginated hosted Incident/KeyPoints/Clue/Task queries with `sar.operations.*` workspaces and falls back to browser-only analysis when ArcGIS is inaccessible
 - Captures a structured lost-person interview covering immediate planning, health, clothing/equipment, experience, trip plans, behavior and prior actions; converts supported answers into reviewable planning cues
 - Accepts up to eight compressed subject photographs, supports individual removal, and includes every image in named plans and the Missing Person Profile PDF
 - Automatically restores the current Planning workspace after navigating to Operations and back, and saves/retrieves named browser-local incident plans with the profile, interview, scenarios, model settings, operational period, map lines, current map extent, search segments and subject photographs
@@ -69,7 +70,9 @@ Pages sites are public on the internet even when the repo is private on some pla
 
 | Path | Contents |
 |---|---|
-| `app/index.html` | Single-file application |
+| `app/index.html` | SAR Planning application |
+| `app/operations.html` | Browser/ArcGIS operational workspace |
+| `app/analysis.html`, `app/analysis.js`, `app/analysis.css` | Map-first Incident Analysis shell, controller, analytics contracts and responsive layout |
 | `scripts/provision_sar_schema.py` | Creates the hosted feature service, domains and lookup tables |
 | `scripts/embed_seed.py` | Refreshes the seed statistics embedded in the app from `data/` |
 | `data/` | Seed statistics and survival curves (column format is the contract for your own data) |

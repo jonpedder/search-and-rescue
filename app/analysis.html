@@ -8,45 +8,64 @@
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
 <link rel="stylesheet" href="./theme.css?v=20261110-7">
+<link rel="stylesheet" href="./analysis.css?v=20261115-1">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="./settings.js?v=20261112-1"></script>
-<script src="./coordinate-format.js?v=20261112-1"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
-<style>
-html,body{height:100%;margin:0;overflow:hidden}#app{display:grid;grid-template-rows:74px minmax(0,1fr) 32px;height:100vh}.analysis-body{display:grid;grid-template-columns:380px minmax(0,1fr);min-height:0}.analysis-panel{overflow:auto;padding:12px;background:var(--app-panel);border-right:1px solid var(--app-border)}.analysis-map{position:relative;min-width:0}.analysis-map #viewDiv{position:absolute;inset:0}.analysis-card{margin-bottom:10px;padding:12px;border:1px solid var(--app-border);background:var(--app-surface)}.analysis-card h2{margin:0 0 8px;color:var(--app-accent);font-size:13px;text-transform:uppercase}.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.analysis-field{display:grid;gap:3px;color:var(--app-muted);font-size:10px;font-weight:700;text-transform:uppercase}.analysis-field input,.analysis-field select{width:100%;padding:7px;border:1px solid var(--app-border);background:var(--app-bg);color:var(--app-text)}.analysis-actions{display:flex;gap:7px;margin-top:9px}.analysis-actions button{padding:7px 10px;border:1px solid var(--app-accent);background:transparent;color:var(--app-accent);font-weight:700;cursor:pointer}.analysis-actions button.primary{background:var(--app-accent);color:#071824}.analysis-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.analysis-kpi{padding:9px;background:var(--app-bg);border-left:3px solid var(--app-accent)}.analysis-kpi strong{display:block;color:var(--app-text);font-size:22px}.analysis-kpi span{color:var(--app-muted);font-size:9px;text-transform:uppercase}.analysis-table{width:100%;border-collapse:collapse;font-size:11px}.analysis-table th,.analysis-table td{padding:6px;border-bottom:1px solid var(--app-border);text-align:left}.analysis-table th{color:var(--app-accent);text-transform:uppercase}.analysis-table td:last-child,.analysis-table th:last-child{text-align:right}.analysis-empty{padding:18px;color:var(--app-muted);text-align:center}.analysis-status{min-height:18px;margin:7px 0 0;color:var(--app-muted);font-size:11px}.analysis-footer{display:block;padding:8px;text-align:center;background:#04111a;border-top:1px solid var(--app-border);color:var(--app-muted);font-size:10px}.analysis-footer a{color:var(--app-accent)}
-@media(max-width:760px){#app{grid-template-rows:230px minmax(0,1fr) 28px}.analysis-body{grid-template-columns:1fr;grid-template-rows:minmax(340px,48%) minmax(300px,52%)}.analysis-panel{grid-row:2;border-right:0;border-top:1px solid var(--app-border)}.analysis-map{grid-row:1}.analysis-grid{grid-template-columns:1fr}}
-</style>
 </head>
-<body class="calcite-mode-dark"><div id="app">
+<body class="calcite-mode-dark">
+<div id="app">
 <header class="app-header"><div class="shield"><svg viewBox="0 0 48 56" aria-hidden="true"><path d="M24 3 42 10v15c0 13-8 22-18 28C14 47 6 38 6 25V10Z"></path><circle cx="24" cy="26" r="8"></circle></svg></div><div class="brand"><h1>Search &amp; Rescue</h1><p>Lost Person Behavior Workbench</p></div><div class="header-actions"></div></header>
-<div class="analysis-body">
-<aside class="analysis-panel">
-<section class="analysis-card"><h2>Incident analysis</h2><div class="analysis-grid"><label class="analysis-field">Incident number<input id="analysisIncident" list="analysisIncidents" placeholder="Enter incident ID"><datalist id="analysisIncidents"></datalist></label><label class="analysis-field">Operational period<select id="analysisPeriod"><option value="all">All periods</option></select></label></div><div class="analysis-actions"><button id="refreshWorkspaces" type="button">Refresh incidents</button><button id="runAnalysis" class="primary" type="button">Analyze incident</button></div><p id="analysisStatus" class="analysis-status" role="status">Choose a browser-saved Operations incident.</p></section>
-<section class="analysis-card"><h2>Incident totals</h2><div class="analysis-kpis"><div class="analysis-kpi"><strong id="metricFeatures">0</strong><span>Mapped features</span></div><div class="analysis-kpi"><strong id="metricAssignments">0</strong><span>Assignments</span></div><div class="analysis-kpi"><strong id="metricClues">0</strong><span>Clues</span></div><div class="analysis-kpi"><strong id="metricComplete">0</strong><span>Completed / debriefed</span></div></div></section>
-<section class="analysis-card"><h2>Features by type</h2><div id="featureAnalysis" class="analysis-empty">No incident loaded.</div></section>
-<section class="analysis-card"><h2>Assignment status</h2><div id="assignmentAnalysis" class="analysis-empty">No incident loaded.</div></section>
-<section class="analysis-card"><h2>Operational periods</h2><div id="periodAnalysis" class="analysis-empty">No incident loaded.</div></section>
+<div id="analysisRoot" class="analysis-workspace">
+<aside class="analysis-left" aria-label="Incident filters and list">
+  <div class="rail-head"><h2>Incident analysis</h2><p>Explore a single incident or filtered trends across all incidents.</p></div>
+  <div id="analysisState" class="analysis-state loading" role="status" aria-live="polite">Loading browser workspaces and hosted ArcGIS records…</div>
+  <section class="panel-section" aria-labelledby="filtersTitle"><h3 id="filtersTitle">Filters</h3>
+    <div class="filter-grid">
+      <label class="wide">Incident scope<select id="scopeFilter"><option value="all">All incidents</option></select></label>
+      <label>Start date<input id="startDate" type="date"></label><label>End date<input id="endDate" type="date"></label>
+      <label>Status<select id="statusFilter"><option value="all">All statuses</option></select></label>
+      <label>Subject category<select id="categoryFilter"><option value="all">All categories</option></select></label>
+      <label class="wide">Operational period<select id="periodFilter"><option value="all">All operational periods</option></select></label>
+    </div>
+    <div class="filter-actions"><button id="resetFilters" type="button">Reset</button><button id="applyFilters" class="primary" type="button">Apply filters</button></div>
+    <div id="sourceStatus" class="source-status"><strong>Loading sources</strong><span>Freshness will appear after the first load.</span></div>
+    <button id="reloadData" class="reload-button" type="button">Reload data</button>
+  </section>
+  <section class="panel-section" aria-labelledby="listTitle">
+    <div class="list-head"><h3 id="listTitle">Incident list</h3><span id="incidentCount">0 visible</span></div>
+    <label class="filter-grid"><span class="wide"><span class="sr-only">Search incidents</span><input id="incidentSearch" class="incident-search" type="search" placeholder="Search ID, name, status or category"></span></label>
+    <div id="incidentList" class="incident-list" aria-live="polite"><p class="empty-copy">Loading incidents…</p></div>
+  </section>
 </aside>
-<main class="analysis-map"><div id="viewDiv"></div></main>
+<main class="analysis-map" aria-label="Incident and located-person map">
+  <div id="viewDiv"></div>
+  <fieldset class="map-mode"><legend class="sr-only">Map display</legend>
+    <label><input type="radio" name="mapMode" value="incidents"><span>Incidents</span></label>
+    <label><input type="radio" name="mapMode" value="heat"><span>Located heat</span></label>
+    <label><input type="radio" name="mapMode" value="combined" checked><span>Combined</span></label>
+  </fieldset>
+</main>
+<aside class="analysis-right" aria-label="Filter-linked incident analytics">
+  <div class="rail-head"><h2>Operational analytics</h2><p id="kpiContext" class="kpi-context">No incidents loaded</p><div class="kpi-grid">
+    <div class="kpi"><strong id="metricIncidents">0</strong><span>Incidents</span></div>
+    <div class="kpi"><strong id="metricLocated">0</strong><span>Located incidents</span></div>
+    <div class="kpi"><strong id="metricRate">0%</strong><span>Located rate</span></div>
+    <div class="kpi"><strong id="metricDuration">—</strong><span>Median until located</span></div>
+    <div class="kpi wide"><strong id="metricActive">0</strong><span>Active incidents</span></div>
+  </div></div>
+  <section class="panel-section"><h3>Incident timeline</h3><div id="timelineChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+  <section class="panel-section"><h3>Last seen by day and hour</h3><div id="dayHourChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+  <section class="panel-section"><h3>Time until subject located</h3><div id="durationChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+  <section class="panel-section"><h3>Spatial and population trends</h3><div id="spatialSummary" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+  <section class="panel-section"><h3>Local operational picture</h3><div id="operationalSummary" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+</aside>
 </div>
-<footer class="analysis-footer">Decision support only • Validate analysis with incident command • <a href="https://lostpersonbehavior.com/" target="_blank" rel="noopener">Lost Person Behavior</a></footer>
+<footer class="analysis-footer">Decision support only · Reconcile browser and hosted records with incident command · Protect subject, responder, clue and assignment information.</footer>
 </div>
-<script>
-const SETTINGS=window.SARSettings.load(),$=id=>document.getElementById(id);let current=null;
-require(["esri/Map","esri/views/MapView","esri/layers/GraphicsLayer","esri/Graphic","esri/widgets/Home","esri/widgets/Legend","esri/widgets/Expand","esri/widgets/ScaleBar"],function(Map,MapView,GraphicsLayer,Graphic,Home,Legend,Expand,ScaleBar){
-const layer=new GraphicsLayer({title:"Incident analysis features"}),map=new Map({basemap:SETTINGS.map.basemap||"topo-vector",layers:[layer]}),view=new MapView({container:"viewDiv",map,center:[SETTINGS.map.centerLon,SETTINGS.map.centerLat],zoom:SETTINGS.map.zoom||10});window.__esriView=view;window.__esriMap=map;window.__esriLayers={"Incident analysis features":layer};window.__app={analysis:{load:loadIncident,refresh:discover}};view.ui.add(new Home({view}),"top-left");view.ui.add(new ScaleBar({view,unit:"dual"}),"bottom-left");view.ui.add(new Expand({view,content:new Legend({view}),expandTooltip:"Legend"}),"top-left");
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function saved(){const out=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key.startsWith("sar.operations."))continue;try{const data=JSON.parse(localStorage.getItem(key));if(data?.incident?.id)out.push({key,data})}catch{}}return out.sort((a,b)=>String(a.data.incident.id).localeCompare(String(b.data.incident.id)))}
-function discover(){const list=saved();$("analysisIncidents").innerHTML=list.map(x=>`<option value="${esc(x.data.incident.id)}">${esc(x.data.incident.name||"")}</option>`).join("");$("analysisStatus").textContent=list.length?`${list.length} browser-saved incident${list.length===1?"":"s"} available.`:"No browser-saved incidents found. Load or create an incident in SAR Operations first.";return list}
-function table(rows,label){return rows.length?`<table class="analysis-table"><thead><tr><th>${label}</th><th>Count</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x[0])}</td><td>${x[1]}</td></tr>`).join("")}</tbody></table>`:'<div class="analysis-empty">No records for this filter.</div>'}
-function counts(values,key){const c={};values.forEach(x=>{const v=key(x)||"Not recorded";c[v]=(c[v]||0)+1});return Object.entries(c).sort((a,b)=>b[1]-a[1])}
-function symbol(g){if(g.type==="polygon")return{type:"simple-fill",color:[242,169,0,.16],outline:{color:[242,169,0,.9],width:2}};if(g.type==="polyline")return{type:"simple-line",color:[0,190,230,.9],width:3};return{type:"simple-marker",style:"circle",size:11,color:[242,169,0,.95],outline:{color:[255,255,255,.9],width:1}}}
-function render(){if(!current)return;const period=$("analysisPeriod").value,records=(current.records||[]).filter(r=>period==="all"||+(r.attrs?.operationalPeriod||1)===+period),assignments=(current.assignments||[]).filter(a=>period==="all"||+(a.operationalPeriod||1)===+period);layer.removeAll();records.filter(r=>r.geometry).forEach(r=>layer.add(new Graphic({geometry:r.geometry,symbol:symbol(r.geometry),attributes:{name:r.attrs?.name||r.kind,kind:r.kind,status:r.attrs?.status||""},popupTemplate:{title:"{name}",content:"{kind} · {status}"}})));$("metricFeatures").textContent=records.length;$("metricAssignments").textContent=assignments.length;$("metricClues").textContent=records.filter(r=>r.kind==="clue").length;$("metricComplete").textContent=assignments.filter(a=>["Complete","Debriefed"].includes(a.status)).length;$("featureAnalysis").innerHTML=table(counts(records,r=>r.kind),"Feature type");$("assignmentAnalysis").innerHTML=table(counts(assignments,a=>a.status),"Status");$("periodAnalysis").innerHTML=table(counts([...(current.records||[]),...(current.assignments||[])],x=>`OP ${x.attrs?.operationalPeriod||x.operationalPeriod||1}`),`Period (${SETTINGS.workspace.operationalPeriodHours||12} hours)`);$("analysisStatus").textContent=`Analyzing ${current.incident.name||current.incident.id} · ${records.length} features · ${assignments.length} assignments.`;if(layer.graphics.length)view.goTo(layer.graphics.toArray(),{padding:55}).catch(()=>{})}
-function loadIncident(){const id=$("analysisIncident").value.trim(),found=saved().find(x=>String(x.data.incident.id).toLowerCase()===id.toLowerCase());if(!found){$("analysisStatus").textContent="Incident not found in this browser. Load it in SAR Operations first.";return}current=found.data;const periods=[...new Set([...(current.records||[]).map(r=>+(r.attrs?.operationalPeriod||1)),...(current.assignments||[]).map(a=>+(a.operationalPeriod||1))])].sort((a,b)=>a-b);$("analysisPeriod").innerHTML='<option value="all">All operational periods</option>'+periods.map(p=>`<option value="${p}">OP ${p} · ${SETTINGS.workspace.operationalPeriodHours||12} hours</option>`).join("");render()}
-$("refreshWorkspaces").onclick=discover;$("runAnalysis").onclick=loadIncident;$("analysisPeriod").onchange=render;$("analysisIncident").onkeydown=e=>{if(e.key==="Enter")loadIncident()};const list=discover();if(list.length===1){$("analysisIncident").value=list[0].data.incident.id;loadIncident()}
-});
-</script>
+<script src="./analysis.js?v=20261115-1"></script>
 <script src="./reports.js?v=20261110-7"></script>
 <script src="./auth.js"></script>
 <script src="./header-nav.js?v=20261110-3"></script>
-</body></html>
+</body>
+</html>
