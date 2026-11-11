@@ -53,6 +53,7 @@ assert.match(operationsHtml, /CELL PING:/);
 assert.match(operationsHtml, /ASSET:/);
 assert.match(operationsHtml, /serviceRoot\+"\/2"/);
 assert.match(operationsHtml, /SketchViewModel/);
+for(const html of [appHtml,operationsHtml]) { assert.match(html,/goToOverride/); assert.match(html,/zoom:\s*16/); }
 assert.match(operationsHtml, /type:'text',text:/);
 assert.match(operationsHtml, /data-layer-zoom/);
 assert.match(operationsHtml, /view\.openPopup/);

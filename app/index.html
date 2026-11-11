@@ -1106,7 +1106,16 @@ require([
   const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,Extent,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
-  view.ui.add(new Search({view}), "top-right");
+  const addressSearch = new Search({
+    view,
+    goToOverride: (searchView, goToParams) => {
+      const target = goToParams.target;
+      const geometry = target?.geometry || target?.target || target;
+      const destination = geometry?.type === "point" ? {target: geometry, zoom: 16} : target;
+      return searchView.goTo(destination, {animate:true, duration:700});
+    }
+  });
+  view.ui.add(addressSearch, "top-right");
   view.ui.add(new ScaleBar({view, unit:"dual"}), "bottom-left");
   view.ui.add(new Home({view}), "top-left");
 
