@@ -1,9 +1,12 @@
 "use strict";
 const assert=require("assert"),fs=require("fs"),path=require("path");
-const source=fs.readFileSync(path.join(__dirname,"../app/reports.js"),"utf8"),operations=fs.readFileSync(path.join(__dirname,"../app/operations.html"),"utf8");
+const source=fs.readFileSync(path.join(__dirname,"../app/reports.js"),"utf8"),operations=fs.readFileSync(path.join(__dirname,"../app/operations.html"),"utf8"),header=fs.readFileSync(path.join(__dirname,"../app/header-nav.js"),"utf8");
 for(const id of ["tab-reports","operationsReportAssignment","operationsAssignmentReport"])assert.ok(operations.includes(`id="${id}"`));
 for(const label of ["Large-scale map (BAM)","ANSI E, 44 × 34-inch landscape PDF","Legal, 14 × 8.5-inch landscape PDF","Letter, 11 × 8.5-inch landscape PDF","Clue Report with map","Assignment Report"])assert.ok(operations.includes(label),label);
 assert.match(operations,/value="reports">Reports/);
+assert.match(operations,/openReportsFromHash/);
+assert.match(header,/sarOperationsReportsNav/);
+assert.match(header,/Open Operations reports/);
 assert.doesNotMatch(source,/prompt\s*\(/);
 assert.match(source,/"map-ansi-e": \{ title: "Large-scale map \(BAM\)", format: \[3168, 2448\]/);
 assert.match(source,/"map-legal": \{ title: "Small map", format: "legal"/);

@@ -13,9 +13,16 @@
     var file = location.pathname.split("/").pop() || "index.html", active = file === href.replace("./", "");
     el.setAttribute("appearance", active ? "solid" : "outline-fill"); if (active) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current"); return el;
   }
+  var page = location.pathname.split("/").pop() || "index.html";
   var reports = document.getElementById("sarReportsControl");
   var planning = nav("sarPlanningNav", "./index.html", "analysis", "SAR Planning");
   var operations = nav("sarOperationsNav", "./operations.html", "map-pin", "SAR Operations");
+  var operationsReports = null;
+  if (page === "operations.html") {
+    operationsReports = document.createElement("calcite-button");
+    operationsReports.id = "sarOperationsReportsNav"; operationsReports.setAttribute("appearance", "outline-fill"); operationsReports.setAttribute("kind", "brand"); operationsReports.setAttribute("scale", "m"); operationsReports.setAttribute("icon-start", "file-pdf"); operationsReports.setAttribute("title", "Open Operations reports"); operationsReports.setAttribute("aria-label", "Open Operations reports"); operationsReports.textContent = "Reports";
+    operationsReports.onclick = function () { var item = document.querySelector('#tabs calcite-segmented-control-item[value="reports"]'); if (item) item.click(); var panel = document.querySelector("#body .panel"); if (panel) panel.scrollTop = 0; history.replaceState(null, "", location.pathname + location.search + "#reports"); };
+  }
   var analysis = nav("sarAnalysisNav", "./analysis.html", "graph-bar", "Incident Analysis");
   var settings = nav("sarSettingsNav", "./settings.html", "gear", "Settings");
   var session = document.getElementById("sarSessionArea");
@@ -28,7 +35,7 @@
   copy.innerHTML = '<strong>' + (appSettings?.branding?.appName || "Search & Rescue") + '</strong><span>' + (appSettings?.branding?.subtitle || "Lost Person Behavior Workbench") + '</span>';
   brand.append(shield, copy);
   var primary = document.createElement("nav"); primary.className = "sar-primary-nav"; primary.setAttribute("aria-label", "Primary navigation");
-  [reports, planning, operations, analysis].forEach(function (el) { if (el) primary.appendChild(el); });
+  [reports, planning, operations, operationsReports, analysis].forEach(function (el) { if (el) primary.appendChild(el); });
   if (!session) { session = document.createElement("div"); session.id = "sarSessionArea"; session.className = "sar-session-area"; }
   session.classList.add("sar-session-nav"); session.appendChild(settings);
   var filterBar = null;
