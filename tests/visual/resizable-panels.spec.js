@@ -7,6 +7,15 @@ const pages = [
   { path: "/settings.html#help", panels: ["settings-help"] }
 ];
 
+async function useLocalShell(page, definition) {
+  await page.route(/^https:\/\//, route => route.abort());
+  if (definition.path.includes("index")) await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => setTimeout(() => {
+    if (document.getElementById("planningAssignmentPanel")) return;
+    const panel = document.createElement("aside"); panel.id = "planningAssignmentPanel"; panel.setAttribute("aria-label", "Assignment and asset design");
+    document.getElementById("body")?.appendChild(panel);
+  }, 0)));
+}
+
 async function ready(page, definition) {
   await page.goto(definition.path, { waitUntil: "domcontentloaded" });
   for (const id of definition.panels) await page.waitForSelector(`[data-resize-panel="${id}"]`, { state: "attached", timeout: 45000 });
@@ -17,6 +26,7 @@ for (const definition of pages) {
   test(`${definition.path} sidebars support drag, keyboard, persistence and reset`, async ({ page }, testInfo) => {
     test.setTimeout(120000);
     test.skip(testInfo.project.name.includes("mobile"), "Desktop contract; mobile behavior has a dedicated test.");
+    await useLocalShell(page, definition);
     await ready(page, definition);
     for (const id of definition.panels) {
       const handle = page.locator(`[data-resize-panel="${id}"]`);
@@ -59,6 +69,7 @@ for (const definition of pages) {
 
 test("malformed and out-of-range saved widths are safely clamped", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name.includes("mobile"), "Desktop clamping contract.");
+  await useLocalShell(page, { path: "/operations.html" });
   await page.addInitScript(() => {
     localStorage.setItem("sar.layout.operations.left.v1", "not-a-number");
     localStorage.setItem("sar.layout.operations.layers.v1", "99999");
@@ -73,7 +84,8 @@ test("malformed and out-of-range saved widths are safely clamped", async ({ page
 test("Planning attaches one handle when the assignment panel is created dynamically", async ({ page }, testInfo) => {
   test.setTimeout(90000);
   test.skip(testInfo.project.name.includes("mobile"), "Desktop dynamic attachment contract.");
-  await page.goto("/index.html");
+  await useLocalShell(page, { path: "/index.html" });
+  await page.goto("/index.html", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("#planningAssignmentPanel [data-resize-panel='planning-right']"));
   await page.evaluate(() => { window.__app.layout.scan(); window.__app.layout.scan(); });
   await expect(page.locator('#planningAssignmentPanel [data-resize-panel="planning-right"]')).toHaveCount(1);
