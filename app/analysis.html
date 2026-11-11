@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
 <link rel="stylesheet" href="./theme.css?v=20261110-7">
-<link rel="stylesheet" href="./analysis.css?v=20261118-1">
+<link rel="stylesheet" href="./analysis.css?v=20261119-1">
 <link rel="stylesheet" href="./resizable-panels.css?v=20261118-1">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="./settings.js?v=20261112-1"></script>
@@ -24,65 +24,85 @@
 <div id="app">
 <header class="app-header"><div class="shield"><svg viewBox="0 0 48 56" aria-hidden="true"><path d="M24 3 42 10v15c0 13-8 22-18 28C14 47 6 38 6 25V10Z"></path><circle cx="24" cy="26" r="8"></circle></svg></div><div class="brand"><h1>Search &amp; Rescue</h1><p>Lost Person Behavior Workbench</p></div><div class="header-actions"></div></header>
 <div id="analysisRoot" class="analysis-workspace" aria-busy="true">
-<aside class="analysis-left" aria-label="Incident filters and list">
-  <div class="rail-head"><h2>Incident analysis</h2><p>Explore a single incident or filtered trends across all incidents.</p></div>
-  <div id="analysisState" class="analysis-state loading" role="status" aria-live="polite">Loading browser workspaces and hosted ArcGIS records…</div>
-  <section class="panel-section" aria-labelledby="filtersTitle"><h3 id="filtersTitle">Filters</h3>
-    <div class="filter-grid">
-      <label class="wide">Incident scope<select id="scopeFilter"><option value="all">All incidents</option></select></label>
-      <label>Start date<input id="startDate" type="date"></label><label>End date<input id="endDate" type="date"></label>
-      <label>Status<select id="statusFilter"><option value="all">All statuses</option></select></label>
-      <label>Subject category<select id="categoryFilter"><option value="all">All categories</option></select></label>
-      <label class="wide">Operational period<select id="periodFilter"><option value="all">All operational periods</option></select></label>
+  <section class="analysis-command" aria-label="Incident analysis summary">
+    <div class="analysis-intro">
+      <span class="analysis-kicker">Command center analysis</span>
+      <h2>Incident patterns and operational outcomes</h2>
+      <p>Filter-linked analysis of browser workspaces and hosted ArcGIS incident records. Data refreshes on demand.</p>
     </div>
-    <div class="filter-actions"><button id="resetFilters" type="button">Reset</button><button id="applyFilters" class="primary" type="button">Apply filters</button></div>
-    <div id="sourceStatus" class="source-status"><strong>Loading sources</strong><span>Freshness will appear after the first load.</span></div>
-    <button id="reloadData" class="reload-button" type="button">Reload data</button>
+    <div class="command-kpis">
+      <div class="command-context"><span>Current view</span><strong id="kpiContext" class="kpi-context">No incidents loaded</strong></div>
+      <div class="kpi"><span>Total incidents</span><strong id="metricIncidents">0</strong></div>
+      <div class="kpi"><span>Located incidents</span><strong id="metricLocated">0</strong></div>
+      <div class="kpi"><span>Located rate</span><strong id="metricRate">0%</strong></div>
+      <div class="kpi"><span>Median until located</span><strong id="metricDuration">—</strong></div>
+      <div class="kpi"><span>Active incidents</span><strong id="metricActive">0</strong></div>
+    </div>
   </section>
-  <section class="panel-section" aria-labelledby="listTitle">
-    <div class="list-head"><h3 id="listTitle">Incident list</h3><span id="incidentCount">0 visible</span></div>
-    <label class="filter-grid"><span class="wide"><span class="sr-only">Search incidents</span><input id="incidentSearch" class="incident-search" type="search" placeholder="Search ID, name, status or category"></span></label>
-    <div id="incidentList" class="incident-list" aria-live="polite"><p class="empty-copy">Loading incidents…</p></div>
+
+  <aside class="analysis-left" aria-label="Incident filters and list">
+    <div class="rail-head"><h2>Analysis filters</h2><p>Selections update every map, chart and export.</p></div>
+    <div id="analysisState" class="analysis-state loading" role="status" aria-live="polite">Loading browser workspaces and hosted ArcGIS records…</div>
+    <section class="panel-section" aria-labelledby="filtersTitle"><h3 id="filtersTitle">Incident selection</h3>
+      <div class="filter-grid">
+        <label class="wide">Incident scope<select id="scopeFilter"><option value="all">All incidents</option></select></label>
+        <label>Start date<input id="startDate" type="date"></label><label>End date<input id="endDate" type="date"></label>
+        <label>Status<select id="statusFilter"><option value="all">All statuses</option></select></label>
+        <label>Subject category<select id="categoryFilter"><option value="all">All categories</option></select></label>
+        <label class="wide">Operational period<select id="periodFilter"><option value="all">All operational periods</option></select></label>
+      </div>
+      <div class="filter-actions"><button id="resetFilters" type="button">Reset</button><button id="applyFilters" class="primary" type="button">Apply filters</button></div>
+      <div id="sourceStatus" class="source-status"><strong>Loading sources</strong><span>Freshness will appear after the first load.</span></div>
+      <button id="reloadData" class="reload-button" type="button">Reload data</button>
+    </section>
+    <section class="panel-section incident-panel" aria-labelledby="listTitle">
+      <div class="list-head"><h3 id="listTitle">Incident details</h3><span id="incidentCount">0 visible</span></div>
+      <label class="filter-grid"><span class="wide"><span class="sr-only">Search incidents</span><input id="incidentSearch" class="incident-search" type="search" placeholder="Search ID, name, status or category"></span></label>
+      <div id="incidentList" class="incident-list" aria-live="polite"><p class="empty-copy">Loading incidents…</p></div>
+    </section>
+  </aside>
+
+  <section class="analysis-primary" aria-label="Incident hotspot and time-of-day analysis">
+    <article class="dashboard-card map-card">
+      <div class="card-title"><h3>Incident hotspots</h3><span>Incident and located-subject geography</span></div>
+      <main class="analysis-map" aria-label="Incident and located-person map">
+        <div id="viewDiv"></div>
+        <fieldset class="map-mode"><legend class="sr-only">Map display</legend>
+          <label><input type="radio" name="mapMode" value="incidents"><span>Incidents</span></label>
+          <label><input type="radio" name="mapMode" value="heat"><span>Located heat</span></label>
+          <label><input type="radio" name="mapMode" value="combined" checked><span>Combined</span></label>
+        </fieldset>
+      </main>
+    </article>
+    <article class="dashboard-card heat-card panel-section">
+      <div class="card-title"><h3>Incidents by time of day</h3><span>Last seen · weekday and UTC hour</span></div>
+      <div id="dayHourChart" aria-live="polite"><p class="empty-copy">Loading…</p></div>
+    </article>
   </section>
-</aside>
-<main class="analysis-map" aria-label="Incident and located-person map">
-  <div id="viewDiv"></div>
-  <fieldset class="map-mode"><legend class="sr-only">Map display</legend>
-    <label><input type="radio" name="mapMode" value="incidents"><span>Incidents</span></label>
-    <label><input type="radio" name="mapMode" value="heat"><span>Located heat</span></label>
-    <label><input type="radio" name="mapMode" value="combined" checked><span>Combined</span></label>
-  </fieldset>
-</main>
-<aside class="analysis-right" aria-label="Filter-linked incident analytics">
-  <div class="rail-head"><h2>Operational analytics</h2><p id="kpiContext" class="kpi-context">No incidents loaded</p><div class="kpi-grid">
-    <div class="kpi"><strong id="metricIncidents">0</strong><span>Incidents</span></div>
-    <div class="kpi"><strong id="metricLocated">0</strong><span>Located incidents</span></div>
-    <div class="kpi"><strong id="metricRate">0%</strong><span>Located rate</span></div>
-    <div class="kpi"><strong id="metricDuration">—</strong><span>Median until located</span></div>
-    <div class="kpi wide"><strong id="metricActive">0</strong><span>Active incidents</span></div>
-  </div></div>
-  <section class="panel-section"><h3>Incident timeline</h3><div id="timelineChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
-  <section class="panel-section"><h3>Last seen by day and hour</h3><div id="dayHourChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
-  <section class="panel-section"><h3>Time until subject located</h3><div id="durationChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
-  <section class="panel-section"><h3>Spatial and population trends</h3><div id="spatialSummary" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
-  <section class="panel-section"><h3>Local operational picture</h3><div id="operationalSummary" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
-</aside>
-<section class="analysis-bottom" aria-label="Filter-linked incident date analytics">
-  <article class="analytics-card" aria-labelledby="comboTitle">
-    <h2 id="comboTitle">Incident volume and cumulative timeline</h2>
-    <p class="chart-description">Last-seen incident volume per adaptive UTC date bucket; the line is the cumulative filtered incident count.</p>
-    <div id="comboChart" aria-live="polite"><p class="empty-copy">Loading…</p></div>
-  </article>
-  <article class="analytics-card" aria-labelledby="monthDayTitle">
-    <h2 id="monthDayTitle">Incident last-seen count by month and day (UTC)</h2>
-    <p class="chart-description">Filtered incident last-seen timestamps, grouped by UTC calendar month and day. Invalid dates are excluded.</p>
-    <div id="monthDayChart" aria-live="polite"><p class="empty-copy">Loading…</p></div>
-  </article>
-</section>
+
+  <aside class="analysis-right" aria-label="Filter-linked incident analytics">
+    <section class="panel-section"><h3>Incident timeline</h3><div id="timelineChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+    <section class="panel-section"><h3>Time until subject located</h3><div id="durationChart" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+    <section class="panel-section"><h3>Spatial and population trends</h3><div id="spatialSummary" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+    <section class="panel-section"><h3>Local operational picture</h3><div id="operationalSummary" aria-live="polite"><p class="empty-copy">Loading…</p></div></section>
+  </aside>
+
+  <section class="analysis-bottom" aria-label="Filter-linked incident date analytics">
+    <article class="analytics-card" aria-labelledby="comboTitle">
+      <h2 id="comboTitle">Incident trend</h2>
+      <p class="chart-description">Last-seen incident volume per adaptive UTC date bucket; line shows cumulative filtered incidents.</p>
+      <div id="comboChart" aria-live="polite"><p class="empty-copy">Loading…</p></div>
+    </article>
+    <article class="analytics-card" aria-labelledby="monthDayTitle">
+      <h2 id="monthDayTitle">Incidents by month and day</h2>
+      <p class="chart-description">Filtered incident last-seen timestamps grouped by UTC calendar date.</p>
+      <div id="monthDayChart" aria-live="polite"><p class="empty-copy">Loading…</p></div>
+    </article>
+  </section>
 </div>
 <footer class="analysis-footer">Decision support only · Reconcile browser and hosted records with incident command · Protect subject, responder, clue and assignment information.</footer>
 </div>
-<script src="./analysis.js?v=20261116-1"></script>
+<script src="./analysis.js?v=20261119-1"></script>
 <script src="./resizable-panels.js?v=20261118-1"></script>
 <script src="./reports.js?v=20261110-7"></script>
 <script src="./auth.js"></script>

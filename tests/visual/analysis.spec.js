@@ -104,7 +104,7 @@ test("analysis loading, empty and error states are explicit", async ({ page }) =
 
 test("desktop and mobile keep map first without horizontal overflow", async ({ page }, testInfo) => {
   await openReady(page);
-  const layout = await page.evaluate(() => { const map = document.querySelector(".analysis-map").getBoundingClientRect(), left = document.querySelector(".analysis-left").getBoundingClientRect(), right = document.querySelector(".analysis-right").getBoundingClientRect(), bottom = document.querySelector(".analysis-bottom").getBoundingClientRect(); return { width: innerWidth, scroll: document.documentElement.scrollWidth, map, left, right, bottom }; });
+  const layout = await page.evaluate(() => { const map = document.querySelector(".analysis-map").getBoundingClientRect(), heat = document.querySelector(".heat-card").getBoundingClientRect(), left = document.querySelector(".analysis-left").getBoundingClientRect(), right = document.querySelector(".analysis-right").getBoundingClientRect(), bottom = document.querySelector(".analysis-bottom").getBoundingClientRect(); return { width: innerWidth, scroll: document.documentElement.scrollWidth, map, heat, left, right, bottom }; });
   expect(layout.scroll).toBeLessThanOrEqual(layout.width + 1);
   if (testInfo.project.name.includes("mobile")) {
     expect(layout.map.top).toBeLessThan(layout.bottom.top);
@@ -114,11 +114,12 @@ test("desktop and mobile keep map first without horizontal overflow", async ({ p
   } else {
     expect(layout.map.width).toBeGreaterThan(layout.left.width);
     expect(layout.map.height).toBeGreaterThan(400);
-    expect(layout.map.height).toBeGreaterThan(layout.bottom.height * 2);
-    expect(layout.bottom.top).toBeGreaterThanOrEqual(layout.map.bottom - 1);
-    expect(layout.bottom.left).toBeCloseTo(layout.map.left, 0);
-    expect(layout.bottom.right).toBeCloseTo(layout.right.right, 0);
-    expect(layout.bottom.height).toBeGreaterThanOrEqual(220);
-    expect(layout.bottom.height).toBeLessThanOrEqual(280);
+    expect(layout.heat.top).toBeLessThanOrEqual(layout.map.top + 1);
+    expect(layout.heat.height).toBeGreaterThanOrEqual(layout.map.height);
+    expect(layout.left.left).toBeGreaterThan(layout.heat.right);
+    expect(layout.bottom.top).toBeGreaterThanOrEqual(layout.right.bottom - 1);
+    expect(Math.abs(layout.bottom.left - layout.map.left)).toBeLessThanOrEqual(2);
+    expect(Math.abs(layout.bottom.right - layout.right.right)).toBeLessThanOrEqual(2);
+    expect(layout.bottom.height).toBeGreaterThanOrEqual(250);
   }
 });

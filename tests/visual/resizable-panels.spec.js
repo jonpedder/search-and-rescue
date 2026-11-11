@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const pages = [
   { path: "/index.html", panels: ["planning-left", "planning-right"], map: "#body > main", dynamic: true },
   { path: "/operations.html", panels: ["operations-left", "operations-layers"], map: ".map-shell" },
-  { path: "/analysis.html?hosted=off", panels: ["analysis-left", "analysis-right"], map: ".analysis-map" },
+  { path: "/analysis.html?hosted=off", panels: ["analysis-left"], map: ".analysis-map" },
   { path: "/settings.html#help", panels: ["settings-help"] }
 ];
 

@@ -6,8 +6,8 @@ assert.equal(R.clamp(500, 200, 400), 400);
 assert.equal(R.clamp(275, 200, 400), 275);
 assert.equal(R.finiteWidth("320"), 320);
 assert.equal(R.finiteWidth("not-a-width"), null);
-assert.equal(R.pageConfigs.length, 7, "all genuine persistent sidebars share one registry");
-assert.equal(new Set(R.pageConfigs.map(x => x.key)).size, 7, "storage keys are panel-specific");
+assert.equal(R.pageConfigs.length, 6, "all genuine persistent sidebars share one registry");
+assert.equal(new Set(R.pageConfigs.map(x => x.key)).size, 6, "storage keys are panel-specific");
 for (const config of R.pageConfigs) {
   assert(config.key.startsWith("sar.layout.") && config.key.endsWith(".v1"), config.id + " has a versioned storage key");
   assert(config.min < config.defaultWidth && config.defaultWidth < config.max, config.id + " has sensible limits");
@@ -16,7 +16,7 @@ for (const config of R.pageConfigs) {
 const expected = {
   "index.html": ["sar.layout.planning.left.v1", "sar.layout.planning.right.v1"],
   "operations.html": ["sar.layout.operations.left.v1", "sar.layout.operations.layers.v1"],
-  "analysis.html": ["sar.layout.analysis.left.v1", "sar.layout.analysis.right.v1"],
+  "analysis.html": ["sar.layout.analysis.left.v1"],
   "settings.html": ["sar.layout.settings.help.v1"]
 };
 for (const [file, keys] of Object.entries(expected)) {
