@@ -51,7 +51,7 @@
     return { type: "simple-marker", style: kind === "hazard" ? "triangle" : kind === "facility" ? "square" : "circle", size: 14, color: kind === "hazard" ? [220, 60, 50, 1] : [242, 169, 0, 1], outline: { color: [0, 59, 92, 1], width: 2 } };
   }
   function legendFor(records) {
-    var rows = [], seen = new Set();
+    var rows = [{ label: "USGS Topo reference", color: [181, 170, 137] }], seen = new Set();
     records.forEach(function (record) { var label = record.kind === "segment" ? "Assignment · " + (record.attrs?.status || "Unassigned") : ({ area: "Operational area", exclusion: "No-search area", route: "Planned route", track: "Field track", clue: "Clue", asset: "Resource / asset", facility: "Facility", lz: "Landing zone", pls: "PLS / LKP", hazard: "Hazard", ping: "Cell ping", range: "Range ring" })[record.kind] || record.kind; if (!seen.has(label)) { seen.add(label); rows.push({ label: label, color: record.kind === "segment" ? statusColor(record.attrs?.status) : record.kind === "track" ? [0, 158, 115] : record.kind === "hazard" ? [220, 60, 50] : [242, 169, 0] }); } });
     return rows.slice(0, 12);
   }

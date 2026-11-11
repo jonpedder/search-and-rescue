@@ -1074,6 +1074,7 @@ window.addEventListener("storage", e => { if(e.key === window.SARSettings?.STORA
 
 <script src="./bookmarks.js?v=20261112-1"></script>
 <script src="./terrain-3d.js?v=20261118-1"></script>
+<script src="./map-legend.js?v=20261118-1"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
 <script>
 require([
@@ -1110,7 +1111,7 @@ require([
   const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.usgsTopo, layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,Extent,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
-  window.__app.planning.terrain3D=window.SARTerrain3D.init({map,view,SceneView});
+  window.__app.planning.terrain3D=window.SARTerrain3D.init({map,view,SceneView,Legend,Expand});
   const addressSearch = new Search({
     view,
     goToOverride: (searchView, goToParams) => {
@@ -1155,7 +1156,7 @@ require([
   communicationsBody.querySelector("#estimateTowerCoverage").onclick=async e=>{const b=e.currentTarget,radius=+communicationsBody.querySelector("#towerRadius").value,status=communicationsBody.querySelector("#towerStatus");if(!Number.isFinite(radius)||radius<0.5||radius>50){toast("Coverage radius must be between 0.5 and 50 km.",true);return}b.loading=true;try{const layer=await ensureTowerLayer(),q=layer.createQuery();q.geometry=view.extent;q.spatialRelationship="intersects";q.returnGeometry=true;q.outFields=layer.outFields;q.num=300;const result=await layer.queryFeatures(q);layers.towerCoverage.removeAll();const area=Math.PI*radius*radius;const graphics=result.features.map(f=>new Graphic({geometry:geometryEngine.geodesicBuffer(f.geometry,radius,"kilometers"),attributes:{towerId:f.attributes.FID,callsign:f.attributes.Callsign||"Unknown",licensee:f.attributes.Licensee||"Unknown",radiusKm:radius,areaKm2:area},symbol:{type:"simple-fill",color:[0,188,212,0.08],outline:{color:[0,188,212,0.65],width:1}},popupTemplate:{title:"Estimated coverage — {callsign}",content:"<b>Licensee:</b> {licensee}<br><b>Planning radius:</b> {radiusKm} km<br><b>Circle area:</b> {areaKm2} km²<br><br><i>Planning estimate only; not verified carrier RF coverage.</i>"}}));layers.towerCoverage.addMany(graphics);status.textContent=graphics.length+" tower coverage estimates drawn at "+radius+" km radius"+(result.exceededTransferLimit?" (limited to the first 300 towers in view)":"")+". Not verified RF service.";toast("Estimated coverage for "+graphics.length+" towers.")}catch(error){toast("Coverage estimate failed: "+error.message,true)}finally{b.loading=false}};
   communicationsBody.querySelector("#clearTowerCoverage").onclick=()=>{layers.towerCoverage.removeAll();communicationsBody.querySelector("#towerStatus").textContent="Coverage estimates cleared. Tower locations remain available in Layers."};
   addNativeExpand(communicationsBody,"Cell towers and estimated coverage","top-left","antenna-height");
-  addNativeExpand(new Legend({view}), "Legend");
+  addNativeExpand(window.SARMapLegend.create({map,view,Legend}), "Legend");
   const livingAtlasLoaded = new Set(), livingAtlasPortal = new Portal({url:"https://www.arcgis.com"});
   layerBody.querySelector("#loadLivingAtlas").onclick = async e => {
     const button = e.currentTarget, status = layerBody.querySelector("#livingAtlasStatus");

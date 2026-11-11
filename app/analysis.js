@@ -225,8 +225,8 @@
       var map = new Map({ basemap: SETTINGS.map.basemap || "dark-gray-vector", layers: [usgsTopo, heatLayer, incidentLayer, findPointLayer] });
       var view = new MapView({ container: "viewDiv", map: map, center: [SETTINGS.map.centerLon || -98, SETTINGS.map.centerLat || 39], zoom: Math.min(SETTINGS.map.zoom || 4, 6) });
       window.__esriView = view; window.__esriMap = map; window.__esriLayers = { "USGS Topo": usgsTopo, "Incident locations": incidentLayer, "Located subject observations": heatLayer, "Located points": findPointLayer };
-      window.__app = window.__app || {}; window.__app.analysisTerrain3D = window.SARTerrain3D.init({ map: map, view: view, SceneView: SceneView });
-      view.ui.add(new Home({ view: view }), "top-left"); view.ui.add(new Search({ view: view }), "top-right"); view.ui.add(new ScaleBar({ view: view, unit: "dual" }), "bottom-left"); view.ui.add(new Expand({ view: view, content: new Legend({ view: view }), expandTooltip: "Legend", group: "analysis" }), "top-left");
+      window.__app = window.__app || {}; window.__app.analysisTerrain3D = window.SARTerrain3D.init({ map: map, view: view, SceneView: SceneView, Legend: Legend, Expand: Expand });
+      view.ui.add(new Home({ view: view }), "top-left"); view.ui.add(new Search({ view: view }), "top-right"); view.ui.add(new ScaleBar({ view: view, unit: "dual" }), "bottom-left"); view.ui.add(new Expand({ view: view, content: window.SARMapLegend.create({ map: map, view: view, Legend: Legend }), expandTooltip: "Legend", group: "analysis" }), "top-left");
       if (window.SARBookmarks) window.__analysisBookmarks = window.SARBookmarks.init({ view: view, Bookmarks: null, Bookmark: null, Expand: Expand, group: "analysis", position: "top-left", storageKey: "sar.bookmarks.analysis.v1" });
 
       function setPhase(phase, message) { state.phase = phase; $("analysisRoot").setAttribute("aria-busy", phase === "loading" ? "true" : "false"); $("analysisState").className = "analysis-state " + phase; $("analysisState").textContent = message || ""; $("analysisState").hidden = !message; }

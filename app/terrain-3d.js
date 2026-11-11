@@ -15,7 +15,7 @@
 
   function init(options) {
     options = options || {};
-    var map = options.map, mapView = options.view, SceneView = options.SceneView;
+    var map = options.map, mapView = options.view, SceneView = options.SceneView, Legend = options.Legend, Expand = options.Expand;
     if (!map || !mapView || !SceneView || typeof document === "undefined") throw new Error("Map, MapView and SceneView are required.");
     addStyles();
     var viewNode = mapView.container;
@@ -59,6 +59,11 @@
           ui: { components: ["zoom", "navigation-toggle", "compass", "attribution"] }
         });
         await sceneView.when();
+        if (Legend) {
+          var legend = window.SARMapLegend ? window.SARMapLegend.create({ map: map, view: sceneView, Legend: Legend }) : new Legend({ view: sceneView, respectLayerVisibility: true });
+          if (Expand) sceneView.ui.add(new Expand({ id: "sarTerrainLegendExpand", view: sceneView, content: legend, expandTooltip: "Legend", expandIcon: "legend", group: "terrain-tools" }), "top-left");
+          else sceneView.ui.add(legend, "bottom-right");
+        }
       }
       await sceneView.goTo({ target: mapView.center, scale: mapView.scale, tilt: 60, heading: 0 }, { animate: false });
       button.textContent = "2D Map";
