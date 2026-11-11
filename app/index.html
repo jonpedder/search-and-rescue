@@ -1073,10 +1073,11 @@ window.addEventListener("storage", e => { if(e.key === window.SARSettings?.STORA
 </script>
 
 <script src="./bookmarks.js?v=20261112-1"></script>
+<script src="./terrain-3d.js?v=20261118-1"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
 <script>
 require([
-  "esri/config","esri/Map","esri/views/MapView","esri/Graphic","esri/layers/GraphicsLayer","esri/layers/FeatureLayer",
+  "esri/config","esri/Map","esri/views/MapView","esri/views/SceneView","esri/Graphic","esri/layers/GraphicsLayer","esri/layers/FeatureLayer",
   "esri/widgets/Search","esri/widgets/Sketch","esri/widgets/ScaleBar","esri/geometry/Extent",
   "esri/geometry/support/webMercatorUtils","esri/identity/OAuthInfo","esri/identity/IdentityManager",
   "esri/layers/ElevationLayer","esri/geometry/Multipoint","esri/layers/MediaLayer",
@@ -1084,7 +1085,7 @@ require([
   "esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Measurement",
   "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/Bookmarks","esri/webmap/Bookmark","esri/widgets/CoordinateConversion","esri/widgets/Print",
   "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer","esri/layers/TileLayer","esri/geometry/geometryEngine"
-], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
+], function(esriConfig, Map, MapView, SceneView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
             webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference,
             LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, Bookmarks, Bookmark, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer, TileLayer, geometryEngine){
 
@@ -1109,6 +1110,7 @@ require([
   const map = new Map({basemap: APP_SETTINGS.map.basemap, layers: [layers.usgsTopo, layers.towerCoverage, layers.seg, layers.ring, layers.sector, layers.trail, layers.label, layers.ipp, layers.notes]});
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,Extent,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
+  window.__app.planning.terrain3D=window.SARTerrain3D.init({map,view,SceneView});
   const addressSearch = new Search({
     view,
     goToOverride: (searchView, goToParams) => {
