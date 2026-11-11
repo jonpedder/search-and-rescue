@@ -6,14 +6,15 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 
 ## What it does
 
-- Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; a right-side Planning panel prepares segment assignments, team names and task descriptions and zooms/flashes the selected segment on the map, while Operations confirms Assigned/Complete/Abandoned status, records the team debrief POD, and decides whether the area should be searched again
+- Provides paired **SAR Planning** and [**SAR Operations**](docs/SAR_OPERATIONS.md) pages; the right-side **Assignment & Asset Design** panel separately lists every assignment and planning asset with counts, type/name/status details and keyboard-accessible zoom/flash controls, while Operations confirms Unassigned/Assigned/Complete/Abandoned status, records the team debrief POD, and decides whether the area should be searched again
 - Captures a structured lost-person interview covering immediate planning, health, clothing/equipment, experience, trip plans, behavior and prior actions; converts supported answers into reviewable planning cues
 - Accepts up to eight compressed subject photographs, supports individual removal, and includes every image in named plans and the Missing Person Profile PDF
 - Automatically restores the current Planning workspace after navigating to Operations and back, and saves/retrieves named browser-local incident plans with the profile, interview, scenarios, model settings, operational period, map lines, current map extent, search segments and subject photographs
 - Initializes operational period 1 from the current time to the next local noon or midnight boundary
 - Looks up LPB statistics by subject category, environment and terrain, with fallback and sample-size warnings
 - Builds distance rings, direction sectors, linear-feature proximity, DEM travel time (Tobler hiking function) and elevation bias
-- Provides a concise Assignment Editing Palette for buffered point-to-point/freehand lines, direct assignment polygons and named asset points; all edits persist with the incident and hand off to Operations
+- Provides a concise Assignment Editing Palette for buffered point-to-point/freehand lines, status-colored assignment polygons and named asset points; assignment status changes immediately recolor linked polygons, required fields receive accessible inline validation, and all edits persist with the incident and hand off to Operations
+- Renders Ground Team, Canine, Air, Command, Medical and Vehicle asset points with locally hosted official NAPSG SVGs (with the existing SAR symbol as the Other fallback) in both Planning and Operations
 - Blends layers by adjustable weights and scenarios into ranked search segments
 - Tracks POA, POD and POS as search results come in
 - Shows survivability over time since last seen for every selectable subject category; bundled fallback curves are explicitly marked as placeholders until agency-approved data is loaded
