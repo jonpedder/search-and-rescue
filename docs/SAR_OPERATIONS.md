@@ -50,6 +50,14 @@ Assets and cell pings use structured JSON in `KeyPoints.notes` because the curre
 
 A cell-ping sector records a source point, radius, bearing, and angular width. It is an investigative visualization, not a guaranteed device location or RF propagation model. It does not account for timing advance interpretation, carrier uncertainty, terrain, antenna patterns, network configuration, or device behavior. Record provider, timestamp, method, confidence, and legal/operational provenance in the notes.
 
+## Missing Person Flyer
+
+Planning’s Reports selector and the visible Operations Reports card open the same accessible review dialog. Operations reads the latest browser-saved Planning report snapshot; it gives an actionable error when that snapshot does not exist. The dialog prefills available name, age, sex/gender, clothing, last-seen date/time and subject photos, but flyer edits never alter the analytical subject category or model inputs.
+
+Operators can enter DOB, age, sex/gender, race, eyes, hair, height, weight, wearing and identifying characteristics, choose one existing PNG/JPEG subject photo, and complete the public contact panel. Draft text and the selected photo index are stored in browser local storage under an incident-scoped key where practical, with a generic fallback; image data is not duplicated. Reset returns the form to current Planning values and Cancel closes it without export.
+
+The generated PDF is exactly one US Letter portrait page (612×792 points) with a high-contrast MISSING banner, contained-aspect photo or explicit no-photo placeholder, structured details, a full-width LAST SEEN banner, prominent call to action/contact panel, generated timestamp and public-release review reminder. Long text is bounded and truncated rather than flowing off-page. Inspect every download and obtain agency approval before public posting.
+
 ## Report page sizes and browser limits
 
 The three map products are created directly with jsPDF landscape page geometry: ANSI E is the custom 3168×2448-point (44×34-inch) format, legal is 1008×612 points and letter is 792×612 points. The ArcGIS map screenshot is bounded to 1800×1000 pixels for browser memory safety, then placed in the printable map frame. Operators must inspect the downloaded PDF and printer settings before operational use; automated tests verify workflow, source dimensions and download generation, not physical printer output or cartographic print fidelity.
