@@ -4,6 +4,9 @@ module.exports = defineConfig({
   testDir: "./tests/visual",
   snapshotPathTemplate: "{testDir}/__screenshots__/{projectName}/{arg}{ext}",
   fullyParallel: false,
+  // ArcGIS MapViews are GPU/network intensive on the Windows Pages runner. Running
+  // spec files concurrently caused unrelated contexts to starve and time out.
+  workers: process.env.CI ? 1 : undefined,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["line"], ["html", { open: "never", outputFolder: "playwright-report" }]] : "list",
   expect: { toHaveScreenshot: { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.01 } },

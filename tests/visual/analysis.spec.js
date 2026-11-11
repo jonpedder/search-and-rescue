@@ -45,9 +45,15 @@ test("located heat mode uses a client FeatureLayer HeatmapRenderer", async ({ pa
 
 test("analysis loading, empty and error states are explicit", async ({ page }) => {
   await page.addInitScript(() => localStorage.clear());
-  await page.goto("/analysis.html?hosted=off&delay=600", { waitUntil: "load" });
-  await expect(page.locator("#analysisState")).toHaveClass(/loading/);
-  await expect(page.locator("#analysisState")).toContainText("Loading browser workspaces");
+  await page.goto("/analysis.html?hosted=off", { waitUntil: "load" });
+  await page.waitForFunction(() => window.__app?.analysis?.state?.phase === "empty", null, { timeout: 30000 });
+  const loading = await page.evaluate(() => {
+    history.replaceState(null, "", "/analysis.html?hosted=off&delay=3000");
+    window.__app.analysis.reload();
+    const status = document.getElementById("analysisState");
+    return { phase: window.__app.analysis.state.phase, className: status.className, text: status.textContent, busy: document.getElementById("analysisRoot").getAttribute("aria-busy") };
+  });
+  expect(loading).toEqual({ phase: "loading", className: "analysis-state loading", text: "Loading browser workspaces and hosted ArcGIS records…", busy: "true" });
   await page.waitForFunction(() => window.__app?.analysis?.state?.phase === "empty", null, { timeout: 30000 });
   await expect(page.locator("#analysisState")).toHaveClass(/empty/);
   await expect(page.locator("#analysisState")).toContainText("No incidents");

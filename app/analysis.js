@@ -205,7 +205,7 @@
       view.ui.add(new Home({ view: view }), "top-left"); view.ui.add(new Search({ view: view }), "top-right"); view.ui.add(new ScaleBar({ view: view, unit: "dual" }), "bottom-left"); view.ui.add(new Expand({ view: view, content: new Legend({ view: view }), expandTooltip: "Legend", group: "analysis" }), "top-left");
       if (window.SARBookmarks) window.__analysisBookmarks = window.SARBookmarks.init({ view: view, Bookmarks: null, Bookmark: null, Expand: Expand, group: "analysis", position: "top-left", storageKey: "sar.bookmarks.analysis.v1" });
 
-      function setPhase(phase, message) { state.phase = phase; $("analysisState").className = "analysis-state " + phase; $("analysisState").textContent = message || ""; $("analysisState").hidden = !message; }
+      function setPhase(phase, message) { state.phase = phase; $("analysisRoot").setAttribute("aria-busy", phase === "loading" ? "true" : "false"); $("analysisState").className = "analysis-state " + phase; $("analysisState").textContent = message || ""; $("analysisState").hidden = !message; }
       function unique(field) { return Array.from(new Set(state.data.incidents.map(function (x) { return x[field]; }).filter(Boolean))).sort(); }
       function option(value, label) { return '<option value="' + escapeHtml(value) + '">' + escapeHtml(label == null ? value : label) + "</option>"; }
       function populateFilters() {
@@ -252,15 +252,17 @@
         $("incidentList").querySelectorAll("[data-id]").forEach(function (button) { button.onclick = function () { controller.selectIncident(button.dataset.id); }; });
       }
       async function replaceSource(layer, graphics) { var old = await layer.queryObjectIds({ where: "1=1" }); await layer.applyEdits({ deleteFeatures: (old || []).map(function (id) { return { objectId: id }; }), addFeatures: graphics }); }
+      function applyMapMode() {
+        var incidents = state.mapMode !== "heat", located = state.mapMode !== "incidents";
+        incidentLayer.visible = incidents; heatLayer.visible = located; findPointLayer.visible = located;
+      }
       var refreshTimer;
       function refreshMap() {
         clearTimeout(refreshTimer); refreshTimer = setTimeout(async function () {
           var incGraphics = state.filtered.incidents.map(function (x, i) { return new Graphic({ geometry: x.geometry, attributes: { OBJECTID: i + 1, incident_id: x.id, name: x.name, status: x.status, category: x.category } }); }).filter(function (g) { return !!g.geometry; });
           var finds = state.filtered.keypoints.filter(function (x) { return String(x.pointType).toLowerCase() === "find" && x.geometry; }), findGraphics = finds.map(function (x, i) { return new Graphic({ geometry: x.geometry, attributes: { OBJECTID: i + 1, incident_id: x.incidentId, name: x.name || "Subject located", point_time: x.time } }); });
           try { await Promise.all([replaceSource(incidentLayer, incGraphics), replaceSource(heatLayer, findGraphics), replaceSource(findPointLayer, findGraphics)]); } catch (error) { console.error("Map source refresh failed", error); }
-          if (state.mapMode === "incidents") { incidentLayer.visible = true; heatLayer.visible = false; findPointLayer.visible = false; }
-          else if (state.mapMode === "heat") { incidentLayer.visible = false; heatLayer.visible = true; findPointLayer.visible = true; }
-          else { incidentLayer.visible = true; heatLayer.visible = true; findPointLayer.visible = true; }
+          applyMapMode();
           var graphics = incGraphics.concat(findGraphics); if (graphics.length && !state.selectedId) view.goTo(graphics, { padding: 60 }).catch(function () {});
         }, 100);
       }
@@ -291,7 +293,7 @@
       }
       var searchTimer; $("incidentSearch").oninput = function () { clearTimeout(searchTimer); searchTimer = setTimeout(renderList, 180); };
       $("applyFilters").onclick = apply; $("resetFilters").onclick = reset; $("reloadData").onclick = reload;
-      document.querySelectorAll('[name="mapMode"]').forEach(function (radio) { radio.onchange = function () { if (radio.checked) { state.mapMode = radio.value; refreshMap(); } }; });
+      document.querySelectorAll('[name="mapMode"]').forEach(function (radio) { radio.onchange = function () { if (radio.checked) { state.mapMode = radio.value; applyMapMode(); } }; });
       view.on("click", async function (event) { var hit = await view.hitTest(event, { include: [incidentLayer, findPointLayer] }), graphic = hit.results.map(function (x) { return x.graphic; }).find(function (g) { return g && g.attributes && g.attributes.incident_id; }); if (graphic) selectIncident(graphic.attributes.incident_id); });
       var controller = { state: state, apply: apply, reset: reset, reload: reload, selectIncident: selectIncident, setMapMode: function (mode) { var radio = document.querySelector('[name="mapMode"][value="' + mode + '"]'); if (radio) { radio.checked = true; radio.onchange(); } }, mergeData: mergeData, applyFilters: applyFilters, summarize: summarize };
       window.__app = window.__app || {}; window.__app.analysis = controller;
