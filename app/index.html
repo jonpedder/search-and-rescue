@@ -1071,6 +1071,7 @@ $("mapCoords").hidden = !APP_SETTINGS.map.showCoordinates;
 window.addEventListener("storage", e => { if(e.key === window.SARSettings?.STORAGE_KEY) location.reload(); });
 </script>
 
+<script src="./bookmarks.js?v=20261112-1"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
 <script>
 require([
@@ -1080,11 +1081,11 @@ require([
   "esri/layers/ElevationLayer","esri/geometry/Multipoint","esri/layers/MediaLayer",
   "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference",
   "esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Measurement",
-  "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/CoordinateConversion","esri/widgets/Print",
+  "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/Bookmarks","esri/webmap/Bookmark","esri/widgets/CoordinateConversion","esri/widgets/Print",
   "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer","esri/geometry/geometryEngine"
 ], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
             webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference,
-            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer, geometryEngine){
+            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, Bookmarks, Bookmark, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer, geometryEngine){
 
   if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
   if(CONFIG.appId){
@@ -1125,6 +1126,7 @@ require([
     const expand = new Expand({view, content, group:expandGroup, expandTooltip:tooltip, collapseTooltip:"Close " + tooltip, ...(icon ? {expandIcon:icon} : {})});
     view.ui.add(expand, position || "top-left"); return expand;
   }
+  window.__app.bookmarks = window.SARBookmarks.init({view, Bookmarks, Bookmark, Expand, group:expandGroup, position:"top-left", storageKey:"sar.bookmarks.planning.v1"});
   view.ui.add($("mapTools"), "bottom-right");
 
   // Living Atlas loading supplements the native LayerList; layer visibility remains native.
