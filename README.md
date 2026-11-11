@@ -27,6 +27,7 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 - Provides a dedicated Operations Reports tab with true-size ANSI E 44×34, legal 14×8.5 and letter 11×8.5 landscape PDF maps, plus clue and selected-assignment reports. Every report map composes a geographic reference grid labelled in the selected notation, scale and legend into the PDF and includes browser-local unsynced records
 - Generates a public-posting **Missing Person Flyer** from Planning or Operations as a one-page US Letter portrait PDF. An accessible review dialog prefills available subject/interview data, supports choosing among uploaded PNG/JPEG photos, collects identifying and public contact details, retains incident-scoped browser-local drafts without duplicating photo data, and keeps flyer edits separate from analytical inputs
 - Uses a private, Sync-enabled hosted feature service and ArcGIS Online web map as the operational system of record (see [GIS workflow](docs/GIS_WORKFLOW.md))
+- Adds an [ArcGIS Field Maps companion workflow](docs/FIELD_MAPS.md) for mobile assignment context and navigation, prefilled clue and progress-line forms, clue photographs through attachments, offline synchronization guidance and one-click command refresh
 - Applies selected [NAPSG Foundation Symbol Library 2.0](https://symbology.napsgfoundation.org/) incident symbols where their meaning matches the SAR schema (see [symbology mapping](docs/NAPSG_SYMBOLOGY.md))
 - Uses a shared Calcite dark/amber theme (`app/theme.css`) across Planning, Operations and Settings for interface components, semantic color tokens, button hierarchy, ArcGIS widgets, focus behavior and operational alerts; protected by [desktop/mobile visual regression tests](docs/VISUAL_TESTING.md)
 - Provides an exemplar-aligned Settings page with Configuration and Help & How-to tabs, template import/export, draft review, browser-local defaults and an operator guide
@@ -72,7 +73,7 @@ Pages sites are public on the internet even when the repo is private on some pla
 | Path | Contents |
 |---|---|
 | `app/index.html` | SAR Planning application |
-| `app/operations.html` | Browser/ArcGIS operational workspace |
+| `app/operations.html`, `app/field-maps.js` | Browser/ArcGIS operational workspace and ArcGIS Field Maps mobile deep links |
 | `app/analysis.html`, `app/analysis.js`, `app/analysis.css` | Map-first Incident Analysis shell, controller, analytics contracts and responsive layout |
 | `scripts/provision_sar_schema.py` | Creates the hosted feature service, domains and lookup tables |
 | `scripts/embed_seed.py` | Refreshes the seed statistics embedded in the app from `data/` |
