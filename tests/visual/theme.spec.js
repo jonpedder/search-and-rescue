@@ -63,6 +63,8 @@ for (const item of pages) {
 test("settings Calcite theme preview visual", async ({ page }) => {
   const item = pages.find(x => x.name === "settings");
   await stabilize(page, item);
+  const previewCard = page.locator("#preferencesPanel details").filter({ hasText: "Calcite theme preview" });
+  if (!(await previewCard.evaluate(element => element.open))) await previewCard.locator("summary").click();
   await expect(page.locator("#themePreview")).toBeVisible();
   await expect(page.locator("#themePreview")).toHaveScreenshot("settings-theme-preview.png");
 });

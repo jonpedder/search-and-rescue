@@ -5,7 +5,7 @@
   const BASE_DEFAULTS={
     version:1,
     branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},
-    map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10,showCoordinates:true,autoLoadLivingAtlas:false,towerCoverageKm:5},
+    map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10,coordinateFormat:"dd",showCoordinates:true,autoLoadLivingAtlas:false,towerCoverageKm:5},
     workspace:{startupTab:"incident",operationalPeriodHours:12},
     model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}
   };
@@ -26,6 +26,7 @@
     v.branding.subtitle=text(v.branding.subtitle,120,"Subtitle");
     const basemaps=["topo-vector","streets-vector","satellite","hybrid","gray-vector","dark-gray-vector","oceans","osm"];
     if(!basemaps.includes(v.map.basemap))v.map.basemap=BASE_DEFAULTS.map.basemap;
+    const coordinateFormats=["dd","ddm","dms","utm","usng","mgrs"];if(!coordinateFormats.includes(v.map.coordinateFormat))v.map.coordinateFormat=BASE_DEFAULTS.map.coordinateFormat;
     v.map.centerLat=Number(v.map.centerLat);v.map.centerLon=Number(v.map.centerLon);v.map.zoom=Number(v.map.zoom);
     if(!Number.isFinite(v.map.centerLat)||v.map.centerLat < -90||v.map.centerLat > 90)errors.push("Default latitude must be between -90 and 90.");
     if(!Number.isFinite(v.map.centerLon)||v.map.centerLon < -180||v.map.centerLon > 180)errors.push("Default longitude must be between -180 and 180.");

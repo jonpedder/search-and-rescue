@@ -48,9 +48,18 @@ Assets and cell pings use structured JSON in `KeyPoints.notes` because the curre
 
 A cell-ping sector records a source point, radius, bearing, and angular width. It is an investigative visualization, not a guaranteed device location or RF propagation model. It does not account for timing advance interpretation, carrier uncertainty, terrain, antenna patterns, network configuration, or device behavior. Record provider, timestamp, method, confidence, and legal/operational provenance in the notes.
 
+## Report page sizes and browser limits
+
+The three map products are created directly with jsPDF landscape page geometry: ANSI E is the custom 3168×2448-point (44×34-inch) format, legal is 1008×612 points and letter is 792×612 points. The ArcGIS map screenshot is bounded to 1800×1000 pixels for browser memory safety, then placed in the printable map frame. Operators must inspect the downloaded PDF and printer settings before operational use; automated tests verify workflow, source dimensions and download generation, not physical printer output or cartographic print fidelity.
+
 ## Capabilities that require additional infrastructure
 
 The training guide also describes capabilities that cannot be represented honestly by a browser-only page. Continuous background GPS collection, offline mobile synchronization, live APRS/inReach/ADS-B feeds, expiring mutual-aid workspaces, multiuser uniqueness enforcement, geospatial PDF map books, automated notifications, and secure temporary access require mobile clients, backend services, portal administration, print services, or external APIs. They are not simulated in this workbench.
+
+## Security
+
+Operational exports and the private ArcGIS service may contain sensitive subject, responder, clue, assignment, and investigative data. Keep the service private or restricted to the appropriate SAR group. Store exported files only in agency-approved protected locations.
+ministration, print services, or external APIs. They are not simulated in this workbench.
 
 ## Security
 

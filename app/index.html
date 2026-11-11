@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
 <link rel="stylesheet" href="./theme.css?v=20261110-6">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
-<script src="./settings.js?v=20261110-2"></script>
+<script src="./settings.js?v=20261112-1"></script>
+<script src="./coordinate-format.js?v=20261112-1"></script>
 <style>
 /* Brand palette follows the ca_security_ops (Mission Insights) exemplar:
    navy header, gold accent, dark panels, Arial, uppercase gold eyebrow labels. */
@@ -802,7 +803,7 @@ const CONFIG = {
   defaultCenter: [-118.03, 34.14],
   defaultZoom: 10
 };
-const APP_SETTINGS = window.SARSettings ? window.SARSettings.load() : {branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},map:{basemap:"topo-vector",centerLat:CONFIG.defaultCenter[1],centerLon:CONFIG.defaultCenter[0],zoom:CONFIG.defaultZoom,showCoordinates:true,autoLoadLivingAtlas:false,towerCoverageKm:5},workspace:{startupTab:"incident"},model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}};
+const APP_SETTINGS = window.SARSettings ? window.SARSettings.load() : {branding:{appName:"Search & Rescue",subtitle:"Lost Person Behavior Workbench"},map:{basemap:"topo-vector",centerLat:CONFIG.defaultCenter[1],centerLon:CONFIG.defaultCenter[0],zoom:CONFIG.defaultZoom,coordinateFormat:"dd",showCoordinates:true,autoLoadLivingAtlas:false,towerCoverageKm:5},workspace:{startupTab:"incident"},model:{ringWeight:35,sectorWeight:25,linearWeight:15,terrainWeight:15,elevationWeight:10,resolution:96}};
 const NAPSG_SYMBOLS = {
   sar: "./assets/napsg/sar.svg",
   ipp: "./assets/napsg/missing-person-ipp.svg",
@@ -1189,7 +1190,7 @@ require([
     if(Date.now() - coordTick < 80) return; coordTick = Date.now();
     const p = view.toMap({x:e.x,y:e.y}); if(!p) return;
     const g = p.spatialReference.isWebMercator ? webMercatorUtils.webMercatorToGeographic(p) : p;
-    $("mapCoords").textContent = g.y.toFixed(5) + ", " + g.x.toFixed(5) + "  |  " + Math.round(view.scale).toLocaleString();
+    const sequence=coordTick,lat=g.latitude??g.y,lon=g.longitude??g.x; window.SARCoordinates.format(lat,lon,APP_SETTINGS.map.coordinateFormat).then(result=>{if(sequence!==coordTick)return;$("mapCoords").textContent=result.value+"  |  1:"+Math.round(view.scale).toLocaleString();$("mapCoords").title=result.available?result.label:(result.message||result.value)});
   });
 
   const printWidget = new Print({view, printServiceUrl:"https://utility.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export Web Map Task"});

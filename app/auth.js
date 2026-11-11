@@ -62,7 +62,7 @@
   /* Settings owns the OAuth application ID. Keeping it browser-local avoids
      committing a deployment-specific client ID to source control. */
   if (location.pathname.endsWith("/settings.html")) {
-    var card = document.createElement("details"); card.className = "card"; card.id = "arcgisAuthCard"; card.open = location.hash === "#arcgis-auth";
+    var card = document.createElement("details"); card.className = "card"; card.id = "arcgisAuthCard";
     card.innerHTML = '<summary>ArcGIS sign-in</summary><div class="card-body"><p class="help">Register an ArcGIS OAuth application with this site and its <code>oauth-callback.html</code> URL, then save its client ID here. The value stays in this browser and is shared by Planning, Operations and synthetic-data tools.</p>' +
       '<div class="grid"><label class="field">OAuth application client ID<input id="authAppId" autocomplete="off" placeholder="ArcGIS OAuth client ID" value="' + appId.replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }) + '"></label>' +
       '<div class="field"><span>Registered redirect URLs</span><span class="readonly">' + location.origin + location.pathname.replace(/[^/]*$/, "") + '<br>' + location.origin + location.pathname.replace(/[^/]*$/, "") + 'oauth-callback.html</span></div></div>' +

@@ -23,11 +23,11 @@
 
   function cardBySummary(text) { return Array.from(oldPanel.querySelectorAll("details.card")).find(function (card) { return card.querySelector("summary")?.textContent.trim() === text; }); }
   var arcgis = cardBySummary("ArcGIS configuration"), auth = document.getElementById("arcgisAuthCard"), synthetic = document.getElementById("syntheticDataCard");
-  if (arcgis) { arcgis.querySelector("summary").textContent = "Data connections and layers"; arcgis.open = true; configPanel.appendChild(arcgis); }
-  if (auth) { auth.open = true; configPanel.appendChild(auth); }
+  if (arcgis) { arcgis.querySelector("summary").textContent = "Data connections and layers"; configPanel.appendChild(arcgis); }
+  if (auth) { configPanel.appendChild(auth); }
   if (synthetic) configPanel.appendChild(synthetic);
 
-  var diagnostics = document.createElement("details"); diagnostics.className = "card"; diagnostics.id = "deploymentDiagnostics"; diagnostics.open = true;
+  var diagnostics = document.createElement("details"); diagnostics.className = "card"; diagnostics.id = "deploymentDiagnostics";
   diagnostics.innerHTML = '<summary>Deployment diagnostics</summary><div class="card-body"><dl class="sar-config-list" id="sarConfigList"></dl><div class="template-tools"><calcite-button id="refreshDiagnostics" appearance="outline-fill" icon-start="refresh">Refresh diagnostics</calcite-button></div></div>';
   configPanel.appendChild(diagnostics);
   function diag(label, value) { return '<dt>' + label + '</dt><dd>' + value + '</dd>'; }
@@ -57,14 +57,30 @@
     document.body.appendChild(actionBar);
   }
 
-  function select(name, updateHash) {
+  function routeFromHash() {
+    var hash = location.hash || "#settings", id = hash.slice(1), target = id && document.getElementById(id);
+    if (hash === "#help" || target && helpPanel.contains(target)) return "help";
+    if (hash === "#configuration" || hash === "#arcgis-auth" || target && configPanel.contains(target)) return "configuration";
+    return "settings";
+  }
+  function select(name) {
     var panels = { settings: oldPanel, configuration: configPanel, help: helpPanel };
     Object.keys(panels).forEach(function (key) { panels[key].hidden = key !== name; });
-    Array.from(document.querySelectorAll(".sar-settings-tab")).forEach(function (button) { var active = button.id === (name === "settings" ? "preferencesTab" : name + "Tab"); button.classList.toggle("active", active); button.setAttribute("aria-selected", String(active)); });
-    if (updateHash !== false) history.replaceState(null, "", name === "settings" ? "#settings" : "#" + name);
+    Array.from(document.querySelectorAll(".sar-settings-tab")).forEach(function (button) {
+      var active = button.id === (name === "settings" ? "preferencesTab" : name + "Tab");
+      button.classList.toggle("active", active); button.setAttribute("aria-selected", String(active)); button.tabIndex = active ? 0 : -1;
+    });
     if (name === "configuration") refreshDiagnostics();
+    var id = location.hash.slice(1), target = id && document.getElementById(id);
+    if (target && !["settings", "configuration", "help"].includes(id)) requestAnimationFrame(function () {
+      target.setAttribute("tabindex", "-1"); target.scrollIntoView({ block: "start" }); target.focus({ preventScroll: true });
+    });
   }
-  document.querySelectorAll(".sar-settings-tab").forEach(function (button) { button.onclick = function () { select(button.id === "preferencesTab" ? "settings" : button.id.replace("Tab", "")); }; });
-  window.addEventListener("hashchange", function () { select(location.hash.startsWith("#help") ? "help" : location.hash.startsWith("#configuration") || location.hash === "#arcgis-auth" ? "configuration" : "settings", false); });
-  select(location.hash.startsWith("#help") ? "help" : location.hash.startsWith("#configuration") || location.hash === "#arcgis-auth" ? "configuration" : "settings", false);
+  document.querySelectorAll(".sar-settings-tab").forEach(function (button) { button.onclick = function () {
+    var name = button.id === "preferencesTab" ? "settings" : button.id.replace("Tab", ""), hash = "#" + name;
+    if (location.hash === hash) select(name); else location.hash = hash;
+  }; });
+  window.addEventListener("hashchange", function () { select(routeFromHash()); });
+  window.addEventListener("popstate", function () { select(routeFromHash()); });
+  select(routeFromHash());
 })();

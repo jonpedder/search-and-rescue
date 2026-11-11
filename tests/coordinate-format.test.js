@@ -1,0 +1,10 @@
+"use strict";
+const assert=require("assert"),fs=require("fs"),path=require("path"),vm=require("vm");
+const window={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../app/coordinate-format.js"),"utf8"),{window,Number,String,Object,Array,Math,Promise,Error});
+const c=window.SARCoordinates;
+assert.deepStrictEqual(Array.from(c.OPTIONS,x=>x.label),["Decimal Degrees","Degrees Decimal Minutes","Degrees Minutes Seconds","UTM","USNG","MGRS"]);
+assert.strictEqual(c.normalize("bogus"),"dd");
+assert.strictEqual(c.geographic(34.5,-118.25,"dd"),"34.50000° N, 118.25000° W");
+assert.strictEqual(c.geographic(34.5,-118.25,"ddm"),"34° 30.000′ N, 118° 15.000′ W");
+assert.strictEqual(c.geographic(34.5,-118.25,"dms"),"34° 30′ 0.0″ N, 118° 15′ 0.0″ W");
+(async()=>{const unavailable=await c.format(34.5,-118.25,"mgrs");assert.strictEqual(unavailable.available,false);assert.match(unavailable.value,/MGRS unavailable/);assert.doesNotMatch(unavailable.value,/34\.50000/);console.log("ok  coordinate formats and honest projected-formatter fallback");})().catch(error=>{console.error(error);process.exitCode=1});

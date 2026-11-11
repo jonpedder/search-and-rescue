@@ -10,7 +10,7 @@
   var inProwork = !!(window.__esriAuthCtx && window.__esriAuthCtx.authenticated);
 
   var card = document.createElement("details");
-  card.className = "card"; card.id = "syntheticDataCard"; card.open = true;
+  card.className = "card"; card.id = "syntheticDataCard";
   card.innerHTML =
     '<summary>Synthetic test data</summary><div class="card-body">' +
     '<p class="help">Placeholder data for demos and testing until real data is available. Generation writes to the hosted <b>SAR Incident Data</b> service: incidents across all 35 subject categories, key points, search segments, clues, assignments (tasks), track logs, model runs and LPB reference rows. Every spatial record is validated with WGS84 geometry before upload. Tasks, model runs and reference rows are nonspatial tables and appear through their incident or segment relationships. Every record is tagged (<code>incident_id</code> starting <code>SYN-</code>, reference rows with source <code>SYNTHETIC_PLACEHOLDER</code>) so <b>Delete all synthetic data</b> removes only generated records.</p>' +
