@@ -13,7 +13,7 @@ Lost person behavior science credit: **Dr. Robert J. Koester**, author of *Lost 
 - Initializes operational period 1 from the current time to the next local noon or midnight boundary
 - Looks up LPB statistics by subject category, environment and terrain, with fallback and sample-size warnings
 - Builds distance rings, direction sectors, linear-feature proximity, DEM travel time (Tobler hiking function) and elevation bias
-- Provides an Assignment Buffer tool that traces a point-to-point or freehand line and converts a feet/meters buffer into a persistent assignment polygon
+- Provides a concise Assignment Editing Palette for buffered point-to-point/freehand lines, direct assignment polygons and named asset points; all edits persist with the incident and hand off to Operations
 - Blends layers by adjustable weights and scenarios into ranked search segments
 - Tracks POA, POD and POS as search results come in
 - Shows survivability over time since last seen for every selectable subject category; bundled fallback curves are explicitly marked as placeholders until agency-approved data is loaded

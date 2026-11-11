@@ -11,7 +11,7 @@ The page prioritizes a SARTopo-like object workflow while using ArcGIS COTS comp
 - Draw operational areas and search segments.
 - Load ranked planning segments by incident ID from the private SAR service.
 - Prepare assignments from the Planning page's right-side panel with a segment, team name, description, priority and operational period; hand them to Operations with their segment geometry.
-- Use Assignment Buffer in Planning to trace a point-to-point or freehand route, select a distance in feet or meters, and convert the trace into a persistent assignment polygon available for tasking and Operations handoff.
+- Use the concise Assignment Editing Palette in Planning to create buffered point-to-point/freehand routes, direct assignment polygons, and named Ground Team, Vehicle, Canine, Air, Medical, Command or Other asset points. All geometry persists with the incident and is handed to Operations.
 - In Operations, confirm assignment status as Assigned, Complete or Abandoned; completed/abandoned work requires a team-debrief POD percentage and an Operations decision on whether the area should be searched again.
 - Map a point last seen (PLS), clues, cell-ping uncertainty sectors, and field assets.
 - Track browser-local unsaved versus ArcGIS-synced records.
