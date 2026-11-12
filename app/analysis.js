@@ -358,7 +358,7 @@
             if (generation !== state.renderGeneration) return;
             state.mapAppliedGeneration = generation; applyMapMode();
             var graphics = incGraphics.concat(findGraphics), returnViewpoint = state.pendingReturnViewpoint; state.pendingReturnViewpoint = null;
-            if (returnViewpoint) { view.closePopup(); view.goTo(returnViewpoint, { animate: false }).catch(function () {}); }
+            if (returnViewpoint) { view.closePopup(); view.goTo(returnViewpoint, { animate: true, duration: 650 }).catch(function () {}); }
             else if (graphics.length && !selectedId) view.goTo(graphics, { padding: 60 }).catch(function () {});
           });
         }, 100);

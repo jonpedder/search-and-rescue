@@ -101,6 +101,7 @@ assert.equal(A.escapeHtml('<img src=x onerror="boom">'), "&lt;img src=x onerror=
   assert.match(js, /queryFeatures/);
   assert.match(js, /zoomReturnViewpoint/);
   assert.match(js, /pendingReturnViewpoint/);
+  assert.match(js, /goTo\(returnViewpoint, \{ animate: true, duration: 650 \}\)/, "return-to-extent transition is animated");
   assert.match(js, /Select again to return to previous extent/);
   for (const widget of ["LayerList", "BasemapGallery", "Bookmarks", "Measurement", "Zoom", "Home", "Search"]) assert(js.includes(widget), widget + " is available on the Analysis map");
   assert.match(html, /bookmarks\.js\?v=/, "Analysis loads persistent browser bookmarks");
