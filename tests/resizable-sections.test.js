@@ -11,6 +11,8 @@ for (const group of R.pageGroups) {
   assert(group.selector && group.prefix && group.media, group.prefix + " has selector and responsive contracts");
   assert(group.min < group.max, group.prefix + " has safe height limits");
 }
+const analysisGroup = R.pageGroups.find(group => group.prefix === "analysis");
+assert(!analysisGroup.selector.includes(".analysis-command"), "the Analysis command bar keeps its intrinsic height and cannot be collapsed");
 for (const file of ["index.html", "operations.html", "analysis.html"]) {
   const html = fs.readFileSync(path.join(__dirname, "../app", file), "utf8");
   assert.match(html, /resizable-sections\.css\?v=/, file + " loads section-resize CSS");

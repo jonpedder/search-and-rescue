@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const pages = [
   { path: "/index.html", container: "#tab-incident", minCount: 5 },
   { path: "/operations.html", container: "#tab-map .card:first-of-type", minCount: 8 },
-  { path: "/analysis.html?hosted=off", container: ".analysis-primary", minCount: 6 }
+  { path: "/analysis.html?hosted=off", container: ".analysis-primary", minCount: 5 }
 ];
 
 for (const definition of pages) {
@@ -46,3 +46,16 @@ for (const definition of pages) {
     expect(await page.locator(definition.container).evaluate(el => el.style.height)).toBe("");
   });
 }
+
+test("Analysis command bar keeps its intrinsic height", async ({ page }) => {
+  await page.route(/^https:\/\//, route => route.abort());
+  await page.goto("/analysis.html?hosted=off", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => localStorage.setItem("sar.layout.section.analysis.incident-analysis-summary.0.v1", "20"));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  const command = page.locator(".analysis-command");
+  await expect(command.locator(".analysis-kicker")).toBeVisible();
+  await expect(command.locator("h2")).toBeVisible();
+  await expect(command.locator(":scope > [data-resize-section]")).toHaveCount(0);
+  expect(await command.evaluate(el => el.style.height)).toBe("");
+  expect((await command.boundingBox()).height).toBeGreaterThan(100);
+});

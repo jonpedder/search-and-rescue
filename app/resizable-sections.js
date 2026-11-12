@@ -15,7 +15,7 @@
   const pageGroups = [
     { page: /(?:^|\/)index\.html$|\/$/, selector: "#panel .pane", prefix: "planning", media: "(min-width: 861px)", min: 160, max: 1400 },
     { page: /operations\.html$/, selector: "#body > .panel .card", prefix: "operations", media: "(min-width: 901px)", min: 130, max: 1200 },
-    { page: /analysis\.html$/, selector: ".analysis-command,.analysis-primary,.analysis-right,.analysis-bottom,.analysis-left .panel-section", prefix: "analysis", media: "(min-width: 1051px)", min: 110, max: 900 }
+    { page: /analysis\.html$/, selector: ".analysis-primary,.analysis-right,.analysis-bottom,.analysis-left .panel-section", prefix: "analysis", media: "(min-width: 1051px)", min: 110, max: 900 }
   ];
 
   if (!window || !window.document) return { clampHeight, finiteHeight, pageGroups };
