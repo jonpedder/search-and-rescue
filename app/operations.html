@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
 <link rel="stylesheet" href="./theme.css?v=20261110-7">
 <link rel="stylesheet" href="./resizable-panels.css?v=20261118-1">
+<link rel="stylesheet" href="./resizable-sections.css?v=20261120-1">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
 <script src="./bookmarks.js?v=20261112-1"></script>
@@ -49,6 +50,7 @@ body.calcite-mode-dark{--calcite-color-brand:#F2A900;--calcite-color-brand-hover
 </div>
 <script src="./sar-design.js?v=20261111-1"></script>
 <script src="./resizable-panels.js?v=20261118-1"></script>
+<script src="./resizable-sections.js?v=20261120-1"></script>
 <script>
 const CONFIG={portalUrl:"https://publicsafety.maps.arcgis.com",appId:localStorage.getItem("sar.oauth.appId")||localStorage.getItem("sar.synthetic.appId")||window.SARSettings?.OAUTH_CLIENT_ID||"",webMapItemId:"5bd5bbf575794e9c9565abcb20feb991",serviceRoot:"https://services6.arcgis.com/SdBwj74JF24xKhpX/arcgis/rest/services/SAR_LPB_Incident_Data/FeatureServer"};
 const SETTINGS=window.SARSettings?window.SARSettings.load():{map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10,coordinateFormat:"dd"},workspace:{operationalPeriodHours:12}};
