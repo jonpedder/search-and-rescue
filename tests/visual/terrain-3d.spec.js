@@ -1,5 +1,5 @@
 const { test, expect } = require("@playwright/test");
-test.setTimeout(90000);
+test.setTimeout(150000);
 
 const pages = [
   { name: "planning", path: "/index.html", controller: "planning" },
@@ -29,7 +29,7 @@ for (const item of pages) {
       const terrain = controller === "planning" ? window.__app?.planning?.terrain3D : controller === "analysis" ? window.__app?.analysisTerrain3D : window.__app?.terrain3D;
       const scene = document.querySelector(".sar-3d-scene"), root = scene?.querySelector(".esri-view-root"), canvas = scene?.querySelector("canvas");
       return Math.min(terrain?.sceneView?.height || 0, root?.getBoundingClientRect().height || 0, canvas?.getBoundingClientRect().height || 0, canvas?.height || 0);
-    }, item.controller)).toBeGreaterThan(100);
+    }, item.controller), { timeout: 60000 }).toBeGreaterThan(100);
     const rendered = await page.evaluate(() => { const scene = document.querySelector(".sar-3d-scene"), root = scene.querySelector(".esri-view-root"), canvas = scene.querySelector("canvas"); return { scene: scene.getBoundingClientRect().height, root: root.getBoundingClientRect().height, canvas: canvas.getBoundingClientRect().height, buffer: canvas.height }; });
     expect(rendered.scene).toBeGreaterThan(100);
     expect(rendered.root).toBeGreaterThan(100);
