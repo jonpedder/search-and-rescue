@@ -22,14 +22,14 @@ const appHtml = fs.readFileSync(path.join(__dirname, "../app/index.html"), "utf8
 assert.match(appHtml, /calcite-components\/3\.2\.1\/calcite\.css/);
 assert.match(appHtml, /class="calcite-mode-dark"/);
 assert.match(appHtml, /<calcite-segmented-control/);
-assert.match(appHtml, /<calcite-action class="map-tool"/);
+assert.doesNotMatch(appHtml, /id="(?:mapTools|toolImport|toolExport|mapFile)"/);
 assert.match(appHtml, /<calcite-alert/);
 assert.doesNotMatch(appHtml, /--calcite-ui-/);
 for(const id of ["32e2ccc6416746a9a72b4d216813f84f","21b3bad712c84cae82830569ce53326f","a6134ae01aad44c499d12feec782b386","d957997ccee7408287a963600a77f61f","1b243539f4514b6ba35e7d995890db1d"]) assert.ok(appHtml.includes(id));
 assert.match(appHtml, /Layer\.fromPortalItem/);
 assert.match(appHtml, /layer\.visible = false/);
 assert.match(appHtml, /new Expand\(\{view, content/);
-assert.match(appHtml, /view\.ui\.add\(\$\("mapTools"\), "bottom-right"\)/);
+assert.match(appHtml, /Use Configuration to import or export application templates/);
 assert.doesNotMatch(appHtml, /id="tool(?:Layers|Basemap|Draw|Measure|Locate|Print|Help)"/);
 assert.match(appHtml, /href="\.\/settings\.html"/);
 assert.match(appHtml, /SARSettings\.load\(\)/);

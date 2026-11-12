@@ -65,12 +65,7 @@ body{font-family:var(--calcite-sans-family,"Avenir Next","Helvetica Neue",sans-s
 main{min-width:0;min-height:0;background:#06121c;position:relative}
 #viewDiv{width:100%;height:100%}
 .esri-view{--esri-view-outline-color:var(--gold)}
-#mapTools{display:flex;flex-direction:column;gap:6px;width:116px;padding:var(--calcite-spacing-xs);background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-2);box-shadow:var(--calcite-shadow-sm)}
-.map-tool{width:100%;border:1px solid #F2A900!important;border-radius:3px;color:#F2A900!important;--calcite-color-brand:#F2A900;--calcite-color-text-1:#F2A900;--calcite-color-foreground-1:transparent;--calcite-action-background-color:transparent;--calcite-action-text-color:var(--calcite-color-brand)}
-.map-tool:hover{--calcite-action-background-color:var(--calcite-color-foreground-2)}
-.map-tool[active]{--calcite-action-background-color:var(--calcite-color-brand);--calcite-action-text-color:#111}
 #mapCoords{position:absolute;z-index:3;right:140px;bottom:28px;padding:5px 8px;background:#071824dd;border:1px solid var(--border);color:var(--muted);font:11px/1.2 monospace;pointer-events:none}
-#mapFile{display:none}
 .tool-help{width:300px;max-width:70vw;padding:10px 12px;background:var(--panel);color:var(--text);font-size:11px;line-height:1.45}
 .tool-help[hidden]{display:none}.tool-help strong{color:var(--gold)}
 
@@ -385,12 +380,7 @@ svg text{font-family:inherit}
 </aside>
 <main>
   <div id="viewDiv"></div>
-  <div id="mapTools" class="esri-widget" role="toolbar" aria-label="Supplemental file tools">
-    <calcite-action class="map-tool" id="toolImport" icon="upload" text="Import" text-enabled title="Import GeoJSON or GPX"></calcite-action>
-    <calcite-action class="map-tool" id="toolExport" icon="download" text="Export" text-enabled title="Export map annotations as GeoJSON"></calcite-action>
-    <input id="mapFile" type="file" accept=".geojson,.json,.gpx,application/geo+json,application/gpx+xml">
-  </div>
-  <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Use the native map controls for layers, legend, basemaps, drawing, measurement, location, coordinate conversion, home, search and print. Import and export are supplemental file workflows. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
+  <div id="mapToolHelp" class="tool-help" hidden><strong>Operational map tools</strong><br>Use the native map controls for layers, legend, basemaps, drawing, measurement, location, coordinate conversion, home, search and print. Use Configuration to import or export application templates. Use ArcGIS Field Maps with the hosted Sync-enabled service for offline collection.</div>
   <div id="mapCoords" aria-live="off">Move over map for coordinates</div>
 </main>
 </div>
@@ -1092,10 +1082,10 @@ require([
   "esri/layers/support/ImageElement","esri/layers/support/ExtentAndRotationGeoreference",
   "esri/widgets/LayerList","esri/widgets/Legend","esri/widgets/BasemapGallery","esri/widgets/Measurement",
   "esri/widgets/Locate","esri/widgets/Home","esri/widgets/Expand","esri/widgets/Bookmarks","esri/webmap/Bookmark","esri/widgets/CoordinateConversion","esri/widgets/Print",
-  "esri/layers/GeoJSONLayer","esri/portal/Portal","esri/layers/Layer","esri/layers/TileLayer","esri/geometry/geometryEngine"
+  "esri/portal/Portal","esri/layers/Layer","esri/layers/TileLayer","esri/geometry/geometryEngine"
 ], function(esriConfig, Map, MapView, SceneView, Graphic, GraphicsLayer, FeatureLayer, Search, Sketch, ScaleBar, Extent,
             webMercatorUtils, OAuthInfo, esriId, ElevationLayer, Multipoint, MediaLayer, ImageElement, ExtentAndRotationGeoreference,
-            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, Bookmarks, Bookmark, CoordinateConversion, Print, GeoJSONLayer, Portal, Layer, TileLayer, geometryEngine){
+            LayerList, Legend, BasemapGallery, Measurement, Locate, Home, Expand, Bookmarks, Bookmark, CoordinateConversion, Print, Portal, Layer, TileLayer, geometryEngine){
 
   if(CONFIG.apiKey) esriConfig.apiKey = CONFIG.apiKey;
   if(CONFIG.appId){
@@ -1147,7 +1137,6 @@ require([
     view.ui.add(expand, position || "top-left"); return expand;
   }
   window.__app.bookmarks = window.SARBookmarks.init({view, Bookmarks, Bookmark, Expand, group:expandGroup, position:"top-left", storageKey:"sar.bookmarks.planning.v1"});
-  view.ui.add($("mapTools"), "bottom-right");
 
   // Living Atlas loading supplements the native LayerList; layer visibility remains native.
   const layerBody = document.createElement("div");
@@ -1228,38 +1217,6 @@ require([
   addNativeExpand(printWidget, "Print map");
   $("mapToolHelp").hidden = false;
   addNativeExpand($("mapToolHelp"), "Operational map help", "top-left", "question");
-
-  // Import GeoJSON directly, or parse common GPX waypoint/route/track geometry.
-  $("toolImport").onclick = () => $("mapFile").click();
-  $("mapFile").onchange = async e => {
-    const file=e.target.files[0]; if(!file) return;
-    try{
-      if(/\.gpx$/i.test(file.name)){
-        const xml=new DOMParser().parseFromString(await file.text(),"application/xml");
-        const point=n=>({type:"point",longitude:+n.getAttribute("lon"),latitude:+n.getAttribute("lat")});
-        xml.querySelectorAll("wpt").forEach(n=>layers.notes.add(new Graphic({geometry:point(n),attributes:{name:n.querySelector("name")?.textContent||"GPX waypoint"},popupTemplate:{title:"{name}"}})));
-        [...xml.querySelectorAll("trkseg"),...xml.querySelectorAll("rte")].forEach(n=>{const pts=[...n.querySelectorAll("trkpt,rtept")].map(p=>[+p.getAttribute("lon"),+p.getAttribute("lat")]);if(pts.length>1)layers.notes.add(new Graphic({geometry:{type:"polyline",paths:[pts],spatialReference:{wkid:4326}},symbol:{type:"simple-line",color:[242,169,0],width:3}}));});
-        toast("Imported GPX into Field annotations.");
-      }else{
-        const url=URL.createObjectURL(file), layer=new GeoJSONLayer({url,title:file.name});
-        map.add(layer); await layer.load(); await view.goTo(layer.fullExtent); toast("Imported " + file.name + ".");
-      }
-    }catch(err){toast("Import failed: "+err.message,true);} finally{e.target.value="";}
-  };
-
-  function geometryGeoJSON(geom){
-    let g=geom.spatialReference?.isWebMercator?webMercatorUtils.webMercatorToGeographic(geom):geom;
-    if(g.type==="point") return {type:"Point",coordinates:[g.longitude??g.x,g.latitude??g.y]};
-    if(g.type==="polyline") return {type:g.paths.length===1?"LineString":"MultiLineString",coordinates:g.paths.length===1?g.paths[0]:g.paths};
-    if(g.type==="polygon") return {type:"Polygon",coordinates:g.rings};
-    return null;
-  }
-  $("toolExport").onclick = () => {
-    const gs=[...layers.notes.graphics.toArray(),...layers.trail.graphics.toArray(),...layers.ipp.graphics.toArray()];
-    if(!gs.length){toast("Draw or import map annotations first.",true);return;}
-    const fc={type:"FeatureCollection",features:gs.filter(g=>g.geometry).map((g,i)=>({type:"Feature",properties:{source:g.layer?.title||"SAR annotation",id:i+1,...(g.attributes||{})},geometry:geometryGeoJSON(g.geometry)}))};
-    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(fc,null,2)],{type:"application/geo+json"}));a.download="sar_map_annotations.geojson";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-  };
 
   const sketch = new Sketch({view, layer: layers.trail, creationMode:"continuous", availableCreateTools:["polyline"],
     visibleElements:{selectionTools:{"lasso-selection":false, "rectangle-selection":false}, settingsMenu:false}});
