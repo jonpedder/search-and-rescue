@@ -231,7 +231,7 @@
     var railCollapsed = false; try { railCollapsed = localStorage.getItem(railKey) === "true"; } catch (_) {}
     setRailCollapsed(railCollapsed, false); railToggle.onclick = function () { setRailCollapsed(railToggle.getAttribute("aria-expanded") === "true", true); };
     require(["esri/Map", "esri/views/MapView", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/layers/TileLayer", "esri/Graphic", "esri/widgets/Home", "esri/widgets/Legend", "esri/widgets/Expand", "esri/widgets/ScaleBar", "esri/widgets/Search", "esri/widgets/LayerList", "esri/widgets/BasemapGallery", "esri/widgets/Bookmarks", "esri/webmap/Bookmark", "esri/widgets/Measurement", "esri/widgets/Zoom"], function (Map, MapView, SceneView, FeatureLayer, TileLayer, Graphic, Home, Legend, Expand, ScaleBar, Search, LayerList, BasemapGallery, Bookmarks, Bookmark, Measurement, Zoom) {
-      var state = { phase: "loading", source: "browser", freshness: null, data: { incidents: [], keypoints: [], clues: [], tasks: [] }, baseFiltered: null, baseSummary: null, filtered: null, summary: null, heatCells: [], selectedId: null, mapMode: "combined", hostedError: null, localErrors: [], renderGeneration: 0, mapAppliedGeneration: 0 };
+      var state = { phase: "loading", source: "browser", freshness: null, data: { incidents: [], keypoints: [], clues: [], tasks: [] }, baseFiltered: null, baseSummary: null, filtered: null, summary: null, heatCells: [], selectedId: null, zoomReturnViewpoint: null, pendingReturnViewpoint: null, mapMode: "combined", hostedError: null, localErrors: [], renderGeneration: 0, mapAppliedGeneration: 0 };
       var incidentLayer = new FeatureLayer({ title: "Incident locations", source: [], objectIdField: "OBJECTID", geometryType: "point", spatialReference: { wkid: 4326 }, fields: [{ name: "OBJECTID", type: "oid" }, { name: "incident_id", type: "string" }, { name: "name", type: "string" }, { name: "status", type: "string" }, { name: "category", type: "string" }], renderer: { type: "simple", symbol: { type: "simple-marker", style: "diamond", size: 10, color: [242, 169, 0, .9], outline: { color: [7, 24, 36, 1], width: 1.5 } } }, popupTemplate: { title: "{name}", content: "<b>{incident_id}</b><br>{status} · {category}" } });
       var findFields = [{ name: "OBJECTID", type: "oid" }, { name: "incident_id", type: "string" }, { name: "name", type: "string" }, { name: "point_time", type: "date" }];
       var heatLayer = new FeatureLayer({ title: "Located subject observations", source: [], objectIdField: "OBJECTID", geometryType: "point", spatialReference: { wkid: 4326 }, fields: findFields, renderer: { type: "heatmap", radius: 22, maxDensity: .04, minDensity: 0, colorStops: [{ ratio: 0, color: [10, 24, 35, 0] }, { ratio: .35, color: [0, 170, 220, .65] }, { ratio: .7, color: [242, 169, 0, .85] }, { ratio: 1, color: [255, 70, 60, 1] }] }, popupEnabled: false });
@@ -338,7 +338,7 @@
       function renderList() {
         var q = $("incidentSearch").value.trim().toLowerCase(), all = state.filtered.incidents.filter(function (x) { return !q || (x.id + " " + x.name + " " + x.status + " " + x.category).toLowerCase().includes(q); }), shown = all.slice(0, 200);
         $("incidentCount").textContent = all.length.toLocaleString() + " visible" + (all.length > 200 ? " · first 200 rendered" : "");
-        $("incidentList").innerHTML = shown.length ? shown.map(function (x) { return '<button class="incident-row' + (state.selectedId === x.id ? " selected" : "") + '" data-id="' + escapeHtml(x.id) + '" aria-pressed="' + (state.selectedId === x.id) + '"><strong>' + escapeHtml(x.id) + " · " + escapeHtml(x.name) + '</strong><span>' + escapeHtml(x.status) + " · " + escapeHtml(x.category) + " · " + escapeHtml(fmtDate(x.lastSeen)) + "</span></button>"; }).join("") : '<p class="empty-copy">No incidents match the active filters and search.</p>';
+        $("incidentList").innerHTML = shown.length ? shown.map(function (x) { return '<button class="incident-row' + (state.selectedId === x.id ? " selected" : "") + '" data-id="' + escapeHtml(x.id) + '" aria-pressed="' + (state.selectedId === x.id) + '"><strong>' + escapeHtml(x.id) + " · " + escapeHtml(x.name) + '</strong><span>' + escapeHtml(x.status) + " · " + escapeHtml(x.category) + " · " + (state.selectedId === x.id && state.zoomReturnViewpoint ? "Select again to return to previous extent" : escapeHtml(fmtDate(x.lastSeen))) + "</span></button>"; }).join("") : '<p class="empty-copy">No incidents match the active filters and search.</p>';
         $("incidentList").querySelectorAll("[data-id]").forEach(function (button) { button.onclick = function () { controller.selectIncident(button.dataset.id); }; });
       }
       async function replaceSource(layer, graphics) { var old = await layer.queryObjectIds({ where: "1=1" }); await layer.applyEdits({ deleteFeatures: (old || []).map(function (id) { return { objectId: id }; }), addFeatures: graphics }); }
@@ -357,11 +357,14 @@
             try { await Promise.all([replaceSource(incidentLayer, incGraphics), replaceSource(heatLayer, findGraphics), replaceSource(findPointLayer, findGraphics)]); } catch (error) { console.error("Map source refresh failed", error); }
             if (generation !== state.renderGeneration) return;
             state.mapAppliedGeneration = generation; applyMapMode();
-            var graphics = incGraphics.concat(findGraphics); if (graphics.length && !selectedId) view.goTo(graphics, { padding: 60 }).catch(function () {});
+            var graphics = incGraphics.concat(findGraphics), returnViewpoint = state.pendingReturnViewpoint; state.pendingReturnViewpoint = null;
+            if (returnViewpoint) { view.closePopup(); view.goTo(returnViewpoint, { animate: false }).catch(function () {}); }
+            else if (graphics.length && !selectedId) view.goTo(graphics, { padding: 60 }).catch(function () {});
           });
         }, 100);
       }
       function apply() {
+        if ($("scopeFilter").value === "all" && !state.pendingReturnViewpoint) state.zoomReturnViewpoint = null;
         var generation = ++state.renderGeneration;
         setPhase("loading", "Applying filters…"); setAnalyticsLoading();
         setTimeout(function () {
@@ -371,7 +374,7 @@
           if (!state.filtered.incidents.length) setPhase("empty", "No incidents match the active filters. Reset filters or broaden the date range."); else setPhase("ready", "");
         }, 0);
       }
-      function reset() { state.heatCells = []; $("scopeFilter").value = "all"; $("startDate").value = ""; $("endDate").value = ""; $("statusFilter").value = "all"; $("categoryFilter").value = "all"; $("periodFilter").value = "all"; $("incidentSearch").value = ""; apply(); }
+      function reset() { state.heatCells = []; state.zoomReturnViewpoint = null; state.pendingReturnViewpoint = null; $("scopeFilter").value = "all"; $("startDate").value = ""; $("endDate").value = ""; $("statusFilter").value = "all"; $("categoryFilter").value = "all"; $("periodFilter").value = "all"; $("incidentSearch").value = ""; apply(); }
       async function reload() {
         var reloadToken = ++state.renderGeneration;
         setPhase("loading", "Loading browser workspaces and hosted ArcGIS records…"); setAnalyticsLoading(); $("reloadData").disabled = true;
@@ -387,6 +390,10 @@
       }
       function selectIncident(id) {
         var incident = state.data.incidents.find(function (x) { return x.id === id; }); if (!incident) return;
+        if (state.selectedId === id && state.zoomReturnViewpoint) {
+          state.pendingReturnViewpoint = state.zoomReturnViewpoint; state.zoomReturnViewpoint = null; state.selectedId = null; $("scopeFilter").value = "all"; apply(); return;
+        }
+        if (!state.zoomReturnViewpoint && view.viewpoint) state.zoomReturnViewpoint = view.viewpoint.clone();
         $("scopeFilter").value = id; state.selectedId = id; apply();
         if (incident.geometry) view.goTo({ target: incident.geometry, zoom: 13 }, { duration: 500 }).then(function () { view.openPopup({ features: [], location: incident.geometry, title: incident.name, content: incident.id + " · " + incident.status }); }).catch(function () {});
       }

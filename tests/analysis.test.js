@@ -99,6 +99,9 @@ assert.equal(A.escapeHtml('<img src=x onerror="boom">'), "&lt;img src=x onerror=
   assert.match(js, /window\.__esriView/);
   assert.match(js, /type: "heatmap"/);
   assert.match(js, /queryFeatures/);
+  assert.match(js, /zoomReturnViewpoint/);
+  assert.match(js, /pendingReturnViewpoint/);
+  assert.match(js, /Select again to return to previous extent/);
   for (const widget of ["LayerList", "BasemapGallery", "Bookmarks", "Measurement", "Zoom", "Home", "Search"]) assert(js.includes(widget), widget + " is available on the Analysis map");
   assert.match(html, /bookmarks\.js\?v=/, "Analysis loads persistent browser bookmarks");
   const css = fs.readFileSync(path.join(__dirname, "../app/analysis.css"), "utf8");

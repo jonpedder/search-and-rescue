@@ -37,6 +37,7 @@ test("all-incidents and single-incident workflows stay filter-linked", async ({ 
   await expect(page.locator("#metricIncidents")).toHaveText("2");
   await expect(page.locator("#metricLocated")).toHaveText("1");
   await expect(page.locator("#incidentCount")).toContainText("2 visible");
+  const previousViewpoint = await page.evaluate(() => ({ scale: window.__esriView.scale, longitude: window.__esriView.center.longitude, latitude: window.__esriView.center.latitude }));
   await page.locator('[data-id="I-100"]').click();
   await expect(page.locator("#scopeFilter")).toHaveValue("I-100");
   await expect(page.locator("#metricIncidents")).toHaveText("1");
@@ -46,6 +47,13 @@ test("all-incidents and single-incident workflows stay filter-linked", async ({ 
   await expect(page.locator("#monthDayChart .month-day-cell[class*=purple]")).toHaveCount(1);
   const zoom = await page.evaluate(() => window.__esriView.zoom);
   expect(zoom).toBeGreaterThanOrEqual(10);
+  await expect(page.locator('[data-id="I-100"]')).toContainText("Select again to return to previous extent");
+  await page.locator('[data-id="I-100"]').click();
+  await expect(page.locator("#scopeFilter")).toHaveValue("all");
+  await page.waitForFunction(expected => Math.abs(window.__esriView.scale - expected.scale) < Math.max(1, expected.scale * 0.01), previousViewpoint, { timeout: 10000 });
+  const returnedViewpoint = await page.evaluate(() => ({ longitude: window.__esriView.center.longitude, latitude: window.__esriView.center.latitude }));
+  expect(returnedViewpoint.longitude).toBeCloseTo(previousViewpoint.longitude, 3);
+  expect(returnedViewpoint.latitude).toBeCloseTo(previousViewpoint.latitude, 3);
   await page.locator("#resetFilters").click();
   await expect(page.locator("#scopeFilter")).toHaveValue("all");
   await expect(page.locator("#metricIncidents")).toHaveText("2");
