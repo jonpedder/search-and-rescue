@@ -5,7 +5,7 @@ const api = require("../app/terrain-3d.js");
 
 assert.equal(typeof api.init, "function");
 const moduleSource = fs.readFileSync(path.join(__dirname, "../app/terrain-3d.js"), "utf8");
-for (const contract of ["world-elevation", 'map.basemap = "hybrid"', "tilt: 60", "directShadowsEnabled: true", "ambientOcclusionEnabled: true", "sar-3d-toggle", "3D Terrain", "2D Map"]) {
+for (const contract of ["world-elevation", 'map.basemap = "hybrid"', "tilt: 60", "qualityProfile: \"medium\"", "mapView.container = null", "sceneView.container = sceneNode", "waitForSceneSize", "sar-3d-toggle", "3D Terrain", "2D Map"]) {
   assert.ok(moduleSource.includes(contract), `3D module must include ${contract}`);
 }
 
