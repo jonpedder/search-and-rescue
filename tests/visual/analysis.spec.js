@@ -102,6 +102,23 @@ test("analysis loading, empty and error states are explicit", async ({ page }) =
   await expect(page.locator("#sourceStatus")).toContainText("browser-only fallback");
 });
 
+test("analysis filter rail collapses accessibly and persists", async ({ page }, testInfo) => {
+  await page.goto("/analysis.html?hosted=off", { waitUntil: "load" });
+  await page.waitForFunction(() => window.__app?.analysis && window.__esriView?.ready, null, { timeout: 30000 });
+  const toggle = page.locator("#toggleAnalysisRail"), content = page.locator("#analysisFilterContent");
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(content).toBeHidden();
+  await expect(page.locator("#analysisRoot")).toHaveClass(/rail-collapsed/);
+  if (!testInfo.project.name.includes("mobile")) expect(await page.locator(".analysis-left").evaluate(el => el.getBoundingClientRect().width)).toBeLessThanOrEqual(46);
+  await page.reload({ waitUntil: "load" });
+  await page.waitForFunction(() => window.__app?.analysis && window.__esriView?.ready, null, { timeout: 30000 });
+  await expect(page.locator("#toggleAnalysisRail")).toHaveAttribute("aria-expanded", "false");
+  await page.locator("#toggleAnalysisRail").click();
+  await expect(page.locator("#analysisFilterContent")).toBeVisible();
+});
+
 test("desktop and mobile keep map first without horizontal overflow", async ({ page }, testInfo) => {
   await openReady(page);
   const layout = await page.evaluate(() => { const map = document.querySelector(".analysis-map").getBoundingClientRect(), heat = document.querySelector(".heat-card").getBoundingClientRect(), left = document.querySelector(".analysis-left").getBoundingClientRect(), right = document.querySelector(".analysis-right").getBoundingClientRect(), bottom = document.querySelector(".analysis-bottom").getBoundingClientRect(); return { width: innerWidth, scroll: document.documentElement.scrollWidth, map, heat, left, right, bottom }; });

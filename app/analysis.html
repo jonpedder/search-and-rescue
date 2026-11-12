@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
 <link rel="stylesheet" href="./theme.css?v=20261110-7">
-<link rel="stylesheet" href="./analysis.css?v=20261119-1">
+<link rel="stylesheet" href="./analysis.css?v=20261119-2">
 <link rel="stylesheet" href="./resizable-panels.css?v=20261118-1">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="./settings.js?v=20261112-1"></script>
@@ -41,7 +41,8 @@
   </section>
 
   <aside class="analysis-left" aria-label="Incident filters and list">
-    <div class="rail-head"><h2>Analysis filters</h2><p>Selections update every map, chart and export.</p></div>
+    <div class="rail-head"><div class="rail-heading"><h2>Analysis filters</h2><p>Selections update every map, chart and export.</p></div><button id="toggleAnalysisRail" class="rail-toggle" type="button" aria-expanded="true" aria-controls="analysisFilterContent" aria-label="Collapse analysis filters and incident details" title="Collapse filters">›</button></div>
+    <div id="analysisFilterContent" class="analysis-filter-content">
     <div id="analysisState" class="analysis-state loading" role="status" aria-live="polite">Loading browser workspaces and hosted ArcGIS records…</div>
     <section class="panel-section" aria-labelledby="filtersTitle"><h3 id="filtersTitle">Incident selection</h3>
       <div class="filter-grid">
@@ -60,6 +61,7 @@
       <label class="filter-grid"><span class="wide"><span class="sr-only">Search incidents</span><input id="incidentSearch" class="incident-search" type="search" placeholder="Search ID, name, status or category"></span></label>
       <div id="incidentList" class="incident-list" aria-live="polite"><p class="empty-copy">Loading incidents…</p></div>
     </section>
+    </div>
   </aside>
 
   <section class="analysis-primary" aria-label="Incident hotspot and time-of-day analysis">
@@ -102,7 +104,7 @@
 </div>
 <footer class="analysis-footer">Decision support only · Reconcile browser and hosted records with incident command · Protect subject, responder, clue and assignment information.</footer>
 </div>
-<script src="./analysis.js?v=20261119-1"></script>
+<script src="./analysis.js?v=20261119-2"></script>
 <script src="./resizable-panels.js?v=20261118-1"></script>
 <script src="./reports.js?v=20261110-7"></script>
 <script src="./auth.js"></script>

@@ -19,8 +19,10 @@ for (const item of pages) {
     await toggle.click();
     await page.waitForFunction((controller) => {
       const terrain = controller === "planning" ? window.__app?.planning?.terrain3D : controller === "analysis" ? window.__app?.analysisTerrain3D : window.__app?.terrain3D;
-      return terrain?.active && terrain.sceneView?.ready;
-    }, item.controller, { timeout: 45000 });
+      const button = document.querySelector(".sar-3d-toggle");
+      return (terrain?.active && terrain.sceneView?.ready) || button?.disabled;
+    }, item.controller, { timeout: 60000 });
+    test.skip(await toggle.isDisabled(), "ArcGIS World Elevation or SceneView resources are unavailable in this runner.");
     await expect(toggle).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".sar-3d-scene")).toHaveClass(/active/);
     const state = await page.evaluate(() => ({

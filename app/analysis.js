@@ -215,6 +215,14 @@
   function initBrowser() {
     if (typeof document === "undefined" || !document.getElementById("analysisRoot")) return;
     var $ = function (id) { return document.getElementById(id); }, SETTINGS = window.SARSettings && window.SARSettings.load ? window.SARSettings.load() : { map: { basemap: "topo-vector", centerLon: -118.03, centerLat: 34.14, zoom: 4 }, workspace: { operationalPeriodHours: 12 } };
+    var railKey = "sar.analysis.filters.collapsed.v1", railToggle = $("toggleAnalysisRail"), railContent = $("analysisFilterContent"), analysisRoot = $("analysisRoot");
+    function setRailCollapsed(collapsed, persist) {
+      analysisRoot.classList.toggle("rail-collapsed", collapsed); railContent.hidden = collapsed; railToggle.setAttribute("aria-expanded", String(!collapsed)); railToggle.setAttribute("aria-label", (collapsed ? "Expand" : "Collapse") + " analysis filters and incident details"); railToggle.title = (collapsed ? "Expand" : "Collapse") + " filters"; railToggle.textContent = collapsed ? "‹" : "›";
+      if (persist) try { localStorage.setItem(railKey, collapsed ? "true" : "false"); } catch (_) {}
+      setTimeout(function () { try { window.__esriView && window.__esriView.resize(); } catch (_) {} window.dispatchEvent(new CustomEvent("sar-layout-resize")); }, 180);
+    }
+    var railCollapsed = false; try { railCollapsed = localStorage.getItem(railKey) === "true"; } catch (_) {}
+    setRailCollapsed(railCollapsed, false); railToggle.onclick = function () { setRailCollapsed(railToggle.getAttribute("aria-expanded") === "true", true); };
     require(["esri/Map", "esri/views/MapView", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/layers/TileLayer", "esri/Graphic", "esri/widgets/Home", "esri/widgets/Legend", "esri/widgets/Expand", "esri/widgets/ScaleBar", "esri/widgets/Search"], function (Map, MapView, SceneView, FeatureLayer, TileLayer, Graphic, Home, Legend, Expand, ScaleBar, Search) {
       var state = { phase: "loading", source: "browser", freshness: null, data: { incidents: [], keypoints: [], clues: [], tasks: [] }, filtered: null, summary: null, selectedId: null, mapMode: "combined", hostedError: null, localErrors: [], renderGeneration: 0, mapAppliedGeneration: 0 };
       var incidentLayer = new FeatureLayer({ title: "Incident locations", source: [], objectIdField: "OBJECTID", geometryType: "point", spatialReference: { wkid: 4326 }, fields: [{ name: "OBJECTID", type: "oid" }, { name: "incident_id", type: "string" }, { name: "name", type: "string" }, { name: "status", type: "string" }, { name: "category", type: "string" }], renderer: { type: "simple", symbol: { type: "simple-marker", style: "diamond", size: 10, color: [242, 169, 0, .9], outline: { color: [7, 24, 36, 1], width: 1.5 } } }, popupTemplate: { title: "{name}", content: "<b>{incident_id}</b><br>{status} · {category}" } });
