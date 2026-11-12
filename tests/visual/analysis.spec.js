@@ -19,6 +19,18 @@ async function openReady(page) {
   await page.waitForFunction(() => window.__app?.analysis?.state?.phase === "ready" && window.__esriView?.ready, null, { timeout: 30000 });
 }
 
+test("analysis map exposes navigation, layer, basemap, bookmark and measurement tools without blocking search", async ({ page }) => {
+  await openReady(page);
+  const state = await page.evaluate(() => {
+    const widgets = window.__app.analysisMapWidgets, map = document.querySelector(".analysis-map").getBoundingClientRect(), mode = document.querySelector(".map-mode").getBoundingClientRect(), search = document.querySelector(".esri-search").getBoundingClientRect();
+    return { keys: Object.keys(widgets || {}).filter(key => widgets[key]), map: { left: map.left, top: map.top, right: map.right, bottom: map.bottom }, mode: { left: mode.left, top: mode.top, right: mode.right, bottom: mode.bottom }, search: { left: search.left, top: search.top, right: search.right, bottom: search.bottom } };
+  });
+  expect(state.keys).toEqual(expect.arrayContaining(["home", "zoom", "search", "layers", "legend", "basemaps", "bookmarks", "measure"]));
+  expect(state.mode.left).toBeLessThan((state.map.left + state.map.right) / 2);
+  expect(state.mode.bottom).toBeGreaterThan(state.map.top + (state.map.bottom - state.map.top) / 2);
+  expect(state.mode.top).toBeGreaterThan(state.search.bottom);
+});
+
 test("all-incidents and single-incident workflows stay filter-linked", async ({ page }) => {
   await openReady(page);
   await expect(page.locator("#scopeFilter")).toHaveValue("all");
