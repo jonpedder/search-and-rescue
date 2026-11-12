@@ -9,8 +9,12 @@
       [4, 18, 42, "Enter the incident and Initial Planning Point"], [5, 38, 37, "Use native map and sketch tools"], [6, 86, 17, "Search for an address or place"]
     ]},
     { title: "SAR Operations", image: "./assets/help/operations-overview.png", callouts: [
-      [1, 17, 14, "Switch between map editing, assignments and resources"], [2, 16, 29, "Set the incident ID and load ArcGIS records"], [3, 35, 35, "Navigate and inspect the operational map"],
-      [4, 87, 30, "Control visibility and zoom from Operational Layers"], [5, 16, 78, "Choose an object type, then draw it on the map"], [6, 69, 6, "Open Planning or return to Operations"]
+      [1, 17, 14, "Switch between Edit Map, Assignments, Resources and Reports"], [2, 16, 29, "Set the incident ID and load local or ArcGIS records"], [3, 35, 35, "Navigate and inspect the operational map"],
+      [4, 87, 30, "Control visibility and zoom from Operational Layers"], [5, 16, 78, "Choose an object type, then draw it on the map"], [6, 69, 6, "Open Planning, Operations or Analysis from the shared header"]
+    ]},
+    { title: "Incident Analysis", image: "./assets/help/analysis-overview.png", callouts: [
+      [1, 48, 27, "Review filter-linked incident and outcome KPIs"], [2, 87, 23, "Apply incident, date, status, category and period filters"], [3, 97, 22, "Collapse or reopen the Analysis filter rail"],
+      [4, 24, 58, "Switch hotspot map display and inspect incidents"], [5, 58, 66, "Select weekday/hour cells to cross-filter the dashboard"], [6, 87, 82, "Search and select filter-linked incident details"]
     ]},
     { title: "Settings and administration", image: "./assets/help/settings-overview.png", callouts: [
       [1, 21, 17, "Switch between Configuration and Help & How-to"], [2, 18, 62, "Export or import a reviewed settings template"], [3, 44, 95, "Apply, save, discard or reset configuration"],
@@ -46,10 +50,10 @@
     function para(t, bullet) { if (!t) return; doc.setFont("helvetica", "normal"); doc.setFontSize(9.2); doc.setTextColor.apply(doc, ink); var indent = bullet ? 14 : 0, lines = doc.splitTextToSize(t, W - M * 2 - indent); need(lines.length * 12 + 4); if (bullet) doc.text("•", M + 2, y); doc.text(lines, M + indent, y); y += lines.length * 12 + 5; }
     header("Search & Rescue Help & How-to", "Visual operator guide - generated " + new Date().toLocaleString());
     doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.setTextColor.apply(doc, navy); doc.text("Operator quick guide", M, 126); y = 154;
-    para("This guide explains the Planning, Operations and Settings workspaces. Numbered dots in the screenshots point to the controls used during the workflow.");
+    para("This guide explains the current Planning, Operations, Analysis and Settings workspaces. Numbered dots in the screenshots point to the controls used during the workflow.");
     para("Decision support only. Validate model output, map content, assignments and field reports through incident command and current agency procedures.");
     y += 8; heading("Recommended sequence", 15);
-    ["Sign in and verify the authenticated ArcGIS user.", "Create or open an incident and set the Initial Planning Point.", "Complete the subject profile and interview; review planning cues.", "Run the model, inspect assumptions and create ranked search segments.", "Use the independent Asset editor to enter a required name, choose a NAPSG icon/type, optionally describe the resource, then place and save it. Select an asset in Assignment & Asset Design to edit details without moving it.", "Prepare assignments separately; an asset never requires or creates an assignment.", "Open SAR Operations, load the incident, create assignments and map clues/tracks.", "Export reports and preserve approved incident records."].forEach(function (x) { para(x, true); });
+    ["Sign in and verify the authenticated ArcGIS user.", "Create or open an incident and set the Initial Planning Point.", "Complete the subject profile and interview; review planning cues.", "Run the model, inspect assumptions and create ranked search segments.", "Use the independent Asset editor to enter a required name, choose a NAPSG icon/type, optionally describe the resource, then place and save it. Select an asset in Assignment & Asset Design to edit details without moving it.", "Prepare assignments separately; an asset never requires or creates an assignment.", "Open SAR Operations, load the incident, create assignments and map clues/tracks.", "Use Analysis filters and weekday/hour cells to review patterns; reconcile the result with incident command.", "Export approved data or reports and preserve incident records in authorized systems."].forEach(function (x) { para(x, true); });
 
     for (var gi = 0; gi < guides.length; gi++) {
       var g = guides[gi], img = await loadImage(g.image); next(g.title, "Numbered controls and actions");
