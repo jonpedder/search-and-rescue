@@ -8,6 +8,7 @@ assert.equal(R.finiteWidth("320"), 320);
 assert.equal(R.finiteWidth("not-a-width"), null);
 assert.equal(R.pageConfigs.length, 6, "all genuine persistent sidebars share one registry");
 assert.equal(new Set(R.pageConfigs.map(x => x.key)).size, 6, "storage keys are panel-specific");
+assert.equal(R.pageConfigs.find(x => x.id === "analysis-left").media, "(min-width: 1051px)", "Analysis rail resizing only runs while the rail is a real grid column");
 for (const config of R.pageConfigs) {
   assert(config.key.startsWith("sar.layout.") && config.key.endsWith(".v1"), config.id + " has a versioned storage key");
   assert(config.min < config.defaultWidth && config.defaultWidth < config.max, config.id + " has sensible limits");

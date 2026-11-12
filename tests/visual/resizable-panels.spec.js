@@ -92,6 +92,19 @@ test("Planning attaches one handle when the assignment panel is created dynamica
   await expect(page.locator('#planningAssignmentPanel [data-resize-panel="planning-right"]')).toHaveCount(1);
 });
 
+test("Analysis stacked tablet layout disables the horizontal rail resizer", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.includes("mobile"), "Uses a dedicated tablet-width desktop viewport.");
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.route(/^https:\/\//, route => route.abort());
+  await page.addInitScript(() => localStorage.setItem("sar.layout.analysis.left.v1", "450"));
+  await page.goto("/analysis.html?hosted=off", { waitUntil: "domcontentloaded" });
+  const handle = page.locator('[data-resize-panel="analysis-left"]');
+  await expect(handle).toBeHidden();
+  expect(await page.locator("#analysisRoot").evaluate(el => el.style.getPropertyValue("--sar-analysis-left"))).toBe("");
+  const root = await page.locator("#analysisRoot").boundingBox(), rail = await page.locator(".analysis-left").boundingBox();
+  expect(rail.width).toBeGreaterThan(root.width - 30);
+});
+
 for (const definition of pages) {
   test(`${definition.path} stacked mobile layout hides handles and clears custom widths`, async ({ page }, testInfo) => {
     test.setTimeout(60000);
