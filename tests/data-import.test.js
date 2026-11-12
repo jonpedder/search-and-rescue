@@ -1,0 +1,31 @@
+const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
+const I = require("../app/data-import.js");
+
+const csv = '\uFEFFObjectID,GlobalID,Team Name,Incident_UUID,Incident Number,Type of Incident,Incident Start Date and Time,Area Type,Land Ownership,Subject Category,Subject 1: Age,Subject 1: Gender,x,y\r\n667,f336d434-f8aa-46fb-8098-ac5634e709d9,Park_County_SAR,d2e7442c-7c22-4f67-b738-3e44e32b200f,051021 Matukat Stranded Motorist,RESCUE,5/10/2021 4:00:00 PM,RURAL,NATIONAL_FOREST,CAMPING,50,MALE,-105.3821,39.0899\r\n';
+const rows = I.parseCsv(csv);
+assert.equal(rows.length, 1);
+const normalized = I.normalizeRows(rows, "MRA missions.csv");
+assert.equal(normalized.incidents.length, 1);
+assert.equal(normalized.skipped, 0);
+assert.equal(normalized.incidents[0].id, "f336d434-f8aa-46fb-8098-ac5634e709d9", "record-level GlobalID preserves multi-subject incident rows");
+assert.equal(normalized.incidents[0].name, "051021 Matukat Stranded Motorist");
+assert.equal(normalized.incidents[0].category, "CAMPING");
+assert.equal(normalized.incidents[0].status, "RESCUE");
+assert.deepEqual([normalized.incidents[0].geometry.longitude, normalized.incidents[0].geometry.latitude], [-105.3821, 39.0899]);
+assert(Number.isFinite(normalized.incidents[0].lastSeen));
+
+const shape = I.normalizeFeatures({ type: "FeatureCollection", features: [{ type: "Feature", properties: { Incident_N: "SHP-1", Subject_Ca: "HIKING" }, geometry: { type: "Point", coordinates: [-121.5, 47.4] } }] }, "missions.zip");
+assert.equal(shape.incidents.length, 1);
+assert.deepEqual([shape.incidents[0].geometry.longitude, shape.incidents[0].geometry.latitude], [-121.5, 47.4]);
+const source = fs.readFileSync(path.join(__dirname, "../app/data-import.js"), "utf8");
+assert.match(source, /indexedDB\.open/);
+assert.match(source, /ext === "zip"/);
+const settings = fs.readFileSync(path.join(__dirname, "../app/settings.html"), "utf8");
+assert.match(settings, /id="referenceDataFile"/);
+assert.match(settings, /vendor\/shp\.min\.js/);
+assert(settings.indexOf("vendor/shp.min.js") < settings.indexOf("js.arcgis.com/4.31"), "shpjs must load before the ArcGIS AMD loader so it exposes window.shp");
+const analysis = fs.readFileSync(path.join(__dirname, "../app/analysis.js"), "utf8");
+assert.match(analysis, /loadAnalysisIncidents/);
+console.log("CSV and zipped-shapefile reference import contracts passed");

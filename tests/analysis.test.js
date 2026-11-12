@@ -28,6 +28,9 @@ assert.equal(i1.name, "Local Alpha", "browser workspace name is preserved");
 assert.deepEqual(i1.sources.sort(), ["browser", "hosted"]);
 assert.equal(i1.localRecords.length, 1);
 assert.equal(merged.tasks.filter(x => x.incidentId === "I-1").length, 2, "hosted and local assignments merge");
+const withImported = A.mergeData(hosted, local, [{ id: "MRA-1", name: "Imported mission", category: "HIKING", status: "SEARCH", lastSeen: t0, geometry: pt(-105, 39), sources: ["imported"], localRecords: [], localAssignments: [] }]);
+assert.equal(withImported.incidents.length, 4, "browser-imported reference incidents join hosted and workspace data");
+assert.deepEqual(withImported.incidents.find(x => x.id === "MRA-1").sources, ["imported"]);
 
 const filtered = A.applyFilters(merged, { scope: "I-1", status: "Closed", category: "Hiker", operationalPeriod: "2" });
 assert.deepEqual(filtered.incidents.map(x => x.id), ["I-1"]);

@@ -70,11 +70,18 @@
       tasks: (raw.tasks || []).map(function (f) { var a = attrs(f); return { incidentId: String(a.incident_id || ""), assigned: dateMs(a.assigned_time), completed: dateMs(a.completed_time), status: a.status || "Not recorded", pod: a.pod_reported, operationalPeriod: opOf(f), source: "hosted" }; }).filter(function (x) { return x.incidentId; })
     };
   }
-  function mergeData(hostedRaw, workspaceRows) {
+  function mergeData(hostedRaw, workspaceRows, importedIncidents) {
     var hosted = normalizeHosted(hostedRaw), byId = new Map(), keypoints = hosted.keypoints.slice(), clues = hosted.clues.slice(), tasks = hosted.tasks.slice();
     hosted.incidents.forEach(function (incident) {
       var prior = byId.get(incident.id);
       byId.set(incident.id, prior ? Object.assign(prior, incident, { sources: Array.from(new Set(prior.sources.concat(incident.sources))) }) : incident);
+    });
+    (importedIncidents || []).forEach(function (incident) {
+      if (!incident || !String(incident.id || "").trim()) return;
+      var clean = Object.assign({ category: "Not recorded", status: "Not recorded", sources: ["imported"], localRecords: [], localAssignments: [] }, incident), prior = byId.get(String(clean.id));
+      clean.id = String(clean.id);
+      if (prior) { prior.sources = Array.from(new Set((prior.sources || []).concat(clean.sources || ["imported"]))); if (!prior.geometry) prior.geometry = clean.geometry; }
+      else byId.set(clean.id, clean);
     });
     (workspaceRows || []).forEach(function (row) {
       var w = row.data || row, inc = w.incident || {}, id = String(inc.id || "").trim();
@@ -214,9 +221,10 @@
     var out = {}; results.forEach(function (x) { out[x[0]] = x[1]; }); return out;
   }
   async function loadMergedData(options) {
-    options = options || {}; var local = localWorkspaces(options.storage), hosted = {}, error = null;
+    options = options || {}; var local = localWorkspaces(options.storage), hosted = {}, imported = [], error = null, importedError = null;
     try { hosted = options.loadHosted ? await options.loadHosted() : {}; } catch (e) { error = e; }
-    return { data: mergeData(hosted, local.workspaces), localErrors: local.errors, hostedError: error };
+    try { imported = options.loadImported ? await options.loadImported() : []; } catch (e) { importedError = e; }
+    return { data: mergeData(hosted, local.workspaces, imported), localErrors: local.errors, hostedError: error, importedError: importedError, importedCount: imported.length };
   }
 
   function initBrowser() {
@@ -382,10 +390,10 @@
         var params = new URLSearchParams(location.search), hostedMode = params.get("hosted"), skipHosted = hostedMode === "off", delay = Math.min(3000, Math.max(0, +(params.get("delay") || 0)));
         if (delay) await new Promise(function (resolve) { setTimeout(resolve, delay); });
         var hostedLoader = skipHosted ? null : hostedMode === "error" ? function () { return Promise.reject(new Error("Hosted query unavailable")); } : function () { return loadHosted(FeatureLayer, SERVICE_ROOT); };
-        var loaded = await loadMergedData({ storage: localStorage, loadHosted: hostedLoader });
+        var loaded = await loadMergedData({ storage: localStorage, loadHosted: hostedLoader, loadImported: function () { return window.SARDataImport ? window.SARDataImport.loadAnalysisIncidents() : Promise.resolve([]); } });
         if (reloadToken !== state.renderGeneration) return;
-        state.data = loaded.data; state.hostedError = loaded.hostedError; state.localErrors = loaded.localErrors; state.freshness = Date.now(); state.source = loaded.hostedError || skipHosted ? "Browser workspaces" : "Browser + hosted ArcGIS";
-        $("sourceStatus").innerHTML = '<strong>' + escapeHtml(state.source) + '</strong><span>Updated ' + escapeHtml(fmtDate(state.freshness)) + (state.hostedError ? " · Hosted query unavailable; browser-only fallback active." : "") + (loaded.localErrors.length ? " · " + loaded.localErrors.length + " malformed local workspace(s) skipped." : "") + "</span>";
+        state.data = loaded.data; state.hostedError = loaded.hostedError; state.localErrors = loaded.localErrors; state.freshness = Date.now(); state.source = (loaded.hostedError || skipHosted ? "Browser workspaces" : "Browser + hosted ArcGIS") + (loaded.importedCount ? " + imported reference data" : "");
+        $("sourceStatus").innerHTML = '<strong>' + escapeHtml(state.source) + '</strong><span>Updated ' + escapeHtml(fmtDate(state.freshness)) + (state.hostedError ? " · Hosted query unavailable; browser-only fallback active." : "") + (loaded.importedCount ? " · " + loaded.importedCount.toLocaleString() + " imported incident point(s)." : "") + (loaded.importedError ? " · Imported reference data could not be read." : "") + (loaded.localErrors.length ? " · " + loaded.localErrors.length + " malformed local workspace(s) skipped." : "") + "</span>";
         populateFilters(); $("reloadData").disabled = false;
         if (!state.data.incidents.length) { state.baseFiltered = state.data; state.baseSummary = summarize(state.data); state.filtered = state.data; state.summary = state.baseSummary; renderList(); renderAnalytics(); refreshMap(reloadToken); setPhase(loaded.hostedError ? "error" : "empty", loaded.hostedError ? "Hosted ArcGIS data is unavailable and no valid browser workspaces were found." : "No incidents are available in the selected sources."); } else apply();
       }
