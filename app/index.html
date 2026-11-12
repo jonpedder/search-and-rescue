@@ -10,9 +10,11 @@
 <link rel="stylesheet" href="./theme.css?v=20261110-6">
 <link rel="stylesheet" href="./resizable-panels.css?v=20261118-1">
   <link rel="stylesheet" href="./resizable-sections.css?v=20261120-1">
+<link rel="stylesheet" href="./utm-scale.css?v=20261120-3">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="./settings.js?v=20261112-1"></script>
 <script src="./coordinate-format.js?v=20261112-1"></script>
+<script src="./utm-scale.js?v=20261120-5"></script>
 <style>
 /* Brand palette follows the ca_security_ops (Mission Insights) exemplar:
    navy header, gold accent, dark panels, Arial, uppercase gold eyebrow labels. */
@@ -1117,6 +1119,7 @@ require([
   const view = new MapView({container:"viewDiv", map, center:[APP_SETTINGS.map.centerLon,APP_SETTINGS.map.centerLat], zoom:APP_SETTINGS.map.zoom, constraints:{snapToZoom:false}});
   window.__esriView=view;window.__esriMap=map;window.__esriLayers=layers;window.__app=window.__app||{};window.__app.planning={state,layers,view,Graphic,Extent,setIPP,renderScenarios,renderStats,renderSegments,renderTable,updateSurvival,refreshLineCount,estimateSegmentPOD};
   window.__app.planning.terrain3D=window.SARTerrain3D.init({map,view,SceneView,Legend,Expand});
+  window.__app.planning.utmScale=window.SARUtmScale.attach(view);
   if(window.SARDataExport){
     const ippGeometry=()=>state.ipp?{type:"point",longitude:state.ipp.lon,latitude:state.ipp.lat,spatialReference:{wkid:4326}}:null;
     window.SARDataExport.attach({host:$("scenTable").closest(".pane"),label:"Planning scenarios",filename:"sar_planning_scenarios",getData:()=>({rows:state.scenarios.map(s=>({...s})),contextGeometry:ippGeometry()})});
@@ -1656,7 +1659,7 @@ require([
 <script src="./resizable-panels.js?v=20261118-1"></script>
 <script src="./resizable-sections.js?v=20261120-1"></script>
 <script src="./planning-assignments.js?v=20261111-1"></script>
-<script src="./reports.js?v=20261110-7"></script>
+<script src="./reports.js?v=20261120-1"></script>
 <script src="./auth.js"></script>
 <script src="./header-nav.js?v=20261110-3"></script>
 </body>

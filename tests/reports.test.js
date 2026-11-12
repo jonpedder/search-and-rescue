@@ -12,7 +12,7 @@ assert.match(source,/"map-ansi-e": \{ title: "Large-scale map \(BAM\)", format: 
 assert.match(source,/"map-legal": \{ title: "Small map", format: "legal"/);
 assert.match(source,/"map-letter": \{ title: "Map", format: "letter"/);
 assert.match(source,/takeScreenshot\(\{ format: "png", width: 1800, height: 1000 \}\)/);
-for(const contract of ["captureOperationalMap","decorateMap","Geographic reference grid","Lines are latitude\/longitude guides","niceDistance","Legend","statusColor","assetFile","known-clue.svg","missing-person-ipp.svg"])assert.ok(source.includes(contract),contract);
+for(const contract of ["captureOperationalMap","decorateMap","Geographic reference grid","Grid lines remain latitude\/longitude guides","UTM easting bottom \/ northing right","niceDistance","Legend","statusColor","assetFile","known-clue.svg","missing-person-ipp.svg"])assert.ok(source.includes(contract),contract);
 assert.match(source,/window\.SARCoordinates\.format\(sample\.lat, sample\.lon, notation\)/);
 assert.match(source,/UTM|coordinateFormat/);
 assert.match(source,/workspace\.records/);

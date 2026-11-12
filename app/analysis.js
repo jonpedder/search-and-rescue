@@ -247,6 +247,7 @@
       view.ui.add(home, { position: "top-left", index: 0 }); view.ui.add(zoom, { position: "top-left", index: 1 }); view.ui.add(search, "top-right"); view.ui.add(new ScaleBar({ view: view, unit: "dual" }), "bottom-left");
       var bookmarks = window.SARBookmarks ? window.SARBookmarks.init({ view: view, Bookmarks: Bookmarks, Bookmark: Bookmark, Expand: Expand, group: "analysis", position: "top-left", storageKey: "sar.bookmarks.analysis.v1" }) : null;
       window.__app.analysisMapWidgets = { home: home, zoom: zoom, search: search, layers: layers, legend: legend, basemaps: basemaps, bookmarks: bookmarks, measure: measure };
+      window.__app.analysisUtmScale = window.SARUtmScale.attach(view);
 
       function setPhase(phase, message) { state.phase = phase; $("analysisRoot").setAttribute("aria-busy", phase === "loading" ? "true" : "false"); $("analysisState").className = "analysis-state " + phase; $("analysisState").textContent = message || ""; $("analysisState").hidden = !message; }
       function unique(field) { return Array.from(new Set(state.data.incidents.map(function (x) { return x[field]; }).filter(Boolean))).sort(); }

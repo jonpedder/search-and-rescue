@@ -1,0 +1,11 @@
+.sar-utm-scale{--sar-utm-edge-height:23px;position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;color:#fff;font:700 10px/1.1 var(--calcite-sans-family,"Avenir Next",Arial,sans-serif;text-shadow:0 1px 3px #000,0 0 2px #000}
+.sar-utm-bottom{position:absolute;right:54px;bottom:0!important;top:auto!important;left:0;height:23px;border-top:1px solid rgba(255,255,255,.76);background:linear-gradient(0deg,rgba(0,24,38,.9),rgba(0,24,38,.56))}
+.sar-utm-bottom span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.sar-utm-bottom i{display:block;width:1px;height:6px;margin:0 auto;background:#fff}.sar-utm-bottom b{display:block;margin-top:2px;font:inherit}
+.sar-utm-right{position:absolute;top:0!important;right:0;bottom:23px!important;width:54px;border-left:1px solid rgba(255,255,255,.76);background:linear-gradient(90deg,rgba(0,24,38,.56),rgba(0,24,38,.9))}
+.sar-utm-right span{position:absolute;right:0;transform:translateY(-50%);display:flex;align-items:center;white-space:nowrap}
+.sar-utm-right i{display:block;width:6px;height:1px;background:#fff}.sar-utm-right b{display:block;width:47px;overflow:hidden;text-align:center;font:inherit;transform:rotate(-90deg)}
+.sar-utm-zone{position:absolute;right:0;bottom:0!important;top:auto!important;width:54px;height:23px;display:grid;place-items:center;border-top:1px solid rgba(255,255,255,.76);border-left:1px solid rgba(255,255,255,.76);background:rgba(0,24,38,.92);font-size:9px;text-shadow:none}
+.sar-utm-description{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media(max-width:600px){.sar-utm-scale{--sar-utm-edge-height:19px;font-size:8px}.sar-utm-bottom{right:43px;height:19px}.sar-utm-right{bottom:19px;width:43px}.sar-utm-right b{width:36px}.sar-utm-zone{width:43px;height:19px;font-size:7px}}
+@media(forced-colors:active){.sar-utm-bottom,.sar-utm-right,.sar-utm-zone{background:Canvas;color:CanvasText;border-color:CanvasText}.sar-utm-bottom i,.sar-utm-right i{background:CanvasText}}
