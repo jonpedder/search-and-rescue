@@ -112,6 +112,13 @@
     function keep(x) { return ids.has(x.incidentId) && (!op || op === "all" || +x.operationalPeriod === +op || x.operationalPeriod == null); }
     return { incidents: incidents, keypoints: data.keypoints.filter(keep), clues: data.clues.filter(keep), tasks: data.tasks.filter(keep) };
   }
+  function applyDayHourCells(data, cells) {
+    var selected = new Set((cells || []).map(function (cell) { return typeof cell === "string" ? cell : cell.day + "-" + cell.hour; }));
+    if (!selected.size) return { incidents: data.incidents.slice(), keypoints: data.keypoints.slice(), clues: data.clues.slice(), tasks: data.tasks.slice() };
+    var incidents = data.incidents.filter(function (incident) { var ms = dateMs(incident.lastSeen); if (!ms) return false; var d = new Date(ms); return selected.has(d.getUTCDay() + "-" + d.getUTCHours()); });
+    var ids = new Set(incidents.map(function (incident) { return incident.id; })), keep = function (record) { return ids.has(record.incidentId); };
+    return { incidents: incidents, keypoints: data.keypoints.filter(keep), clues: data.clues.filter(keep), tasks: data.tasks.filter(keep) };
+  }
   function locationDurations(data) {
     var seen = new Map(data.incidents.map(function (x) { return [x.id, x.lastSeen]; })), earliest = new Map();
     data.keypoints.filter(function (x) { return String(x.pointType).toLowerCase() === "find"; }).forEach(function (x) {
@@ -224,7 +231,7 @@
     var railCollapsed = false; try { railCollapsed = localStorage.getItem(railKey) === "true"; } catch (_) {}
     setRailCollapsed(railCollapsed, false); railToggle.onclick = function () { setRailCollapsed(railToggle.getAttribute("aria-expanded") === "true", true); };
     require(["esri/Map", "esri/views/MapView", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/layers/TileLayer", "esri/Graphic", "esri/widgets/Home", "esri/widgets/Legend", "esri/widgets/Expand", "esri/widgets/ScaleBar", "esri/widgets/Search"], function (Map, MapView, SceneView, FeatureLayer, TileLayer, Graphic, Home, Legend, Expand, ScaleBar, Search) {
-      var state = { phase: "loading", source: "browser", freshness: null, data: { incidents: [], keypoints: [], clues: [], tasks: [] }, filtered: null, summary: null, selectedId: null, mapMode: "combined", hostedError: null, localErrors: [], renderGeneration: 0, mapAppliedGeneration: 0 };
+      var state = { phase: "loading", source: "browser", freshness: null, data: { incidents: [], keypoints: [], clues: [], tasks: [] }, baseFiltered: null, baseSummary: null, filtered: null, summary: null, heatCells: [], selectedId: null, mapMode: "combined", hostedError: null, localErrors: [], renderGeneration: 0, mapAppliedGeneration: 0 };
       var incidentLayer = new FeatureLayer({ title: "Incident locations", source: [], objectIdField: "OBJECTID", geometryType: "point", spatialReference: { wkid: 4326 }, fields: [{ name: "OBJECTID", type: "oid" }, { name: "incident_id", type: "string" }, { name: "name", type: "string" }, { name: "status", type: "string" }, { name: "category", type: "string" }], renderer: { type: "simple", symbol: { type: "simple-marker", style: "diamond", size: 10, color: [242, 169, 0, .9], outline: { color: [7, 24, 36, 1], width: 1.5 } } }, popupTemplate: { title: "{name}", content: "<b>{incident_id}</b><br>{status} · {category}" } });
       var findFields = [{ name: "OBJECTID", type: "oid" }, { name: "incident_id", type: "string" }, { name: "name", type: "string" }, { name: "point_time", type: "date" }];
       var heatLayer = new FeatureLayer({ title: "Located subject observations", source: [], objectIdField: "OBJECTID", geometryType: "point", spatialReference: { wkid: 4326 }, fields: findFields, renderer: { type: "heatmap", radius: 22, maxDensity: .04, minDensity: 0, colorStops: [{ ratio: 0, color: [10, 24, 35, 0] }, { ratio: .35, color: [0, 170, 220, .65] }, { ratio: .7, color: [242, 169, 0, .85] }, { ratio: 1, color: [255, 70, 60, 1] }] }, popupEnabled: false });
@@ -253,12 +260,13 @@
       function fmtDate(ms) { return ms ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(ms) : "Not recorded"; }
       function fmtHours(h) { if (h == null) return "—"; return h < 24 ? h.toFixed(1) + " h" : (h / 24).toFixed(1) + " d"; }
       function barChart(rows, unit) { var max = Math.max.apply(null, rows.map(function (x) { return x[1]; }).concat(1)); return '<div class="bar-chart">' + rows.map(function (x) { return '<div class="bar-row" title="' + escapeHtml(x[0] + ": " + x[1] + " " + unit) + '"><span>' + escapeHtml(x[0]) + '</span><i style="--bar:' + (100 * x[1] / max) + '%"></i><b>' + x[1] + "</b></div>"; }).join("") + "</div>"; }
-      function renderHeatMatrix(matrix) {
-        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], max = Math.max.apply(null, matrix.flat().concat(1));
-        var cells = '<span></span>' + Array.from({ length: 24 }, function (_, h) { return '<b class="heat-hour">' + (h % 3 === 0 ? h : "") + "</b>"; }).join("");
-        matrix.forEach(function (row, d) { cells += '<b class="heat-day">' + days[d] + "</b>" + row.map(function (n, h) { return '<span class="heat-cell" tabindex="0" aria-label="' + days[d] + " " + h + ':00: ' + n + ' incidents" title="' + days[d] + " " + h + ':00 — ' + n + ' incidents" style="--heat:' + (n / max) + '">' + (n || "") + "</span>"; }).join(""); });
+      function renderHeatMatrix(matrix, selectedCells) {
+        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], longDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], max = Math.max.apply(null, matrix.flat().concat(1)), selected = new Set(selectedCells || []);
+        var cells = '<span></span>' + Array.from({ length: 24 }, function (_, h) { var label = h === 0 ? "12a" : h < 12 ? h + "a" : h === 12 ? "12p" : (h - 12) + "p"; return '<b class="heat-hour">' + label + "</b>"; }).join("");
+        matrix.forEach(function (row, d) { cells += '<b class="heat-day">' + days[d] + "</b>" + row.map(function (n, h) { var key = d + "-" + h, pressed = selected.has(key), label = longDays[d] + " " + String(h).padStart(2, "0") + ':00 UTC: ' + n + ' incidents'; return '<button type="button" class="heat-cell' + (pressed ? " selected" : "") + '" data-heat-cell="' + key + '" aria-pressed="' + pressed + '" aria-label="' + label + '" title="' + label + '" style="--heat:' + (n / max) + '"><span>' + (n || "") + "</span></button>"; }).join(""); });
+        var status = selected.size ? '<div class="heat-filter-status" role="status"><strong>' + selected.size + ' time cell' + (selected.size === 1 ? "" : "s") + ' filtering the dashboard</strong><button type="button" data-clear-heat>Clear time filter</button></div>' : '<p class="heat-filter-hint">Select one or more cells to cross-filter the map, KPIs, charts, incident details and exports.</p>';
         var table = '<details><summary>Accessible day/hour counts</summary><table class="analysis-table"><thead><tr><th>Day</th><th>Hour (UTC)</th><th>Incidents</th></tr></thead><tbody>' + matrix.flatMap(function (row, d) { return row.map(function (n, h) { return n ? "<tr><td>" + days[d] + "</td><td>" + h + ":00</td><td>" + n + "</td></tr>" : ""; }); }).join("") + "</tbody></table></details>";
-        return '<div class="heat-matrix" role="img" aria-label="Last-seen incidents by UTC weekday and hour">' + cells + "</div>" + table;
+        return status + '<div class="heat-matrix" role="group" aria-label="Filter incidents by UTC weekday and hour">' + cells + "</div>" + table;
       }
       function comboChart(series) {
         if (!series.length) return '<p class="empty-copy">No valid last-seen timestamps in this filter.</p>';
@@ -297,13 +305,26 @@
         var featureRows = topCounts(records, function (x) { return x.kind; }, 6), assignmentRows = topCounts(assignments, function (x) { return x.status; }, 6);
         $("operationalSummary").innerHTML = '<div class="mini-kpis"><span><b>' + records.length + '</b> local features</span><span><b>' + assignments.length + '</b> local assignments</span><span><b>' + records.filter(function (x) { return x.kind === "clue"; }).length + '</b> local clues</span></div>' + (featureRows.length ? barChart(featureRows, "features") : '<p class="empty-copy">No browser-local operational records for this filter.</p>') + (assignmentRows.length ? '<h4>Assignment status</h4>' + barChart(assignmentRows, "assignments") : "");
       }
+      function renderCrossFiltered() {
+        if (!state.baseFiltered) return;
+        var generation = ++state.renderGeneration;
+        state.filtered = applyDayHourCells(state.baseFiltered, state.heatCells); state.summary = summarize(state.filtered);
+        renderList(); renderAnalytics(); refreshMap(generation);
+        if (!state.filtered.incidents.length) setPhase("empty", state.heatCells.length ? "No incidents match the selected weekday/hour cells. Select another cell or clear the time filter." : "No incidents match the active filters."); else setPhase("ready", "");
+      }
+      function toggleHeatCell(key) {
+        var index = state.heatCells.indexOf(key); if (index >= 0) state.heatCells.splice(index, 1); else state.heatCells.push(key);
+        state.heatCells.sort(); renderCrossFiltered();
+      }
       function renderAnalytics() {
         var s = state.summary, one = state.filtered.incidents.length === 1 ? state.filtered.incidents[0] : null;
         $("metricIncidents").textContent = s.incidentCount.toLocaleString(); $("metricLocated").textContent = s.locatedIncidents.toLocaleString(); $("metricRate").textContent = (s.locatedRate * 100).toFixed(0) + "%"; $("metricDuration").textContent = fmtHours(s.medianHours); $("metricActive").textContent = s.activeCount.toLocaleString();
-        $("kpiContext").textContent = one ? one.id + " · " + one.name : s.incidentCount + " filtered incidents";
+        $("kpiContext").textContent = (one ? one.id + " · " + one.name : s.incidentCount + " filtered incidents") + (state.heatCells.length ? " · " + state.heatCells.length + " time cell" + (state.heatCells.length === 1 ? "" : "s") : "");
         var timelineRows = s.timeline.map(function (x) { return [new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeZone: "UTC" }).format(x.time), x.count]; });
         $("timelineChart").innerHTML = timelineRows.length ? barChart(timelineRows, "incidents") + '<p class="chart-note">Bucket: ' + escapeHtml(s.timeline[0].unit) + '. Last-seen dates, UTC.</p>' : '<p class="empty-copy">No dated incidents in this filter.</p>';
-        $("dayHourChart").innerHTML = s.incidentCount ? renderHeatMatrix(s.matrix) : '<p class="empty-copy">No last-seen timestamps in this filter.</p>';
+        $("dayHourChart").innerHTML = state.baseSummary && state.baseSummary.incidentCount ? renderHeatMatrix(state.baseSummary.matrix, state.heatCells) : '<p class="empty-copy">No last-seen timestamps in this filter.</p>';
+        $("dayHourChart").querySelectorAll("[data-heat-cell]").forEach(function (cell) { cell.onclick = function () { toggleHeatCell(cell.dataset.heatCell); }; });
+        var clearHeat = $("dayHourChart").querySelector("[data-clear-heat]"); if (clearHeat) clearHeat.onclick = function () { state.heatCells = []; renderCrossFiltered(); };
         $("durationChart").innerHTML = s.durations.length ? '<div class="metric-line"><b>Median ' + fmtHours(s.medianHours) + '</b><span>Average ' + fmtHours(s.averageHours) + '</span></div>' + barChart(s.bins.map(function (x) { return [x.label, x.count]; }), "incidents") + '<p class="chart-note">n=' + s.durations.length + ' incidents with a non-negative last-seen → earliest Find interval. Invalid or negative intervals excluded.</p>' : '<p class="empty-copy">No valid last-seen to Find intervals.</p>';
         $("spatialSummary").innerHTML = '<div class="metric-line"><b>Median ' + (s.medianKm == null ? "—" : s.medianKm.toFixed(2) + " km") + '</b><span>Average ' + (s.averageKm == null ? "—" : s.averageKm.toFixed(2) + " km") + '</span></div><p class="chart-note">Straight-line displacement from Incident/IPP to each Find; n=' + s.displacements.length + ' located observations. Incidents and observations are distinct counts.</p><h4>Top subject categories</h4>' + (s.categories.length ? barChart(s.categories, "incidents") : '<p class="empty-copy">No categories.</p>') + '<h4>Incident statuses</h4>' + (s.statuses.length ? barChart(s.statuses, "incidents") : '<p class="empty-copy">No statuses.</p>');
         $("comboChart").innerHTML = comboChart(s.timeline);
@@ -341,12 +362,12 @@
         setPhase("loading", "Applying filters…"); setAnalyticsLoading();
         setTimeout(function () {
           if (generation !== state.renderGeneration) return;
-          state.filtered = applyFilters(state.data, filterValue()); state.summary = summarize(state.filtered); state.selectedId = $("scopeFilter").value === "all" ? null : $("scopeFilter").value;
+          state.baseFiltered = applyFilters(state.data, filterValue()); state.baseSummary = summarize(state.baseFiltered); state.filtered = applyDayHourCells(state.baseFiltered, state.heatCells); state.summary = summarize(state.filtered); state.selectedId = $("scopeFilter").value === "all" ? null : $("scopeFilter").value;
           renderList(); renderAnalytics(); refreshMap(generation);
           if (!state.filtered.incidents.length) setPhase("empty", "No incidents match the active filters. Reset filters or broaden the date range."); else setPhase("ready", "");
         }, 0);
       }
-      function reset() { $("scopeFilter").value = "all"; $("startDate").value = ""; $("endDate").value = ""; $("statusFilter").value = "all"; $("categoryFilter").value = "all"; $("periodFilter").value = "all"; $("incidentSearch").value = ""; apply(); }
+      function reset() { state.heatCells = []; $("scopeFilter").value = "all"; $("startDate").value = ""; $("endDate").value = ""; $("statusFilter").value = "all"; $("categoryFilter").value = "all"; $("periodFilter").value = "all"; $("incidentSearch").value = ""; apply(); }
       async function reload() {
         var reloadToken = ++state.renderGeneration;
         setPhase("loading", "Loading browser workspaces and hosted ArcGIS records…"); setAnalyticsLoading(); $("reloadData").disabled = true;
@@ -358,7 +379,7 @@
         state.data = loaded.data; state.hostedError = loaded.hostedError; state.localErrors = loaded.localErrors; state.freshness = Date.now(); state.source = loaded.hostedError || skipHosted ? "Browser workspaces" : "Browser + hosted ArcGIS";
         $("sourceStatus").innerHTML = '<strong>' + escapeHtml(state.source) + '</strong><span>Updated ' + escapeHtml(fmtDate(state.freshness)) + (state.hostedError ? " · Hosted query unavailable; browser-only fallback active." : "") + (loaded.localErrors.length ? " · " + loaded.localErrors.length + " malformed local workspace(s) skipped." : "") + "</span>";
         populateFilters(); $("reloadData").disabled = false;
-        if (!state.data.incidents.length) { state.filtered = state.data; state.summary = summarize(state.data); renderList(); renderAnalytics(); refreshMap(reloadToken); setPhase(loaded.hostedError ? "error" : "empty", loaded.hostedError ? "Hosted ArcGIS data is unavailable and no valid browser workspaces were found." : "No incidents are available in the selected sources."); } else apply();
+        if (!state.data.incidents.length) { state.baseFiltered = state.data; state.baseSummary = summarize(state.data); state.filtered = state.data; state.summary = state.baseSummary; renderList(); renderAnalytics(); refreshMap(reloadToken); setPhase(loaded.hostedError ? "error" : "empty", loaded.hostedError ? "Hosted ArcGIS data is unavailable and no valid browser workspaces were found." : "No incidents are available in the selected sources."); } else apply();
       }
       function selectIncident(id) {
         var incident = state.data.incidents.find(function (x) { return x.id === id; }); if (!incident) return;
@@ -385,11 +406,11 @@
         attach({ host: host("comboChart"), label: "Incident volume and cumulative timeline", filename: "sar_incident_volume", getData: function () { var series = state.summary && state.summary.timeline || []; return { rows: series.map(function (x) { return { utc_bucket: new Date(x.time).toISOString(), incident_volume: x.count, cumulative_incidents: x.cumulative, bucket_unit: x.unit }; }), features: commonFeatures() }; } });
         attach({ host: host("monthDayChart"), label: "Incident month and day matrix", filename: "sar_month_day", getData: function () { var result = state.summary && state.summary.monthDay || { matrix: [] }, months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]; return { rows: (result.matrix || []).flatMap(function (row, month) { return row.map(function (count, day) { return count == null ? null : { month_utc: months[month], day_utc: day + 1, incident_count: count }; }).filter(Boolean); }), features: commonFeatures() }; } });
       }
-      var controller = { state: state, apply: apply, reset: reset, reload: reload, selectIncident: selectIncident, setMapMode: function (mode) { var radio = document.querySelector('[name="mapMode"][value="' + mode + '"]'); if (radio) { radio.checked = true; radio.onchange(); } }, mergeData: mergeData, applyFilters: applyFilters, summarize: summarize };
+      var controller = { state: state, apply: apply, reset: reset, reload: reload, selectIncident: selectIncident, toggleHeatCell: toggleHeatCell, clearHeatFilter: function () { state.heatCells = []; renderCrossFiltered(); }, setMapMode: function (mode) { var radio = document.querySelector('[name="mapMode"][value="' + mode + '"]'); if (radio) { radio.checked = true; radio.onchange(); } }, mergeData: mergeData, applyFilters: applyFilters, summarize: summarize };
       window.__app = window.__app || {}; window.__app.analysis = controller; installDataExports();
       reload().catch(function (error) { console.error(error); $("reloadData").disabled = false; setPhase("error", "Analysis failed to load: " + error.message); });
     });
   }
   if (typeof window !== "undefined") window.addEventListener("DOMContentLoaded", initBrowser);
-  return { SERVICE_ROOT: SERVICE_ROOT, escapeHtml: escapeHtml, dateMs: dateMs, localWorkspaces: localWorkspaces, normalizeHosted: normalizeHosted, mergeData: mergeData, applyFilters: applyFilters, locationDurations: locationDurations, durationBins: durationBins, timelineBucket: timelineBucket, timeline: timeline, timelineSeries: timelineSeries, monthDayMatrix: monthDayMatrix, dayHourMatrix: dayHourMatrix, haversine: haversine, displacements: displacements, summarize: summarize, queryAll: queryAll, loadHosted: loadHosted, loadMergedData: loadMergedData };
+  return { SERVICE_ROOT: SERVICE_ROOT, escapeHtml: escapeHtml, dateMs: dateMs, localWorkspaces: localWorkspaces, normalizeHosted: normalizeHosted, mergeData: mergeData, applyFilters: applyFilters, applyDayHourCells: applyDayHourCells, locationDurations: locationDurations, durationBins: durationBins, timelineBucket: timelineBucket, timeline: timeline, timelineSeries: timelineSeries, monthDayMatrix: monthDayMatrix, dayHourMatrix: dayHourMatrix, haversine: haversine, displacements: displacements, summarize: summarize, queryAll: queryAll, loadHosted: loadHosted, loadMergedData: loadMergedData };
 });

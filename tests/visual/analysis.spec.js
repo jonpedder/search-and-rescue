@@ -73,6 +73,24 @@ test("bottom analytics band renders accessible filter-linked combo and month/day
   expect(linked).toEqual({ filtered: 1, map: 1, bars: 1, heat: 1 });
 });
 
+test("weekday-hour heat cells cross-filter the dashboard and support multi-select", async ({ page }) => {
+  await openReady(page);
+  const firstDay = new Date(Date.UTC(2025, 0, 10, 8)).getUTCDay(), secondDay = new Date(Date.UTC(2025, 0, 11, 8)).getUTCDay();
+  const first = page.locator(`[data-heat-cell="${firstDay}-8"]`), second = page.locator(`[data-heat-cell="${secondDay}-8"]`);
+  await first.click();
+  await expect(first).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#metricIncidents")).toHaveText("1");
+  await expect(page.locator("#incidentCount")).toContainText("1 visible");
+  await expect(page.locator("#comboChart .volume-bar")).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => window.__esriLayers["Incident locations"].queryFeatureCount())).toBe(1);
+  await second.click();
+  await expect(page.locator("#metricIncidents")).toHaveText("2");
+  await expect(page.locator(".heat-filter-status")).toContainText("2 time cells");
+  await page.locator("[data-clear-heat]").click();
+  await expect(page.locator("#metricIncidents")).toHaveText("2");
+  await expect(page.locator("[data-clear-heat]")).toHaveCount(0);
+});
+
 test("located heat mode uses a client FeatureLayer HeatmapRenderer", async ({ page }) => {
   await openReady(page);
   await page.locator('[name="mapMode"][value="heat"]').check();
@@ -111,7 +129,7 @@ test("analysis filter rail collapses accessibly and persists", async ({ page }, 
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(content).toBeHidden();
   await expect(page.locator("#analysisRoot")).toHaveClass(/rail-collapsed/);
-  if (!testInfo.project.name.includes("mobile")) expect(await page.locator(".analysis-left").evaluate(el => el.getBoundingClientRect().width)).toBeLessThanOrEqual(46);
+  if (!testInfo.project.name.includes("mobile")) await expect.poll(() => page.locator(".analysis-left").evaluate(el => el.getBoundingClientRect().width)).toBeLessThanOrEqual(46);
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction(() => window.__app?.analysis && window.__esriView?.ready, null, { timeout: 30000 });
   await expect(page.locator("#toggleAnalysisRail")).toHaveAttribute("aria-expanded", "false");

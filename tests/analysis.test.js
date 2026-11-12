@@ -66,6 +66,11 @@ assert.equal(A.timelineSeries(A.applyFilters(merged, { scope: "I-1" }).incidents
 const matrix = A.dayHourMatrix(merged.incidents);
 assert.equal(matrix.flat().reduce((a, b) => a + b, 0), 2);
 assert.equal(matrix[new Date(t0).getUTCDay()][10], 1);
+const mondayHour = new Date(t0).getUTCDay() + "-" + new Date(t0).getUTCHours(), secondHour = new Date(t0 + 10 * D).getUTCDay() + "-" + new Date(t0 + 10 * D).getUTCHours();
+const heatFiltered = A.applyDayHourCells(merged, [mondayHour]);
+assert.deepEqual(heatFiltered.incidents.map(x => x.id), ["I-1"], "weekday/hour selection filters incidents");
+assert(heatFiltered.keypoints.every(x => x.incidentId === "I-1") && heatFiltered.tasks.every(x => x.incidentId === "I-1"), "heat selection cross-filters linked records");
+assert.equal(A.applyDayHourCells(merged, [mondayHour, secondHour]).incidents.length, 2, "multiple heat cells are combined as an inclusive selection");
 
 const storage = {
   rows: { "sar.operations.good": JSON.stringify(local[0].data), "sar.operations.bad": "{broken", other: "{}" },
