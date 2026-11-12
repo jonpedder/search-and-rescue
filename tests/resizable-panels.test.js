@@ -32,6 +32,9 @@ for (const contract of [/setPointerCapture/, /releasePointerCapture/, /role", "s
 assert.match(css, /touch-action:none/);
 assert.match(css, /html\.sar-resizing/);
 assert.match(css, /var\(--app-accent/);
+assert.match(js, /sar-resize-indicator/);
+assert.match(js, /indicator\.textContent = "⋮"/);
+assert.match(css, /\.sar-resize-indicator\{/);
 const help = fs.readFileSync(path.join(__dirname, "../app/settings.html"), "utf8"), readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
 assert(help.includes('id="layout-guide"') && /Shift<\/strong> with an arrow/.test(help));
 assert(/double-click to reset/i.test(readme));

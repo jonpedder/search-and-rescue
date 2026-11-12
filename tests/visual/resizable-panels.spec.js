@@ -33,6 +33,7 @@ for (const definition of pages) {
       await expect(handle).toBeVisible();
       await expect(handle).toHaveAttribute("role", "separator");
       await expect(handle).toHaveAttribute("aria-orientation", "vertical");
+      await expect(handle.locator(".sar-resize-indicator")).toHaveText("⋮");
       const before = Number(await handle.getAttribute("aria-valuenow"));
       const box = await handle.boundingBox(), rightEdgePanel = id.includes("right") || id.includes("layers");
       const startX = box.x + box.width / 2, startY = box.y + Math.min(80, box.height / 2), endX = startX + (rightEdgePanel ? -30 : 30);

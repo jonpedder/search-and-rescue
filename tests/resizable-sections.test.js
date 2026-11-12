@@ -22,6 +22,9 @@ for (const contract of [/role", "separator/, /aria-orientation", "horizontal/, /
 assert.match(css, /touch-action:none/);
 assert.match(css, /row-resize/);
 assert.match(css, /max-width:1050px/);
+assert.match(js, /sar-section-resize-indicator/);
+assert.match(js, /indicator\.textContent = "⋯"/);
+assert.match(css, /\.sar-section-resize-indicator\{/);
 const analysisCss = fs.readFileSync(path.join(__dirname, "../app/analysis.css"), "utf8");
 assert.match(analysisCss, /\.combo-chart text\{[^}]*font:11px/);
 assert.match(analysisCss, /\.bar-row\{[^}]*font-size:11px/);

@@ -17,6 +17,7 @@ for (const definition of pages) {
     const handle = page.locator(`${definition.container} > [data-resize-section]`);
     await expect(handle).toHaveAttribute("role", "separator");
     await expect(handle).toHaveAttribute("aria-orientation", "horizontal");
+    await expect(handle.locator(".sar-section-resize-indicator")).toHaveText("⋯");
 
     if (testInfo.project.name.includes("mobile")) {
       await expect(handle).toBeHidden();

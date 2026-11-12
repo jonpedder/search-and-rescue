@@ -7,8 +7,8 @@
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css">
 <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/3.2.1/calcite.css">
 <link rel="stylesheet" href="./theme.css?v=20261110-7">
-<link rel="stylesheet" href="./resizable-panels.css?v=20261118-1">
-<link rel="stylesheet" href="./resizable-sections.css?v=20261120-1">
+<link rel="stylesheet" href="./resizable-panels.css?v=20261118-2">
+<link rel="stylesheet" href="./resizable-sections.css?v=20261120-2">
 <link rel="stylesheet" href="./utm-scale.css?v=20261120-3">
 <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
 <script src="https://js.arcgis.com/4.31/"></script>
@@ -51,8 +51,8 @@ body.calcite-mode-dark{--calcite-color-brand:#F2A900;--calcite-color-brand-hover
 <footer class="footer" title="SAR decision support. Validate all map data against incident command and current field intelligence.">Credits • Lost Person Behavior: <a href="https://lostpersonbehavior.com/" target="_blank" rel="noopener">Dr. Robert J. Koester</a> • Context: <a href="https://livingatlas.arcgis.com/" target="_blank" rel="noopener">ArcGIS Living Atlas</a> • Symbols: <a href="https://symbology.napsgfoundation.org/" target="_blank" rel="noopener">NAPSG Foundation Symbol Library 2.0</a></footer>
 </div>
 <script src="./sar-design.js?v=20261111-1"></script>
-<script src="./resizable-panels.js?v=20261118-1"></script>
-<script src="./resizable-sections.js?v=20261120-1"></script>
+<script src="./resizable-panels.js?v=20261118-2"></script>
+<script src="./resizable-sections.js?v=20261120-2"></script>
 <script>
 const CONFIG={portalUrl:"https://publicsafety.maps.arcgis.com",appId:localStorage.getItem("sar.oauth.appId")||localStorage.getItem("sar.synthetic.appId")||window.SARSettings?.OAUTH_CLIENT_ID||"",webMapItemId:"5bd5bbf575794e9c9565abcb20feb991",serviceRoot:"https://services6.arcgis.com/SdBwj74JF24xKhpX/arcgis/rest/services/SAR_LPB_Incident_Data/FeatureServer"};
 const SETTINGS=window.SARSettings?window.SARSettings.load():{map:{basemap:"topo-vector",centerLat:34.14,centerLon:-118.03,zoom:10,coordinateFormat:"dd"},workspace:{operationalPeriodHours:12}};

@@ -3,6 +3,8 @@
 .sar-section-resize-handle{position:absolute;z-index:22;right:0;bottom:0;left:0;height:14px;border:0;background:transparent;cursor:row-resize;touch-action:none;user-select:none;outline:0}
 .sar-section-resize-handle::before{content:"";position:absolute;right:0;bottom:6px;left:0;height:2px;background:color-mix(in srgb,var(--app-accent,var(--calcite-color-brand,#f2a900)) 48%,var(--app-border,var(--calcite-color-border-2,#28495b)));box-shadow:0 0 0 1px color-mix(in srgb,var(--app-bg,#071824) 75%,transparent);transition:background-color .12s,box-shadow .12s,height .12s}
 .sar-section-resize-handle:hover::before,.sar-section-resize-handle:focus-visible::before,.sar-section-resize-handle.is-dragging::before{bottom:5px;height:4px;background:var(--app-accent,var(--calcite-color-brand,#f2a900));box-shadow:0 0 0 2px color-mix(in srgb,var(--app-accent,var(--calcite-color-brand,#f2a900)) 24%,transparent)}
+.sar-section-resize-indicator{position:absolute;left:50%;bottom:50%;z-index:1;width:30px;height:16px;display:grid;place-items:center;transform:translate(-50%,50%);border:1px solid var(--app-border,var(--calcite-color-border-2,#28495b));border-radius:8px;background:var(--app-panel-2,var(--calcite-color-foreground-2,#123247));color:var(--app-muted,var(--calcite-color-text-3,#afc3cf));font:700 15px/1 Arial,sans-serif;pointer-events:none;box-shadow:0 2px 6px #0006;transition:color .12s,border-color .12s,background-color .12s}
+.sar-section-resize-handle:hover .sar-section-resize-indicator,.sar-section-resize-handle:focus-visible .sar-section-resize-indicator,.sar-section-resize-handle.is-dragging .sar-section-resize-indicator{color:var(--app-accent,var(--calcite-color-brand,#f2a900));border-color:var(--app-accent,var(--calcite-color-brand,#f2a900));background:var(--app-panel-3,var(--calcite-color-foreground-3,#173d55))}
 .sar-section-resize-handle:focus-visible{outline:2px solid var(--calcite-color-focus,#8bd3ff);outline-offset:-3px}
 .sar-section-resize-handle[hidden]{display:none!important}
 html.sar-resizing-vertical,html.sar-resizing-vertical *{cursor:row-resize!important}
@@ -10,4 +12,4 @@ html.sar-resizing-vertical{user-select:none!important}
 @media(max-width:1050px){.analysis-workspace .sar-section-resize-handle{display:none!important}}
 @media(max-width:900px){#body>.panel .sar-section-resize-handle{display:none!important}}
 @media(max-width:860px){#panel .sar-section-resize-handle{display:none!important}}
-@media(forced-colors:active){.sar-section-resize-handle::before{background:ButtonText}.sar-section-resize-handle:focus-visible::before{background:Highlight}}
+@media(forced-colors:active){.sar-section-resize-handle::before{background:ButtonText}.sar-section-resize-handle:focus-visible::before{background:Highlight}.sar-section-resize-indicator{border-color:ButtonText;background:Canvas;color:ButtonText}.sar-section-resize-handle:focus-visible .sar-section-resize-indicator{border-color:Highlight;color:Highlight}}

@@ -109,6 +109,11 @@
     handle.setAttribute("aria-orientation", "vertical");
     handle.setAttribute("aria-label", config.label);
     handle.title = "Drag to resize; double-click to reset";
+    const indicator = document.createElement("span");
+    indicator.className = "sar-resize-indicator";
+    indicator.setAttribute("aria-hidden", "true");
+    indicator.textContent = "⋮";
+    handle.appendChild(indicator);
     panel.appendChild(handle);
     const instance = { config, panel, variableTarget, handle, width: storageRead(config), active: false, dragging: false, startX: 0, startWidth: 0, classObserver: null };
     instances.set(config.id, instance);

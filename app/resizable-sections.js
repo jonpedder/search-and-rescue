@@ -111,6 +111,11 @@
     handle.setAttribute("aria-orientation", "horizontal");
     handle.setAttribute("aria-label", `Resize ${label} section`);
     handle.title = "Drag to resize section; double-click to fit content";
+    const indicator = document.createElement("span");
+    indicator.className = "sar-section-resize-indicator";
+    indicator.setAttribute("aria-hidden", "true");
+    indicator.textContent = "⋯";
+    handle.appendChild(indicator);
     element.appendChild(handle);
     const instance = { group, element, handle, key, height: null, active: false, dragging: false, startY: 0, startHeight: 0 };
     instances.set(key, instance);

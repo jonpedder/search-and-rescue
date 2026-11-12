@@ -6,6 +6,8 @@
 .sar-resize-handle--right{left:0}
 .sar-resize-handle::before{content:"";position:absolute;top:0;bottom:0;left:6px;width:2px;background:color-mix(in srgb,var(--app-accent,var(--calcite-color-brand,#F2A900)) 48%,var(--app-border,var(--calcite-color-border-2,#28495B)));box-shadow:0 0 0 1px color-mix(in srgb,var(--app-bg,#071824) 75%,transparent);transition:background-color .12s,box-shadow .12s,width .12s}
 .sar-resize-handle:hover::before,.sar-resize-handle:focus-visible::before,.sar-resize-handle.is-dragging::before{left:5px;width:4px;background:var(--app-accent,var(--calcite-color-brand,#F2A900));box-shadow:0 0 0 2px color-mix(in srgb,var(--app-accent,var(--calcite-color-brand,#F2A900)) 24%,transparent)}
+.sar-resize-indicator{position:absolute;top:50%;left:50%;z-index:1;width:16px;padding:9px 0;transform:translate(-50%,-50%);border:1px solid var(--app-border,var(--calcite-color-border-2,#28495B));border-radius:8px;background:var(--app-panel-2,var(--calcite-color-foreground-2,#123247));color:var(--app-muted,var(--calcite-color-text-3,#AFC3CF));font:700 15px/1 Arial,sans-serif;text-align:center;pointer-events:none;box-shadow:0 2px 6px #0006;transition:color .12s,border-color .12s,background-color .12s}
+.sar-resize-handle:hover .sar-resize-indicator,.sar-resize-handle:focus-visible .sar-resize-indicator,.sar-resize-handle.is-dragging .sar-resize-indicator{color:var(--app-accent,var(--calcite-color-brand,#F2A900));border-color:var(--app-accent,var(--calcite-color-brand,#F2A900));background:var(--app-panel-3,var(--calcite-color-foreground-3,#173D55))}
 .sar-resize-handle:focus-visible{outline:2px solid var(--calcite-color-focus,#8BD3FF);outline-offset:-3px}
 .sar-resize-handle[hidden]{display:none!important}
 html.sar-resizing,html.sar-resizing *{cursor:col-resize!important}
@@ -15,4 +17,4 @@ html.sar-resizing{user-select:none!important}
 @media(max-width:650px){.analysis-left>.sar-resize-handle,.analysis-right>.sar-resize-handle{display:none!important}}
 @media(max-width:1050px){.analysis-right>.sar-resize-handle{display:none!important}}
 @media(max-width:720px){.help-nav>.sar-resize-handle{display:none!important}}
-@media(forced-colors:active){.sar-resize-handle::before{background:ButtonText}.sar-resize-handle:focus-visible::before{background:Highlight}}
+@media(forced-colors:active){.sar-resize-handle::before{background:ButtonText}.sar-resize-handle:focus-visible::before{background:Highlight}.sar-resize-indicator{border-color:ButtonText;background:Canvas;color:ButtonText}.sar-resize-handle:focus-visible .sar-resize-indicator{border-color:Highlight;color:Highlight}}
