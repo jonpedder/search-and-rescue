@@ -15,9 +15,6 @@
   }
   var page = location.pathname.split("/").pop() || "index.html";
   var reports = document.getElementById("sarReportsControl");
-  var demoVideo = document.createElement("calcite-button");
-  demoVideo.id = "sarDemoVideoNav"; demoVideo.setAttribute("href", "https://esriis-my.sharepoint.com/:v:/g/personal/jon7912_esri_com/IQD3yIgjork4Qpe3uGzMVFjKAUW1K0k91wjO7UQ6ncmgj2s?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=XHahHP");
-  demoVideo.setAttribute("target", "_blank"); demoVideo.setAttribute("rel", "noopener"); demoVideo.setAttribute("appearance", "outline-fill"); demoVideo.setAttribute("kind", "brand"); demoVideo.setAttribute("scale", "m"); demoVideo.setAttribute("icon-start", "video"); demoVideo.setAttribute("title", "Demo Video - Esri Access"); demoVideo.setAttribute("aria-label", "Demo Video - Esri Access (opens in a new tab)"); demoVideo.textContent = "Demo Video - Esri Access";
   var planning = nav("sarPlanningNav", "./index.html", "analysis", "SAR Planning");
   var operations = nav("sarOperationsNav", "./operations.html", "map-pin", "SAR Operations");
   var operationsReports = null;
@@ -38,7 +35,7 @@
   copy.innerHTML = '<strong>' + (appSettings?.branding?.appName || "Search & Rescue") + '</strong><span>' + (appSettings?.branding?.subtitle || "Lost Person Behavior Workbench") + '</span>';
   brand.append(shield, copy);
   var primary = document.createElement("nav"); primary.className = "sar-primary-nav"; primary.setAttribute("aria-label", "Primary navigation");
-  [reports, demoVideo, planning, operations, operationsReports, analysis].forEach(function (el) { if (el) primary.appendChild(el); });
+  [reports, planning, operations, operationsReports, analysis].forEach(function (el) { if (el) primary.appendChild(el); });
   if (!session) { session = document.createElement("div"); session.id = "sarSessionArea"; session.className = "sar-session-area"; }
   session.classList.add("sar-session-nav"); session.appendChild(settings);
   var filterBar = null;

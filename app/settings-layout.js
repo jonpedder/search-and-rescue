@@ -14,7 +14,8 @@
   tabsWrap.innerHTML = '<nav id="settingsTabs" class="sar-settings-tabs" role="tablist" aria-label="Settings sections">' +
     '<button id="preferencesTab" class="sar-settings-tab active" type="button" role="tab" aria-selected="true" aria-controls="preferencesPanel">Settings</button>' +
     '<button id="configurationTab" class="sar-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="configurationPanel">Configuration</button>' +
-    '<button id="helpTab" class="sar-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="helpPanel">Help &amp; How-to</button></nav>';
+    '<button id="helpTab" class="sar-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="helpPanel">Help &amp; How-to</button>' +
+    '<a id="demoVideoTab" class="sar-settings-tab sar-settings-external" href="https://esriis-my.sharepoint.com/:v:/g/personal/jon7912_esri_com/IQD3yIgjork4Qpe3uGzMVFjKAUW1K0k91wjO7UQ6ncmgj2s?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&amp;e=XHahHP" target="_blank" rel="noopener" aria-label="Demo Video - Esri Access (opens in a new browser tab)">Demo Video - Esri Access ↗</a></nav>';
 
   var configPanel = document.createElement("section"); configPanel.id = "configurationPanel"; configPanel.className = "panel sar-configuration-panel"; configPanel.hidden = true; configPanel.setAttribute("role", "tabpanel"); configPanel.setAttribute("aria-labelledby", "configurationTab");
   configPanel.innerHTML = '<div class="intro"><h2>Deployment configuration</h2><p>Review ArcGIS connections, authentication, layer assignments and test-data administration.</p></div>' +
@@ -66,7 +67,7 @@
   function select(name) {
     var panels = { settings: oldPanel, configuration: configPanel, help: helpPanel };
     Object.keys(panels).forEach(function (key) { panels[key].hidden = key !== name; });
-    Array.from(document.querySelectorAll(".sar-settings-tab")).forEach(function (button) {
+    Array.from(document.querySelectorAll('.sar-settings-tab[role="tab"]')).forEach(function (button) {
       var active = button.id === (name === "settings" ? "preferencesTab" : name + "Tab");
       button.classList.toggle("active", active); button.setAttribute("aria-selected", String(active)); button.tabIndex = active ? 0 : -1;
     });
@@ -76,7 +77,7 @@
       target.setAttribute("tabindex", "-1"); target.scrollIntoView({ block: "start" }); target.focus({ preventScroll: true });
     });
   }
-  document.querySelectorAll(".sar-settings-tab").forEach(function (button) { button.onclick = function () {
+  document.querySelectorAll('.sar-settings-tab[role="tab"]').forEach(function (button) { button.onclick = function () {
     var name = button.id === "preferencesTab" ? "settings" : button.id.replace("Tab", ""), hash = "#" + name;
     if (location.hash === hash) select(name); else location.hash = hash;
   }; });
