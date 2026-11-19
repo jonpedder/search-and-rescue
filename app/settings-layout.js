@@ -15,12 +15,17 @@
     '<button id="preferencesTab" class="sar-settings-tab active" type="button" role="tab" aria-selected="true" aria-controls="preferencesPanel">Settings</button>' +
     '<button id="configurationTab" class="sar-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="configurationPanel">Configuration</button>' +
     '<button id="helpTab" class="sar-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="helpPanel">Help &amp; How-to</button>' +
-    '<a id="demoVideoTab" class="sar-settings-tab sar-settings-external" href="https://esriis-my.sharepoint.com/:v:/g/personal/jon7912_esri_com/IQD3yIgjork4Qpe3uGzMVFjKAUW1K0k91wjO7UQ6ncmgj2s?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&amp;e=XHahHP" target="_blank" rel="noopener" aria-label="Demo Video - Esri Access (opens in a new browser tab)">Demo Video - Esri Access ↗</a></nav>';
+    '<button id="demoVideoTab" class="sar-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="demoVideoPanel">Demo Video</button></nav>';
 
   var configPanel = document.createElement("section"); configPanel.id = "configurationPanel"; configPanel.className = "panel sar-configuration-panel"; configPanel.hidden = true; configPanel.setAttribute("role", "tabpanel"); configPanel.setAttribute("aria-labelledby", "configurationTab");
   configPanel.innerHTML = '<div class="intro"><h2>Deployment configuration</h2><p>Review ArcGIS connections, authentication, layer assignments and test-data administration.</p></div>' +
     '<div class="sar-config-callout"><strong>Browser-local overrides:</strong> The OAuth client ID and generated test-data controls use this browser. OAuth tokens and secrets are never stored in application settings.</div>';
   main.insertBefore(configPanel, helpPanel);
+
+  var demoVideoPanel = document.createElement("section"); demoVideoPanel.id = "demo-video-guide"; demoVideoPanel.className = "panel sar-demo-video-panel"; demoVideoPanel.hidden = true; demoVideoPanel.setAttribute("role", "tabpanel"); demoVideoPanel.setAttribute("aria-labelledby", "demoVideoTab");
+  demoVideoPanel.innerHTML = '<div class="intro"><h2>Demo Video - Esri Access</h2><p>Watch the internal demonstration of the Search &amp; Rescue planning, operations and analysis workflow.</p></div>' +
+    '<section class="card help-card"><h2>Search &amp; Rescue demonstration</h2><p>The video is hosted in Esri Microsoft 365 and may require an authorized Esri account.</p><p><a id="demoVideoLink" href="https://esriis-my.sharepoint.com/:v:/g/personal/jon7912_esri_com/IQD3yIgjork4Qpe3uGzMVFjKAUW1K0k91wjO7UQ6ncmgj2s?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&amp;e=XHahHP" target="_blank" rel="noopener"><strong>Open Demo Video - Esri Access ↗</strong></a></p></section>';
+  main.insertBefore(demoVideoPanel, helpPanel);
 
   function cardBySummary(text) { return Array.from(oldPanel.querySelectorAll("details.card")).find(function (card) { return card.querySelector("summary")?.textContent.trim() === text; }); }
   var arcgis = cardBySummary("ArcGIS configuration"), auth = document.getElementById("arcgisAuthCard"), synthetic = document.getElementById("syntheticDataCard");
@@ -62,10 +67,11 @@
     var hash = location.hash || "#settings", id = hash.slice(1), target = id && document.getElementById(id);
     if (hash === "#help" || target && helpPanel.contains(target)) return "help";
     if (hash === "#configuration" || hash === "#arcgis-auth" || target && configPanel.contains(target)) return "configuration";
+    if (hash === "#demo-video-guide" || target && demoVideoPanel.contains(target)) return "demoVideo";
     return "settings";
   }
   function select(name) {
-    var panels = { settings: oldPanel, configuration: configPanel, help: helpPanel };
+    var panels = { settings: oldPanel, configuration: configPanel, help: helpPanel, demoVideo: demoVideoPanel };
     Object.keys(panels).forEach(function (key) { panels[key].hidden = key !== name; });
     Array.from(document.querySelectorAll('.sar-settings-tab[role="tab"]')).forEach(function (button) {
       var active = button.id === (name === "settings" ? "preferencesTab" : name + "Tab");
@@ -78,7 +84,7 @@
     });
   }
   document.querySelectorAll('.sar-settings-tab[role="tab"]').forEach(function (button) { button.onclick = function () {
-    var name = button.id === "preferencesTab" ? "settings" : button.id.replace("Tab", ""), hash = "#" + name;
+    var name = button.id === "preferencesTab" ? "settings" : button.id.replace("Tab", ""), hash = name === "demoVideo" ? "#demo-video-guide" : "#" + name;
     if (location.hash === hash) select(name); else location.hash = hash;
   }; });
   window.addEventListener("hashchange", function () { select(routeFromHash()); });

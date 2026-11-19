@@ -15,6 +15,8 @@ assert.match(help, /doc\.addImage/);
 for (const id of ["planning-guide", "operations-overview-guide", "analysis-guide"]) assert(settings.includes(`id="${id}"`), `${id} section must exist`);
 assert.doesNotMatch(settings, /demo-video-guide/, "the video is no longer duplicated in Help");
 assert.match(settingsLayout, /id=\"demoVideoTab\"/);
+assert.match(settingsLayout, /demoVideoPanel\.id = \"demo-video-guide\"/);
+assert.match(settingsLayout, /#demo-video-guide/);
 assert.match(settingsLayout, /Demo Video - Esri Access/);
 assert.match(settingsLayout, /esriis-my\.sharepoint\.com/);
 for (const current of ["Assignment &amp; Asset Design", "Edit Map, Assignments, Resources and Reports", "Clear time filter", "CSV, JSON"]) assert(settings.includes(current), `current interface help missing: ${current}`);
