@@ -19,6 +19,8 @@ assert.match(settingsLayout, /demoVideoPanel\.id = \"demo-video-guide\"/);
 assert.match(settingsLayout, /#demo-video-guide/);
 assert.match(settingsLayout, /Demo Video - Esri Access/);
 assert.match(settingsLayout, /esriis-my\.sharepoint\.com/);
+assert.match(settingsLayout, /IQC7L3b8QKFPTqnlHY03JyY0AerYl2OEOUsfiePfZ1XtRxI/);
+assert.doesNotMatch(settingsLayout, /IQD3yIgjork4Qpe3uGzMVFjKAUW1K0k91wjO7UQ6ncmgj2s/);
 for (const current of ["Assignment &amp; Asset Design", "Edit Map, Assignments, Resources and Reports", "Clear time filter", "CSV, JSON"]) assert(settings.includes(current), `current interface help missing: ${current}`);
 assert.match(help, /analysis-overview\.png/);
 for (const name of ["planning-overview.png", "operations-overview.png", "analysis-overview.png", "settings-overview.png"]) {
