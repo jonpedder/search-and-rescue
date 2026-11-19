@@ -11,7 +11,9 @@ assert.match(help, /helpVisualWalkthroughs/);
 assert.match(help, /help-pointer/);
 assert.match(help, /jspdf/);
 assert.match(help, /doc\.addImage/);
-for (const id of ["planning-guide", "operations-overview-guide", "analysis-guide"]) assert(settings.includes(`id="${id}"`), `${id} section must exist`);
+for (const id of ["planning-guide", "operations-overview-guide", "analysis-guide", "demo-video-guide"]) assert(settings.includes(`id="${id}"`), `${id} section must exist`);
+assert.match(settings, /Open Demo Video - Esri Access/);
+assert.match(settings, /esriis-my\.sharepoint\.com/);
 for (const current of ["Assignment &amp; Asset Design", "Edit Map, Assignments, Resources and Reports", "Clear time filter", "CSV, JSON"]) assert(settings.includes(current), `current interface help missing: ${current}`);
 assert.match(help, /analysis-overview\.png/);
 for (const name of ["planning-overview.png", "operations-overview.png", "analysis-overview.png", "settings-overview.png"]) {

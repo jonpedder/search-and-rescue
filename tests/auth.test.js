@@ -13,7 +13,9 @@ for (const page of ["index.html", "operations.html", "analysis.html", "settings.
   assert.match(html, /<script src="\.\/header-nav\.js(?:\?v=[^"]+)?"><\/script>/, `${page} must normalize header order`);
 }
 const headerNav = fs.readFileSync(path.join(app, "header-nav.js"), "utf8");
-for (const id of ["sarReportsControl", "sarPlanningNav", "sarOperationsNav", "sarAnalysisNav", "sarSessionArea", "sarSettingsNav"]) assert.ok(headerNav.includes(id));
+for (const id of ["sarReportsControl", "sarDemoVideoNav", "sarPlanningNav", "sarOperationsNav", "sarAnalysisNav", "sarSessionArea", "sarSettingsNav"]) assert.ok(headerNav.includes(id));
+assert.match(headerNav, /Demo Video - Esri Access/);
+assert.match(headerNav, /esriis-my\.sharepoint\.com/);
 for (const cls of ["sar-unified-header", "sar-brand", "sar-primary-nav", "sar-session-nav", "sar-header-filters"]) assert.ok(headerNav.includes(cls));
 for (const id of ["sarIncidentFilter", "sarPeriodFilter", "sarExtentFilter", "sarFindIncidents", "sarApplyFilters"]) assert.ok(headerNav.includes(id));
 const operations = fs.readFileSync(path.join(app, "operations.html"), "utf8");
